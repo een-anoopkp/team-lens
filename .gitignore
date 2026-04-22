@@ -11,5 +11,8 @@ apps-script/*/.clasp.json
 .vscode/
 .idea/
 
+# Claude Code workspace artifacts (auto-symlinked skills, etc.)
+.claude/
+
 # Node junk if anything pulls in deps later
 node_modules/
