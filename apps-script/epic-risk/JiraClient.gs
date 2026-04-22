@@ -94,13 +94,30 @@ function jiraRequest_(method, path, body) {
     options.payload = JSON.stringify(body);
   }
 
-  const response = UrlFetchApp.fetch(url, options);
-  const code = response.getResponseCode();
-  if (code < 200 || code >= 300) {
-    throw new Error('Jira ' + code + ' on ' + method.toUpperCase() + ' ' + path +
-      ': ' + response.getContentText().slice(0, 500));
+  const maxAttempts = 5;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const response = UrlFetchApp.fetch(url, options);
+    const code = response.getResponseCode();
+    if (code >= 200 && code < 300) {
+      return JSON.parse(response.getContentText());
+    }
+
+    const bodyText = response.getContentText();
+    const retryable = code === 429 || code === 503 || /bandwidth|quota|rate limit/i.test(bodyText);
+    if (!retryable || attempt === maxAttempts) {
+      throw new Error('Jira ' + code + ' on ' + method.toUpperCase() + ' ' + path +
+        ': ' + bodyText.slice(0, 500));
+    }
+
+    // Respect server-directed Retry-After if present; else exponential 2^attempt seconds.
+    const headers = response.getHeaders() || {};
+    const retryAfterHdr = headers['Retry-After'] || headers['retry-after'];
+    const retryAfterSec = Number(retryAfterHdr);
+    const waitSec = (retryAfterSec > 0) ? retryAfterSec : Math.pow(2, attempt);
+    console.log('Jira ' + code + ' on ' + path + ' (attempt ' + attempt + '/' +
+      maxAttempts + '); backing off ' + waitSec + 's');
+    Utilities.sleep(waitSec * 1000);
   }
-  return JSON.parse(response.getContentText());
 }
 
 /**
@@ -113,6 +130,7 @@ function searchJql(jql, fields) {
   let page = 0;
   const maxPages = 50;  // guard against runaway loops
   do {
+    if (page > 0) Utilities.sleep(300);  // gentle on Jira's per-minute rate limiter
     const body = { jql: jql, fields: fields, maxResults: 100 };
     if (nextPageToken) body.nextPageToken = nextPageToken;
     const resp = jiraPost('/rest/api/3/search/jql', body);
