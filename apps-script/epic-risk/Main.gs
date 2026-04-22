@@ -17,9 +17,7 @@ function onOpen() {
     .addToUi();
 }
 
-function refreshFromJira() {
-  SpreadsheetApp.getUi().alert('refreshFromJira: not implemented yet');
-}
+// refreshFromJira is defined in Aggregator.gs.
 
 function exportCsvs() {
   SpreadsheetApp.getUi().alert('exportCsvs: not implemented yet');

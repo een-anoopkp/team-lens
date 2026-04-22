@@ -59,6 +59,17 @@ function testJiraAuth() {
  * Throws on non-2xx with a truncated body for diagnosis.
  */
 function jiraGet(path) {
+  return jiraRequest_('get', path, null);
+}
+
+/**
+ * POST JSON to a Jira REST path and return parsed JSON.
+ */
+function jiraPost(path, body) {
+  return jiraRequest_('post', path, body);
+}
+
+function jiraRequest_(method, path, body) {
   const props = PropertiesService.getUserProperties();
   const email = props.getProperty(JIRA_EMAIL_KEY);
   const token = props.getProperty(JIRA_TOKEN_KEY);
@@ -70,18 +81,74 @@ function jiraGet(path) {
   if (!baseUrl) throw new Error('Config.jira_base_url is empty.');
 
   const url = baseUrl.replace(/\/$/, '') + path;
-  const authHeader = 'Basic ' + Utilities.base64Encode(email + ':' + token);
-  const response = UrlFetchApp.fetch(url, {
-    method: 'get',
-    headers: { Authorization: authHeader, Accept: 'application/json' },
+  const options = {
+    method: method,
+    headers: {
+      Authorization: 'Basic ' + Utilities.base64Encode(email + ':' + token),
+      Accept: 'application/json'
+    },
     muteHttpExceptions: true
-  });
+  };
+  if (body !== null && body !== undefined) {
+    options.contentType = 'application/json';
+    options.payload = JSON.stringify(body);
+  }
+
+  const response = UrlFetchApp.fetch(url, options);
   const code = response.getResponseCode();
   if (code < 200 || code >= 300) {
-    throw new Error('Jira ' + code + ' on ' + path + ': ' +
-      response.getContentText().slice(0, 500));
+    throw new Error('Jira ' + code + ' on ' + method.toUpperCase() + ' ' + path +
+      ': ' + response.getContentText().slice(0, 500));
   }
   return JSON.parse(response.getContentText());
+}
+
+/**
+ * Paginated search via /rest/api/3/search/jql (Jira Cloud's current API;
+ * the legacy /search is deprecated). Returns all matching issues.
+ */
+function searchJql(jql, fields) {
+  const all = [];
+  let nextPageToken = null;
+  let page = 0;
+  const maxPages = 50;  // guard against runaway loops
+  do {
+    const body = { jql: jql, fields: fields, maxResults: 100 };
+    if (nextPageToken) body.nextPageToken = nextPageToken;
+    const resp = jiraPost('/rest/api/3/search/jql', body);
+    if (resp.issues && resp.issues.length) all.push.apply(all, resp.issues);
+    nextPageToken = resp.nextPageToken || null;
+    page++;
+    if (page > maxPages) {
+      throw new Error('searchJql exceeded ' + maxPages + ' pages — JQL: ' + jql);
+    }
+  } while (nextPageToken);
+  return all;
+}
+
+/**
+ * Resolve a Jira custom field by human-readable name. Accepts an array of
+ * candidate names and returns the first match. Cached for 1 hour.
+ */
+function getCustomFieldId(nameCandidates) {
+  const names = Array.isArray(nameCandidates) ? nameCandidates : [nameCandidates];
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'field:' + names.join('|');
+  const cached = cache.get(cacheKey);
+  if (cached) return cached;
+
+  const fields = jiraGet('/rest/api/3/field');
+  for (const name of names) {
+    const found = fields.find(f => f.name && f.name.toLowerCase() === name.toLowerCase());
+    if (found) {
+      cache.put(cacheKey, found.id, 3600);
+      console.log('Resolved custom field "' + name + '" -> ' + found.id);
+      return found.id;
+    }
+  }
+  const customNames = fields.filter(f => f.custom).map(f => f.name).slice(0, 40);
+  throw new Error('No custom field matched any of: ' + names.join(', ') +
+    '. Available (first 40): ' + customNames.join(', '));
 }
 
 /**
