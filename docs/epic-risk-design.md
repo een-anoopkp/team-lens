@@ -211,7 +211,7 @@ Both dashboards follow the same stack and the same surface conventions. Fixing t
 ## Known limitations
 
 - `startOfQuarter()` / `endOfQuarter()` unsupported — quarterly manual edit of Filter 1.
-- Child tickets on other teams sharing a parent epic would still be counted. Acceptable given current team structure.
+- Child tickets whose `cf[10500]` team field is unset (not assigned to any team) are now dropped from the pipeline. This is the trade-off for strict team attribution — cross-team tickets were polluting the sprint set. A ticket under a Search epic but with an empty team field won't show up in SP done / WIP counts until its team is set.
 - Sprint boundaries use Jira sprint names from the Search team's board; cross-team sprints would need disambiguation.
 - Bugfix umbrella epics will routinely trip scope-explosion 🟡/🔴. Signal, not noise — intentional.
 

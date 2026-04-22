@@ -32,7 +32,7 @@ function refreshFromJira() {
       return;
     }
 
-    const tickets = fetchTickets_(epics.map(e => e.key), spField, sprintField);
+    const tickets = fetchTickets_(epics.map(e => e.key), spField, sprintField, cfg);
     const agg = aggregate_(epics, tickets, cfg);
 
     writeEpics_(agg.epicRows);
@@ -100,10 +100,16 @@ function fetchEpics_(cfg) {
   }));
 }
 
-function fetchTickets_(epicKeys, spField, sprintField) {
+function fetchTickets_(epicKeys, spField, sprintField, cfg) {
   if (epicKeys.length === 0) return [];
   const quoted = epicKeys.map(k => '"' + k + '"').join(',');
-  const jql = 'parent in (' + quoted + ')';
+  // Filter to the team's own tickets at the JQL layer. The design doc
+  // used to accept cross-team child tickets as an intentional limitation;
+  // in practice they polluted the sprint set with other teams' sprints,
+  // so we tighten here.
+  const jql =
+    'parent in (' + quoted + ') ' +
+    'AND cf[10500] = "' + cfg.team_id + '"';
   const fields = [
     'summary', 'status', 'assignee', 'created', 'updated',
     'resolutiondate', 'parent', spField, sprintField
