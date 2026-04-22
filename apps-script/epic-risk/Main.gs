@@ -37,6 +37,7 @@ function initializeSheet() {
       ['quarter_end', '2026-06-30', 'ISO date, edit each quarter'],
       ['team_id', '02623aed-f05b-4acd-8187-7932552722de-28', 'cf[10500] value'],
       ['jira_base_url', 'https://eagleeyenetworks.atlassian.net', ''],
+      ['sprint_name_prefix', 'Search ', 'Only count sprints whose name starts with this. Empty = include all non-future sprints.'],
       ['threshold_throughput_yellow', '0.8', 'last sprint ÷ prior-3 avg'],
       ['threshold_throughput_red', '0.5', ''],
       ['threshold_scope_yellow', '0.5', '14-day added ÷ closed'],

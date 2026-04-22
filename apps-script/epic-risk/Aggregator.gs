@@ -132,6 +132,7 @@ function fetchTickets_(epicKeys, spField, sprintField) {
 
 function aggregate_(epics, tickets, cfg) {
   const now = new Date();
+  const sprintPrefix = (cfg.sprint_name_prefix == null ? 'Search ' : String(cfg.sprint_name_prefix));
   const byEpic = new Map();
   for (const e of epics) {
     byEpic.set(e.key, {
@@ -152,10 +153,14 @@ function aggregate_(epics, tickets, cfg) {
     const hasSp = typeof t.story_points === 'number' && !isNaN(t.story_points);
 
     if (t.status_category === 'Done') {
-      a.tickets_done++;
-      a.sp_done += sp;
-      const closing = pickClosingSprint_(t.sprints, t.resolutiondate);
+      // Team-delivery semantics: only count a Done ticket if it closed in
+      // one of our own sprints (prefix match). A ticket parented on a Search
+      // epic but closed inside an Events / CV sprint was delivered by that
+      // team's capacity, not ours, so it doesn't add to Search SP done.
+      const closing = pickClosingSprint_(t.sprints, t.resolutiondate, sprintPrefix);
       if (closing) {
+        a.tickets_done++;
+        a.sp_done += sp;
         const prev = a.sprint_sp_closed.get(closing.name) || { endDate: closing.endDate, sp: 0 };
         prev.sp += sp;
         if (!prev.endDate && closing.endDate) prev.endDate = closing.endDate;
@@ -224,13 +229,21 @@ function aggregate_(epics, tickets, cfg) {
 
 /**
  * Pick the sprint in which a ticket closed, returning { name, endDate }.
- * Drops future-state sprints — tickets don't close in sprints that haven't
- * started. Within the remaining set, prefers the sprint whose endDate is
- * closest to the resolution date; falls back to the last eligible sprint.
+ * Drops future-state sprints and (when namePrefix is non-empty) sprints
+ * whose name doesn't start with the prefix — this is how we restrict to
+ * our own team's sprints even when tickets travelled through other
+ * teams' boards. Within the remaining set, prefers the sprint whose
+ * endDate is closest to the resolution date; falls back to the last
+ * eligible sprint.
  */
-function pickClosingSprint_(sprints, resolutiondateIso) {
+function pickClosingSprint_(sprints, resolutiondateIso, namePrefix) {
   if (!sprints || sprints.length === 0) return null;
-  const eligible = sprints.filter(s => s && s.name && s.state !== 'future');
+  const prefixLower = (namePrefix || '').toLowerCase();
+  const eligible = sprints.filter(s => {
+    if (!s || !s.name || s.state === 'future') return false;
+    if (prefixLower && !s.name.toLowerCase().startsWith(prefixLower)) return false;
+    return true;
+  });
   if (eligible.length === 0) return null;
 
   if (resolutiondateIso) {
