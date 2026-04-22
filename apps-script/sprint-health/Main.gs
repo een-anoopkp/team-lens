@@ -9,6 +9,9 @@ function onOpen() {
     .createMenu('Sprint Health')
     .addItem('Initialize Sheet', 'initializeSheet')
     .addSeparator()
+    .addItem('Set Jira Token', 'setJiraToken')
+    .addItem('Test Jira auth', 'testJiraAuth')
+    .addSeparator()
     .addItem('Refresh from Jira', 'refreshFromJira')
     .addItem('Export CSVs', 'exportCsvs')
     .addToUi();
@@ -36,7 +39,7 @@ function initializeSheet() {
     Config: [
       ['key', 'value', 'notes'],
       ['team_id', '02623aed-f05b-4acd-8187-7932552722de-28', 'cf[10500] value'],
-      ['jira_base_url', 'https://een.atlassian.net', ''],
+      ['jira_base_url', 'https://eagleeyenetworks.atlassian.net', ''],
       ['leave_sheet_id', '', 'ID of the existing Leave sheet (external)'],
       ['sprint_ids_last6', '', 'comma-separated Jira sprint IDs, newest last'],
       ['sprint_working_days_default', '10', 'working-days per sprint if not overridden'],

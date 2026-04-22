@@ -9,6 +9,9 @@ function onOpen() {
     .createMenu('Epic Risk')
     .addItem('Initialize Sheet', 'initializeSheet')
     .addSeparator()
+    .addItem('Set Jira Token', 'setJiraToken')
+    .addItem('Test Jira auth', 'testJiraAuth')
+    .addSeparator()
     .addItem('Refresh from Jira', 'refreshFromJira')
     .addItem('Export CSVs', 'exportCsvs')
     .addToUi();
@@ -35,7 +38,7 @@ function initializeSheet() {
       ['quarter_start', '2026-04-01', 'ISO date, edit each quarter'],
       ['quarter_end', '2026-06-30', 'ISO date, edit each quarter'],
       ['team_id', '02623aed-f05b-4acd-8187-7932552722de-28', 'cf[10500] value'],
-      ['jira_base_url', 'https://een.atlassian.net', ''],
+      ['jira_base_url', 'https://eagleeyenetworks.atlassian.net', ''],
       ['threshold_throughput_yellow', '0.8', 'last sprint ÷ prior-3 avg'],
       ['threshold_throughput_red', '0.5', ''],
       ['threshold_scope_yellow', '0.5', '14-day added ÷ closed'],
