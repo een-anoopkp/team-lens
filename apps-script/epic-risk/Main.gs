@@ -14,14 +14,14 @@ function onOpen() {
     .addSeparator()
     .addItem('Refresh from Jira', 'refreshFromJira')
     .addItem('Export CSVs', 'exportCsvs')
+    .addSeparator()
+    .addItem('Install daily trigger', 'installDailyTrigger')
+    .addItem('Remove daily trigger', 'removeDailyTrigger')
     .addToUi();
 }
 
 // refreshFromJira is defined in Aggregator.gs.
-
-function exportCsvs() {
-  SpreadsheetApp.getUi().alert('exportCsvs: not implemented yet');
-}
+// exportCsvs is defined in Export.gs.
 
 /**
  * Create the tab skeleton per docs/epic-risk-design.md.
