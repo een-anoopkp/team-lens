@@ -107,14 +107,10 @@ function renderHero(epics, history) {
   const totalSp = epics.reduce((s, e) => s + num(e.sp_done), 0);
   document.getElementById('hero-stat').textContent = totalSp;
 
-  const bySprint = new Map();
-  for (const row of history) {
-    const name = row.sprint_name;
-    if (!name) continue;
-    bySprint.set(name, (bySprint.get(name) || 0) + num(row.sp_closed));
-  }
-  const labels = Array.from(bySprint.keys()).sort().slice(-6);
-  const data = labels.map(n => bySprint.get(n) || 0);
+  const sprints = aggregateSprintTotals_(history);
+  const last6 = sprints.slice(-6);
+  const labels = last6.map(s => s.name);
+  const data = last6.map(s => s.sp);
 
   const ctx = document.getElementById('hero-sparkline').getContext('2d');
   new Chart(ctx, {
@@ -173,8 +169,8 @@ function renderEpicCards(epics) {
 /* ---------- throughput chart ---------- */
 
 function renderThroughput(epics, history) {
-  const allSprints = Array.from(new Set(history.map(r => r.sprint_name).filter(Boolean))).sort();
-  const last6 = allSprints.slice(-6);
+  const sprints = aggregateSprintTotals_(history);
+  const last6 = sprints.slice(-6).map(s => s.name);
   const summaries = new Map(epics.map(e => [e.epic_key, e.summary]));
 
   const byEpic = new Map();
@@ -217,6 +213,34 @@ function renderThroughput(epics, history) {
       }
     }
   });
+}
+
+/* ---------- sprint aggregation ---------- */
+
+/**
+ * Roll up epic_sprint_history rows into per-sprint totals, ordered by
+ * sprint_end_date ascending. Sprints without an end date are dropped —
+ * they can't be placed on the timeline reliably (usually legacy entries).
+ */
+function aggregateSprintTotals_(history) {
+  const byName = new Map();  // name -> { endDate, sp }
+  for (const row of history) {
+    const name = row.sprint_name;
+    if (!name) continue;
+    const endDate = row.sprint_end_date;
+    if (!endDate) continue;
+    const sp = num(row.sp_closed);
+    const prev = byName.get(name);
+    if (prev) {
+      prev.sp += sp;
+      if (!prev.endDate && endDate) prev.endDate = endDate;
+    } else {
+      byName.set(name, { endDate, sp });
+    }
+  }
+  return Array.from(byName.entries())
+    .map(([name, info]) => ({ name, endDate: info.endDate, sp: info.sp }))
+    .sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime());
 }
 
 /* ---------- utils ---------- */

@@ -55,7 +55,7 @@ function initializeSheet() {
       'flag_no_movement', 'flag_unestimated'
     ]],
     EpicSprintHistory: [[
-      'epic_key', 'sprint_name', 'sp_closed'
+      'epic_key', 'sprint_name', 'sprint_end_date', 'sp_closed'
     ]],
     Tickets: [[
       'ticket_key', 'epic_key', 'summary', 'status', 'story_points',

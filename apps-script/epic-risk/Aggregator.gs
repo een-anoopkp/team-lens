@@ -138,6 +138,7 @@ function aggregate_(epics, tickets, cfg) {
       epic: e,
       tickets_done: 0, tickets_in_progress: 0, tickets_to_do: 0,
       sp_done: 0, sp_in_progress: 0, sp_to_do: 0,
+      // sprint_sp_closed: Map<name, { endDate: iso|'', sp: number }>
       sprint_sp_closed: new Map(),
       oldest_in_progress_days: 0,
       open_total: 0, open_unestimated: 0
@@ -153,9 +154,12 @@ function aggregate_(epics, tickets, cfg) {
     if (t.status_category === 'Done') {
       a.tickets_done++;
       a.sp_done += sp;
-      const sprintName = pickClosingSprint_(t.sprints, t.resolutiondate);
-      if (sprintName) {
-        a.sprint_sp_closed.set(sprintName, (a.sprint_sp_closed.get(sprintName) || 0) + sp);
+      const closing = pickClosingSprint_(t.sprints, t.resolutiondate);
+      if (closing) {
+        const prev = a.sprint_sp_closed.get(closing.name) || { endDate: closing.endDate, sp: 0 };
+        prev.sp += sp;
+        if (!prev.endDate && closing.endDate) prev.endDate = closing.endDate;
+        a.sprint_sp_closed.set(closing.name, prev);
       }
     } else if (t.status_category === 'In Progress') {
       a.tickets_in_progress++;
@@ -177,13 +181,13 @@ function aggregate_(epics, tickets, cfg) {
 
   const epicRows = epics.map(e => {
     const a = byEpic.get(e.key);
-    const sprintsOrdered = orderSprintNames_(a.sprint_sp_closed);
+    const sprintsOrdered = orderSprintsByEndDate_(a.sprint_sp_closed);
     const lastSp = sprintsOrdered.length
-      ? (a.sprint_sp_closed.get(sprintsOrdered[sprintsOrdered.length - 1]) || 0)
+      ? (a.sprint_sp_closed.get(sprintsOrdered[sprintsOrdered.length - 1]).sp || 0)
       : 0;
     const priorSlice = sprintsOrdered.slice(-4, -1);
     const priorAvg = priorSlice.length
-      ? priorSlice.reduce((s, n) => s + (a.sprint_sp_closed.get(n) || 0), 0) / priorSlice.length
+      ? priorSlice.reduce((s, n) => s + (a.sprint_sp_closed.get(n).sp || 0), 0) / priorSlice.length
       : 0;
 
     const tpRatio = priorAvg > 0 ? lastSp / priorAvg : null;
@@ -203,8 +207,8 @@ function aggregate_(epics, tickets, cfg) {
 
   const sprintHistoryRows = [];
   for (const a of byEpic.values()) {
-    for (const [name, sp] of a.sprint_sp_closed) {
-      sprintHistoryRows.push([a.epic.key, name, sp]);
+    for (const [name, info] of a.sprint_sp_closed) {
+      sprintHistoryRows.push([a.epic.key, name, info.endDate || '', info.sp]);
     }
   }
 
@@ -219,33 +223,41 @@ function aggregate_(epics, tickets, cfg) {
 }
 
 /**
- * Pick the sprint in which a ticket closed. Prefer the sprint whose endDate
- * straddles the resolution date; fall back to the last sprint in the list.
+ * Pick the sprint in which a ticket closed, returning { name, endDate }.
+ * Drops future-state sprints — tickets don't close in sprints that haven't
+ * started. Within the remaining set, prefers the sprint whose endDate is
+ * closest to the resolution date; falls back to the last eligible sprint.
  */
 function pickClosingSprint_(sprints, resolutiondateIso) {
   if (!sprints || sprints.length === 0) return null;
+  const eligible = sprints.filter(s => s && s.name && s.state !== 'future');
+  if (eligible.length === 0) return null;
+
   if (resolutiondateIso) {
     const resTs = new Date(resolutiondateIso).getTime();
     let best = null, bestDelta = Infinity;
-    for (const s of sprints) {
+    for (const s of eligible) {
       if (!s.endDate) continue;
       const endTs = new Date(s.endDate).getTime();
       const delta = Math.abs(endTs - resTs);
       if (delta < bestDelta) { bestDelta = delta; best = s; }
     }
-    if (best && best.name) return best.name;
+    if (best) return { name: best.name, endDate: best.endDate || '' };
   }
-  const last = sprints[sprints.length - 1];
-  return (last && last.name) || null;
+  const last = eligible[eligible.length - 1];
+  return { name: last.name, endDate: last.endDate || '' };
 }
 
 /**
- * Order sprint names for "last N" trend slicing. Jira sprint names typically
- * follow a sortable convention (e.g. "EEPD Sprint 07"); lexical sort usually
- * matches chronological order. Safe fallback if names deviate.
+ * Order sprint names chronologically by their endDate.
+ * Sprints without an endDate are dropped — they'd make chronological
+ * comparison unreliable and are typically malformed / legacy entries.
  */
-function orderSprintNames_(map) {
-  return Array.from(map.keys()).sort();
+function orderSprintsByEndDate_(map) {
+  return Array.from(map.entries())
+    .filter(([, info]) => info.endDate)
+    .sort((a, b) => new Date(a[1].endDate).getTime() - new Date(b[1].endDate).getTime())
+    .map(([name]) => name);
 }
 
 /* --- flags ----------------------------------------------------------- */
@@ -272,26 +284,50 @@ function flagAge_(days, yellow, red) {
 
 /* --- writes ---------------------------------------------------------- */
 
+const EPICS_HEADER = [
+  'epic_key', 'summary', 'due_date',
+  'tickets_done', 'tickets_in_progress', 'tickets_to_do',
+  'sp_done', 'sp_in_progress', 'sp_to_do',
+  'sp_closed_last_sprint', 'sp_closed_avg_prior_3',
+  'flag_throughput_drop', 'flag_scope_explosion',
+  'flag_no_movement', 'flag_unestimated'
+];
+
+const EPIC_SPRINT_HISTORY_HEADER = [
+  'epic_key', 'sprint_name', 'sprint_end_date', 'sp_closed'
+];
+
+const TICKETS_HEADER = [
+  'ticket_key', 'epic_key', 'summary', 'status', 'story_points',
+  'assignee', 'created', 'updated', 'resolutiondate', 'sprint'
+];
+
 function writeEpics_(rows) {
-  replaceRows_('Epics', rows);
+  replaceTab_('Epics', EPICS_HEADER, rows);
 }
 
 function writeSprintHistory_(rows) {
-  replaceRows_('EpicSprintHistory', rows);
+  replaceTab_('EpicSprintHistory', EPIC_SPRINT_HISTORY_HEADER, rows);
 }
 
 function writeTickets_(rows) {
-  replaceRows_('Tickets', rows);
+  replaceTab_('Tickets', TICKETS_HEADER, rows);
 }
 
-function replaceRows_(tabName, rows) {
+/**
+ * Replace a tab's contents: clear everything, write the header, write rows.
+ * Also self-heals if the tab was initialised with an older schema.
+ */
+function replaceTab_(tabName, header, rows) {
   const sheet = SpreadsheetApp.getActive().getSheetByName(tabName);
   if (!sheet) throw new Error('Tab missing: ' + tabName + '. Run "Initialize Sheet".');
-  const cols = sheet.getLastColumn();
-  const lastRow = sheet.getLastRow();
-  if (lastRow > 1) sheet.getRange(2, 1, lastRow - 1, cols).clearContent();
-  if (rows.length === 0) return;
-  sheet.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
+  sheet.clear();
+  sheet.getRange(1, 1, 1, header.length).setValues([header]);
+  sheet.getRange(1, 1, 1, header.length).setFontWeight('bold');
+  sheet.setFrozenRows(1);
+  if (rows.length > 0) {
+    sheet.getRange(2, 1, rows.length, header.length).setValues(rows);
+  }
 }
 
 function logRun_(status, rowsEpics, rowsTickets, errorMsg) {
