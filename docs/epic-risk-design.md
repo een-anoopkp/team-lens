@@ -169,6 +169,35 @@ Deliberate omissions: raw ticket tables, unestimated counts, assignee breakdowns
 5. Add the `Epic Risk` Sheet menu with `Refresh from Jira` and `Export CSVs` items. `Export CSVs` emits `epics.csv`, `epic_sprint_history.csv`, and `meta.csv` as browser downloads.
 6. Build the local HTML page against the exported CSVs; serve from `~/dashboards/epic-risk/`.
 
+## Current status (2026-04-22)
+
+Implementation is tracked in the `team-lens` repo (<https://github.com/een-anoopkp/team-lens>).
+
+**Done.**
+
+- Google Sheet and bound Apps Script created via `clasp`, owned by `kptikku@gmail.com`. Sheet ID `12QQ5X…AU6cA`, script ID `1rS1Pb…zylD`.
+- `Initialize Sheet` menu seeds the five tabs (`Config`, `Epics`, `EpicSprintHistory`, `Tickets`, `RunLog`) with header rows and Config defaults. Idempotent.
+- Jira auth: `Set Jira Token` prompts for email + API token and stores them in user-level `PropertiesService`. `Test Jira auth` verifies with `/rest/api/3/myself`. No credentials touch the Sheet.
+- `Refresh from Jira` runs end-to-end: reads Config, auto-discovers the Story Points and Sprint custom-field IDs, fetches quarter epics + all child tickets via `/rest/api/3/search/jql`, aggregates counts / SP sums / per-sprint closed SP / oldest-in-progress age / unestimated ratio, emits flags, replaces `Epics` / `EpicSprintHistory` / `Tickets`, appends a `RunLog` row. First live run succeeded.
+- `Export CSVs` opens a modal dialog with one-click downloads of `epics.csv`, `epic_sprint_history.csv`, `meta.csv`. Raw `Tickets` is Sheet-only by design.
+- `Install daily trigger` / `Remove daily trigger` register and tear down a 07:00 Asia/Kolkata time-based trigger on `refreshFromJira`.
+
+**Divergences from the Build sequence.**
+
+- Build-sequence step 1 ("Create saved filters in Jira UI") was skipped for the Apps Script path — JQL is issued inline by `fetchEpics_` and `fetchTickets_` against `/rest/api/3/search/jql`. Saved filters are still needed for the Jira-native dashboard (step 2) when that gets built.
+- Custom field IDs for Story Points and Sprint are auto-discovered by name at run time (with a 1-hour cache) rather than hardcoded in Config. Reduces per-tenant setup friction.
+
+**Pending.**
+
+- **Jira-native dashboard (build-sequence step 2)** — five gadgets in the Jira UI. Saved filters need to be created first. No code; user UI work.
+- **Local HTML page (build-sequence step 6)** — next up. `web/epic-risk/` is scaffolded but empty. Will consume the three exported CSVs.
+- **Epic list cleanup** — tracked in repo `TODO.md`. The Q2 2026 pull returned more epics than the 10–15 target, mostly bugfix umbrella epics.
+
+**Deferred.**
+
+- `flag_scope_explosion` — renders as `—` in the Epics tab. Requires per-ticket changelog parsing and is expensive; will revisit after the base is proven useful.
+- Conditional-formatting polish on the `Epics` tab (emoji → coloured cell background). Cosmetic; not load-bearing.
+
 ## Shared conventions (with the per-person sprint dashboard)
 
 Both dashboards follow the same stack and the same surface conventions. Fixing these once avoids drift.
