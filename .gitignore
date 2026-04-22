@@ -1,0 +1,15 @@
+# Exported CSVs land in web/<dashboard>/ — data, not code
+web/*/*.csv
+
+# clasp credentials & local settings — never commit
+.clasprc.json
+apps-script/*/.clasp.json
+
+# Editor / OS cruft
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# Node junk if anything pulls in deps later
+node_modules/
