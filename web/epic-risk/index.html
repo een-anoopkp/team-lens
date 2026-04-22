@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Epic Risk — team-lens</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <h1>Epic Risk</h1>
+      <div class="subtitle">Search team · Q2 2026</div>
+    </div>
+    <div id="staleness" class="staleness loading">Loading…</div>
+  </header>
+
+  <main>
+    <section id="hero" class="panel">
+      <div class="hero-left">
+        <div class="hero-label">SP delivered this quarter</div>
+        <div id="hero-stat" class="hero-stat">—</div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-sublabel">Last 6 sprints (team total)</div>
+        <div class="sparkline-wrap"><canvas id="hero-sparkline"></canvas></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Epics</h2>
+      <div id="epic-cards" class="card-grid"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Throughput — SP closed per sprint, by epic</h2>
+      <div class="chart-wrap"><canvas id="throughput-chart"></canvas></div>
+    </section>
+  </main>
+
+  <div id="error" class="error" hidden></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
