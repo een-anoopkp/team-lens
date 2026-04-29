@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: teamlens-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: teamlens
+      POSTGRES_PASSWORD: teamlens
+      POSTGRES_DB: teamlens
+    ports:
+      - "5432:5432"
+    volumes:
+      - teamlens-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U teamlens -d teamlens"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  teamlens-pgdata:
+    name: teamlens-pgdata

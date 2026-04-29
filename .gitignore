@@ -16,3 +16,18 @@ apps-script/*/.clasp.json
 
 # Node junk if anything pulls in deps later
 node_modules/
+
+# Local env / logs / secrets
+.env
+.env.local
+*.log
+
+# Python build artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+
+# Dist
+dist/

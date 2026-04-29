@@ -1,0 +1,1 @@
+"""Team-lens backend application."""
