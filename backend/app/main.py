@@ -8,12 +8,22 @@ from contextlib import asynccontextmanager
 import structlog
 from fastapi import FastAPI
 
-from app.api import routes_setup
+from app.api import routes_setup, routes_sync
 from app.config import get_settings
-from app.db import dispose_engine
+from app.db import dispose_engine, get_session_factory
+from app.jira.fields import FieldRegistry
 from app.middleware import SetupGateMiddleware
+from app.sync.runner import SyncRunner
+from app.sync.scheduler import build_scheduler
 
 logger = structlog.get_logger(__name__)
+
+# Global runtime state (set up in lifespan; accessed by routes via get_runner()).
+_runner: SyncRunner | None = None
+
+
+def get_runner() -> SyncRunner | None:
+    return _runner
 
 
 def configure_logging(level: str) -> None:
@@ -33,14 +43,28 @@ def configure_logging(level: str) -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global _runner
     settings = get_settings()
     configure_logging(settings.log_level)
     logger.info("startup", configured=settings.is_configured)
-    # Scheduler is wired in step 1.5 (sync engine); placeholder here.
+
+    scheduler = None
+    if settings.is_configured:
+        _runner = SyncRunner(
+            settings=settings,
+            session_factory=get_session_factory(),
+            fields=FieldRegistry(),
+        )
+        scheduler = build_scheduler(settings, _runner)
+        scheduler.start()
+
     try:
         yield
     finally:
+        if scheduler is not None:
+            scheduler.shutdown(wait=False)
         await dispose_engine()
+        _runner = None
         logger.info("shutdown")
 
 
@@ -54,6 +78,7 @@ def create_app() -> FastAPI:
 
     app.add_middleware(SetupGateMiddleware)
     app.include_router(routes_setup.router)
+    app.include_router(routes_sync.router)
 
     @app.get("/api/v1/health")
     async def health() -> dict:
