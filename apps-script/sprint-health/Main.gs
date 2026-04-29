@@ -14,16 +14,15 @@ function onOpen() {
     .addSeparator()
     .addItem('Refresh from Jira', 'refreshFromJira')
     .addItem('Export CSVs', 'exportCsvs')
+    .addSeparator()
+    .addItem('Install daily trigger', 'installDailyTrigger')
+    .addItem('Remove daily trigger', 'removeDailyTrigger')
     .addToUi();
 }
 
-function refreshFromJira() {
-  SpreadsheetApp.getUi().alert('refreshFromJira: not implemented yet');
-}
-
-function exportCsvs() {
-  SpreadsheetApp.getUi().alert('exportCsvs: not implemented yet');
-}
+// refreshFromJira is defined in Aggregator.gs.
+// exportCsvs is defined in Export.gs.
+// installDailyTrigger / removeDailyTrigger are defined in Triggers.gs.
 
 /**
  * Create the tab skeleton per docs/sprint-health-design.md.
@@ -40,7 +39,9 @@ function initializeSheet() {
       ['key', 'value', 'notes'],
       ['team_id', '02623aed-f05b-4acd-8187-7932552722de-28', 'cf[10500] value'],
       ['jira_base_url', 'https://eagleeyenetworks.atlassian.net', ''],
-      ['leave_sheet_id', '', 'ID of the existing Leave sheet (external)'],
+      ['sprint_name_prefix', 'Search ', 'Only count sprints whose name starts with this. Empty = all.'],
+      ['leave_sheet_id', '', 'ID of the external Leave sheet; leave empty to skip leave-adjustment'],
+      ['leave_sheet_tab', 'Leave', 'Tab name within the external sheet'],
       ['sprint_ids_last6', '', 'comma-separated Jira sprint IDs, newest last'],
       ['sprint_working_days_default', '10', 'working-days per sprint if not overridden'],
       ['threshold_velocity_yellow', '0.8', 'current vs own prior-3 avg'],
@@ -51,13 +52,17 @@ function initializeSheet() {
       ['threshold_carryover_red_sprints', '3', ''],
       ['threshold_blocker_age_yellow_days', '3', 'oldest open sub-task'],
       ['threshold_blocker_age_red_days', '7', ''],
-      ['threshold_scope_inflation_yellow', '0.01', 'SP % added after sprint start'],
+      ['threshold_scope_inflation_yellow', '0.01', 'SP % added after first sighting'],
       ['threshold_scope_inflation_red', '0.5', '']
     ],
     Tickets: [[
       'ticket_key', 'parent_epic_key', 'summary', 'issuetype', 'status',
       'story_points', 'assignee', 'created', 'updated', 'resolutiondate',
-      'sprint', 'sp_changelog_after_sprint_start'
+      'sprint'
+    ]],
+    TicketState: [[
+      'ticket_key', 'sprint_name', 'first_sp', 'last_sp',
+      'last_assignee', 'last_status', 'first_seen_iso', 'last_seen_iso'
     ]],
     Sprints: [[
       'sprint_name', 'person', 'sp_committed', 'sp_completed',
@@ -67,19 +72,31 @@ function initializeSheet() {
       'person', 'sprint', 'sp_committed', 'sp_completed',
       'working_days', 'leave_days', 'available_days',
       'velocity', 'commitment_accuracy',
-      'flag_velocity_drop', 'flag_accuracy_drop'
+      'flag_velocity_drop', 'flag_accuracy_drop',
+      'sp_by_status'
     ]],
     CarryOver: [[
       'ticket_key', 'assignee', 'depth_sprints', 'status',
       'original_sp', 'current_sp', 'summary'
     ]],
     ScopeChanges: [[
-      'ticket_key', 'assignee', 'sprint', 'changed_at',
-      'sp_before', 'sp_after', 'delta', 'pct_of_original'
+      'detected_at', 'ticket_key', 'assignee', 'sprint',
+      'sp_before', 'sp_after', 'delta', 'pct_of_baseline'
+    ]],
+    EpicContribution: [[
+      'person', 'epic_key', 'sp_done'
+    ]],
+    Blockers: [[
+      'ticket_key', 'parent_epic_key', 'assignee', 'status',
+      'updated', 'age_days', 'age_band', 'summary'
+    ]],
+    SprintProgressActive: [[
+      'date', 'person', 'sp_done_cumulative'
     ]],
     RunLog: [[
       'timestamp', 'status', 'rows_tickets', 'rows_velocity',
-      'leave_name_mismatches', 'error'
+      'scope_changes_new', 'leave_name_mismatches', 'active_sprint',
+      'hygiene_unassigned', 'hygiene_nosp', 'hygiene_noepic', 'error'
     ]]
   };
 
