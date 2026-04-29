@@ -25,10 +25,16 @@ Today the repo runs two dashboards (Sprint Health, Epic Risk) on a chain of: **A
 
 - **Tenant:** `https://eagleeyenetworks.atlassian.net`
 - **Team filter:** `cf[10500] = "02623aed-f05b-4acd-8187-7932552722de-28"` (legacy "Search team"). **Sub-task caveat:** sub-tasks frequently inherit `cf[10500]` (per the user's memory note about this tenant), but the JQL must explicitly cover the case where they do not — final query is `(cf[10500] = "<id>") OR (parent in (... team-scope keys ...))`. Verified pattern: latest commit `bff882f` "Filter child tickets to the Search team at the JQL layer".
-- **Sprint name prefix:** `"Search "`
+- **Sprint name prefix:** `"Search 20"` (matches names like "Search 2025-..." / "Search 2026-..." — narrower than the previously assumed `"Search "`, avoids accidental matches on any other "Search …" sprint).
+- **Team Jira board ID:** `135` (the team's dashboard reference; used as `boardId` for `/rest/agile/1.0/board/{id}/sprint?...`).
 - **Auth:** Jira email + API token (Basic auth)
-- **Custom fields auto-discovered at runtime via `/rest/api/3/field`:** Story Points, Sprint, Epic Link. **Initiative is NOT a custom field** — confirmed by spike (see §0.2 below). It's a regular issue type (id 10527, hierarchyLevel 2); link via standard `parent` field on Epics.
-- **Sprint custom field has two payload shapes** in Jira: legacy GreenHopper-stringified array (`com.atlassian.greenhopper.service.sprint.Sprint@hash[id=...,name=...]`) vs. modern object array. Apps Script `JiraClient.gs` already handles both — port the parser verbatim.
+- **Custom fields used (verified IDs from spike, 2026-04-30):**
+  - **Story Points:** `customfield_10901` (numeric)
+  - **Sprint:** `customfield_10007` (modern object array — see below)
+  - **Team:** `customfield_10500` (object with `id` = team UUID)
+  - **Epic Link / Initiative Link: NEITHER NEEDED.** All hierarchy linkage uses the standard `parent` field. Story → Epic → Initiative. Sub-task → parent task.
+  - Field IDs are stable per tenant; we still run `/rest/api/3/field` discovery at startup as a safety net (cache 1h), but `.env` ships with these IDs as defaults so the system works even if the discovery call fails.
+- **Sprint custom field shape:** modern object array on this tenant (`[{id, name, state, startDate, endDate, completeDate, boardId, goal}, ...]`). The legacy GreenHopper-stringified format documented in some Jira docs is **not present here**, so the dual-shape parser is unnecessary. Keep parsing-by-shape only as a defensive pattern.
 - **Status mapping:** Jira's `statusCategory.key` is one of `new|indeterminate|done`. Store the raw key in `issues.status_category` and translate at render time (`new→todo`, `indeterminate→in_progress`, `done→done`). Keeping the raw value avoids losing fidelity to Jira's actual category.
 - **"Done SP" definition (locked):** `status_category = 'done' AND resolution_date IS NOT NULL AND resolution_date BETWEEN sprint.start_date AND sprint.complete_date` (or `end_date` if `complete_date` is null). Both conditions matter — a ticket can be `done`-category without a `resolution_date` if reopened-and-closed across sprint boundaries.
 
@@ -54,7 +60,7 @@ Today the repo runs two dashboards (Sprint Health, Epic Risk) on a chain of: **A
 |---|---|---|
 | 0.1 | Execute the documentation split — already done with this commit. | (done) |
 | 0.2 | ✅ **DONE 2026-04-30** — Initiative spike: confirmed no "Initiative Link" custom field; Initiatives are issue type 10527 linked via standard `parent`. See §0.2 outcome below. | (done) |
-| 0.3 | **Ground-truth baseline data**: pick one closed sprint (e.g. the most recent) and capture its actual numbers (committed SP, completed SP per person, carry-overs) directly from Jira UI / JQL. Save to [09-verification.md](./09-verification.md) as the reference point for Phase 3 verification. | 30 min |
+| 0.3 | ✅ **DONE 2026-04-30** — Ground-truth baseline captured from Search 2026-08 (sprint 18279, board 135). 140 issues, 307 in-sprint SP, 157 strict-completed SP, 47 carry-overs. Per-person breakdown in [09-verification.md](./09-verification.md). | (done) |
 
 ### 0.2 Initiative spike — outcome (resolved 2026-04-30)
 

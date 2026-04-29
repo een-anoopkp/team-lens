@@ -26,7 +26,7 @@ Each phase ends with a runnable, reviewable MVP. After every phase: stop, demo i
 | 1.1 | Repo scaffolding: `backend/` (uv + FastAPI + SQLAlchemy 2.x async + Alembic + httpx + APScheduler + Pydantic v2), `frontend/` (Vite + React + TS + TanStack Query), `infra/docker-compose.yml` (Postgres 16), `Makefile` (`setup`, `dev`, `sync`, `test`, `gen-types`, `backup`). | 0.5d |
 | 1.2 | First-run setup UX: `.env.example` ⇒ `.env` flow; `/api/v1/setup/jira` endpoint with atomic `.env` rewrite + in-process Jira client reload; minimal frontend setup page; health-gate routing (everything 503s until configured). | 1d |
 | 1.3 | **Full schema, all phases.** One Alembic baseline migration covering every table from [02-database-schema.md](./02-database-schema.md). Indexes per the schema section. Done once, never revisited (modulo bugfixes). | 1d |
-| 1.4 | Jira client port (`backend/app/jira/client.py`): auth, paginate, 429/503 retry honouring `Retry-After`, custom-field discovery (Story Points, Sprint, Epic Link only — Initiative is an issue type, no custom field needed; see [00-context-and-decisions.md §0.2](./00-context-and-decisions.md)). Sprint-field dual-shape parser (legacy GH string vs. modern object). Unit tests with `respx` fixtures captured via `scripts/capture_jira_fixtures.py`. | 1.5d |
+| 1.4 | Jira client port (`backend/app/jira/client.py`): auth, paginate, 429/503 retry honouring `Retry-After`. **Custom fields needed: Story Points (`customfield_10901`), Sprint (`customfield_10007`), Team (`customfield_10500`)** — all confirmed via spike. Discovery runs at startup as a safety net but `.env` ships with the IDs as defaults. Epic Link / Initiative Link discovery NOT needed — both hierarchy links use standard `parent`. Sprint-field shape on this tenant is modern object array (no GH-string fallback required). Unit tests with `respx` fixtures captured via `scripts/capture_jira_fixtures.py`. | 1d |
 | 1.5 | Sync engine: full backfill + incremental + weekly full-scan. JQL `(cf[10500]=team OR parent in (cf[10500]=team))`. Comments fetched per-issue via `/rest/api/3/issue/{key}/comment` (batched, paginated) and upserted into `comments` table on every sync. Removal detection via full-scan `last_seen_at`/`removed_at` for both issues and comments. APScheduler wired in app lifespan with `Asia/Kolkata` timezone. Concurrency lock. | 2d |
 | 1.6 | **Snapshot diff at sync time.** Apply Case A/B/C rules from [03-sync-engine.md](./03-sync-engine.md) to populate `ticket_state_snapshots` + `scope_change_events`. Wired as the final step of every sync run. | 1d |
 | 1.7 | **Project freeze job at sync time.** End-of-sync hook detects newly-Completed projects (every labelled epic Done) and snapshots stats into `project_snapshots`. Idempotent. Handles re-open → re-complete. | 1d |
@@ -53,7 +53,7 @@ Each phase ends with a runnable, reviewable MVP. After every phase: stop, demo i
 
 **Phase 1 exit criterion:** zero further sync code or schema changes expected in Phases 2–5. If a Phase 2 design need surfaces a missing column, it's a Phase 1 bug to fix, not a phase boundary to redraw.
 
-**Total Phase 1: ~10.5 working days.**
+**Total Phase 1: ~10 working days** (-0.5d on step 1.4 due to simplified field discovery from spike findings).
 
 ---
 

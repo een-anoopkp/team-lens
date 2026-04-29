@@ -1,8 +1,8 @@
 # Local App — Build Status
 
 **Last updated:** 2026-04-30
-**Current phase:** Pre-Phase-1 (planning + setup)
-**Current step:** 0.3 (ground-truth baseline data)
+**Current phase:** Pre-Phase-1 → Phase 1 ready to begin
+**Current step:** 1.1 (repo scaffolding) — pre-Phase-1 complete
 
 This file tracks live progress. Update as steps complete; commit alongside the work. Other files in this folder are specs that change rarely.
 
@@ -12,7 +12,7 @@ This file tracks live progress. Update as steps complete; commit alongside the w
 
 - [x] 0.1 Execute the documentation split — `docs/local-app/` populated.
 - [x] 0.2 Initiative custom field spike — **resolved 2026-04-30 via Atlassian MCP**: no Initiative custom field; Initiatives are issue type 10527 linked via standard `parent`. See [00-context-and-decisions.md §0.2](./00-context-and-decisions.md).
-- [ ] 0.3 Ground-truth baseline data — capture one closed sprint's actual numbers from Jira UI; populate the section in [09-verification.md](./09-verification.md).
+- [x] 0.3 Ground-truth baseline — **resolved 2026-04-30 via Atlassian MCP**. Sprint 18279 ("Search 2026-08", board 135): 140 issues, 307 in-sprint SP, 157 strict-completed SP, 47 carry-overs. Full per-person breakdown in [09-verification.md](./09-verification.md).
 
 ## Phase 1 — Data Foundation
 
@@ -79,3 +79,5 @@ This file tracks live progress. Update as steps complete; commit alongside the w
 
 - 2026-04-30: Documentation split executed; plan file at `~/.claude/plans/the-project-that-we-enchanted-bee.md` deleted (specs in `docs/local-app/` are the source of truth).
 - 2026-04-30: Initiative spike resolved via Atlassian MCP — no custom field; use standard `parent` field on Epics (issuetype id 10527 = Initiative).
+- 2026-04-30: Custom-field IDs locked from MCP spike — Story Points = `customfield_10901`, Sprint = `customfield_10007` (modern object format only), Team = `customfield_10500`. Epic Link / Initiative Link not used (everything via standard `parent`).
+- 2026-04-30: Ground-truth baseline captured for sprint 18279. Strict-completed = 157 SP across 47 people-tickets; 2 tickets resolved before sprint start correctly excluded.
