@@ -8,8 +8,10 @@ from contextlib import asynccontextmanager
 import structlog
 from fastapi import FastAPI
 
+from app.api import routes_setup
 from app.config import get_settings
 from app.db import dispose_engine
+from app.middleware import SetupGateMiddleware
 
 logger = structlog.get_logger(__name__)
 
@@ -49,6 +51,9 @@ def create_app() -> FastAPI:
         description="Local backend for the Search team's Jira dashboard.",
         lifespan=lifespan,
     )
+
+    app.add_middleware(SetupGateMiddleware)
+    app.include_router(routes_setup.router)
 
     @app.get("/api/v1/health")
     async def health() -> dict:
