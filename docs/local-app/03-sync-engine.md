@@ -16,7 +16,7 @@ Single APScheduler job per scan-type, configurable cron. Default `0 7 * * *` IST
 4. Fetch issues via JQL — base predicate is `(cf[10500] = "<team-id>" OR parent in (cf[10500] = "<team-id>"))`:
    - **Full scan:** the base predicate alone. Paginated through `/rest/api/3/search/jql` with retry on 429/503. Pattern ports from `apps-script/sprint-health/JiraClient.gs:97-119`.
    - **Incremental:** base predicate `AND updated >= "<last_successful_sync_iso>"`. The `last_successful_sync_iso` is sourced from `MAX(finished_at) FROM sync_runs WHERE status='success'`. On first run after install, fall back to full scan automatically.
-5. Fetch parent epics + initiatives referenced by step 4 issues but missing from `epics`/`initiatives` tables (any may live outside team scope). Use `key in (...)` JQL batched in chunks of 100.
+5. Fetch parent epics + initiatives referenced by step 4 issues but missing from `epics`/`initiatives` tables (any may live outside team scope). Use `key in (...)` JQL batched in chunks of 100. **Initiatives are derived from `epic.parent` where `parent.issuetype.name = 'Initiative'`** (id 10527 on this tenant) — no custom-field discovery needed.
 6. For each issue touched, fetch comments via `/rest/api/3/issue/{key}/comment` (paginated). Upsert into `comments` table with ADF body + plaintext rendering. Set `last_seen_at = now()`.
 7. Upsert `people`, `initiatives`, `epics`, `issues`. `INSERT ... ON CONFLICT DO UPDATE` keyed on PK. Set `last_seen_at = now()` on each upsert.
 8. Replace `issue_sprints` rows for each issue key touched in this run (delete-then-insert per key).

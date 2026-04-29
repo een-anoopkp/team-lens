@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-04-30
 **Current phase:** Pre-Phase-1 (planning + setup)
-**Current step:** 0.1 (documentation split — done with this commit)
+**Current step:** 0.3 (ground-truth baseline data)
 
 This file tracks live progress. Update as steps complete; commit alongside the work. Other files in this folder are specs that change rarely.
 
@@ -11,7 +11,7 @@ This file tracks live progress. Update as steps complete; commit alongside the w
 ## Pre-Phase-1 (planning + setup)
 
 - [x] 0.1 Execute the documentation split — `docs/local-app/` populated.
-- [ ] 0.2 Initiative custom field spike — verify whether tenant exposes "Initiative Link" field; document outcome in [00-context-and-decisions.md](./00-context-and-decisions.md) §0.2.
+- [x] 0.2 Initiative custom field spike — **resolved 2026-04-30 via Atlassian MCP**: no Initiative custom field; Initiatives are issue type 10527 linked via standard `parent`. See [00-context-and-decisions.md §0.2](./00-context-and-decisions.md).
 - [ ] 0.3 Ground-truth baseline data — capture one closed sprint's actual numbers from Jira UI; populate the section in [09-verification.md](./09-verification.md).
 
 ## Phase 1 — Data Foundation
@@ -77,4 +77,5 @@ This file tracks live progress. Update as steps complete; commit alongside the w
 
 > _Append dated entries as relevant._
 
-- 2026-04-30: Documentation split executed; plan file at `~/.claude/plans/the-project-that-we-enchanted-bee.md` is the working scratch — not committed.
+- 2026-04-30: Documentation split executed; plan file at `~/.claude/plans/the-project-that-we-enchanted-bee.md` deleted (specs in `docs/local-app/` are the source of truth).
+- 2026-04-30: Initiative spike resolved via Atlassian MCP — no custom field; use standard `parent` field on Epics (issuetype id 10527 = Initiative).

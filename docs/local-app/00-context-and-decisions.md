@@ -27,7 +27,7 @@ Today the repo runs two dashboards (Sprint Health, Epic Risk) on a chain of: **A
 - **Team filter:** `cf[10500] = "02623aed-f05b-4acd-8187-7932552722de-28"` (legacy "Search team"). **Sub-task caveat:** sub-tasks frequently inherit `cf[10500]` (per the user's memory note about this tenant), but the JQL must explicitly cover the case where they do not — final query is `(cf[10500] = "<id>") OR (parent in (... team-scope keys ...))`. Verified pattern: latest commit `bff882f` "Filter child tickets to the Search team at the JQL layer".
 - **Sprint name prefix:** `"Search "`
 - **Auth:** Jira email + API token (Basic auth)
-- **Custom fields auto-discovered at runtime via `/rest/api/3/field`:** Story Points, Sprint, Epic Link. **Initiative Link** may not exist on this tenant; if absent, fall back to issuelink-type "is realized by" / parent traversal. Discovery results cached in-process. **Run the spike (step 0.2 below) before Phase 1 to lock the schema.**
+- **Custom fields auto-discovered at runtime via `/rest/api/3/field`:** Story Points, Sprint, Epic Link. **Initiative is NOT a custom field** — confirmed by spike (see §0.2 below). It's a regular issue type (id 10527, hierarchyLevel 2); link via standard `parent` field on Epics.
 - **Sprint custom field has two payload shapes** in Jira: legacy GreenHopper-stringified array (`com.atlassian.greenhopper.service.sprint.Sprint@hash[id=...,name=...]`) vs. modern object array. Apps Script `JiraClient.gs` already handles both — port the parser verbatim.
 - **Status mapping:** Jira's `statusCategory.key` is one of `new|indeterminate|done`. Store the raw key in `issues.status_category` and translate at render time (`new→todo`, `indeterminate→in_progress`, `done→done`). Keeping the raw value avoids losing fidelity to Jira's actual category.
 - **"Done SP" definition (locked):** `status_category = 'done' AND resolution_date IS NOT NULL AND resolution_date BETWEEN sprint.start_date AND sprint.complete_date` (or `end_date` if `complete_date` is null). Both conditions matter — a ticket can be `done`-category without a `resolution_date` if reopened-and-closed across sprint boundaries.
@@ -53,12 +53,30 @@ Today the repo runs two dashboards (Sprint Health, Epic Risk) on a chain of: **A
 | Step | What | Est. |
 |---|---|---|
 | 0.1 | Execute the documentation split — already done with this commit. | (done) |
-| 0.2 | **Initiative custom field spike**: `curl -u email:token https://eagleeyenetworks.atlassian.net/rest/api/3/field \| jq '.[] \| select(.name \| test("[Ii]nitiative"))'`. Document below whether the tenant exposes an "Initiative Link" custom field or whether we use parent-walk fallback. Lock the `initiatives` schema accordingly. | 10 min |
+| 0.2 | ✅ **DONE 2026-04-30** — Initiative spike: confirmed no "Initiative Link" custom field; Initiatives are issue type 10527 linked via standard `parent`. See §0.2 outcome below. | (done) |
 | 0.3 | **Ground-truth baseline data**: pick one closed sprint (e.g. the most recent) and capture its actual numbers (committed SP, completed SP per person, carry-overs) directly from Jira UI / JQL. Save to [09-verification.md](./09-verification.md) as the reference point for Phase 3 verification. | 30 min |
 
-### 0.2 Initiative spike — outcome
+### 0.2 Initiative spike — outcome (resolved 2026-04-30)
 
-> _To be filled in after running the spike. Record the field ID if found, or "not present — using parent-walk fallback" if absent._
+**No "Initiative Link" custom field exists on this tenant. Initiative is a regular issue type, and Epics link to their Initiative via the standard `parent` field — same shape as sub-task → parent.**
+
+Hierarchy on `eagleeyenetworks.atlassian.net`:
+
+```
+Initiative   issuetype id=10527, hierarchyLevel=2, name="Initiative"
+  └─ Epic    issuetype id=10000, hierarchyLevel=1, name="Epic"
+       └─ Story / Task / Bug   (hierarchyLevel=0)
+              └─ Sub-task      (subtask=true)
+```
+
+**Implications for the schema and sync:**
+
+- Drop "Initiative Link custom-field discovery" from the Phase 1 Jira-client port. Custom-field discovery still runs for Story Points, Sprint, and Epic Link.
+- Populate `initiatives.issue_key` from `epics.raw_payload.fields.parent` where `parent.fields.issuetype.name = 'Initiative'`. No customfield_* lookup needed.
+- During sync, when an Epic is upserted, capture its parent issue key. If that parent isn't already in `initiatives`, fetch it (alongside other parent-epic lookups in step 5 of the sync pipeline).
+- Verified against a real team Epic whose parent is `EEPD-86170` ("Point of Sale (POS) Integration - 7 Eleven", an Initiative). Sample issue lookup ran via Atlassian MCP at the time of this spike.
+
+**One-line summary:** epic→initiative is plain `parent`; no custom field involved.
 
 ## Phase 2 inputs (decided during UX design, not now)
 
