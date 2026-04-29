@@ -1,0 +1,28 @@
+# Indian public holidays — used for working-day computation.
+# Edit yearly; load via `make seed-holidays`.
+
+region: IN
+holidays:
+  # ---- 2025 -----------------------------------------------------------------
+  - { date: 2025-01-26, name: "Republic Day" }
+  - { date: 2025-03-14, name: "Holi" }
+  - { date: 2025-03-31, name: "Eid al-Fitr" }
+  - { date: 2025-04-18, name: "Good Friday" }
+  - { date: 2025-08-15, name: "Independence Day" }
+  - { date: 2025-08-27, name: "Ganesh Chaturthi" }
+  - { date: 2025-10-02, name: "Gandhi Jayanti" }
+  - { date: 2025-10-21, name: "Diwali" }
+  - { date: 2025-10-22, name: "Govardhan Puja" }
+  - { date: 2025-12-25, name: "Christmas" }
+
+  # ---- 2026 -----------------------------------------------------------------
+  - { date: 2026-01-26, name: "Republic Day" }
+  - { date: 2026-03-04, name: "Holi" }
+  - { date: 2026-03-20, name: "Eid al-Fitr" }
+  - { date: 2026-04-03, name: "Good Friday" }
+  - { date: 2026-08-15, name: "Independence Day" }
+  - { date: 2026-09-15, name: "Ganesh Chaturthi" }
+  - { date: 2026-10-02, name: "Gandhi Jayanti" }
+  - { date: 2026-11-08, name: "Diwali" }
+  - { date: 2026-11-09, name: "Govardhan Puja" }
+  - { date: 2026-12-25, name: "Christmas" }

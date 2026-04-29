@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 import structlog
 from fastapi import FastAPI
 
-from app.api import routes_setup, routes_sync
+from app.api import routes_holidays, routes_leaves, routes_setup, routes_sync
 from app.config import get_settings
 from app.db import dispose_engine, get_session_factory
 from app.jira.fields import FieldRegistry
@@ -79,6 +79,8 @@ def create_app() -> FastAPI:
     app.add_middleware(SetupGateMiddleware)
     app.include_router(routes_setup.router)
     app.include_router(routes_sync.router)
+    app.include_router(routes_leaves.router)
+    app.include_router(routes_holidays.router)
 
     @app.get("/api/v1/health")
     async def health() -> dict:
