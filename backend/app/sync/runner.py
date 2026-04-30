@@ -318,14 +318,19 @@ class SyncRunner:
         await self._replace_issue_sprints(batch)
 
     async def _upsert_people_for(self, issues: Iterable[dict]) -> None:
+        """Extract assignee/reporter/creator from each issue and upsert."""
         seen: dict[str, dict] = {}
         for issue in issues:
             for p in transform.collect_people_from_issue(issue):
                 seen[p["account_id"]] = p
-        if not seen:
+        await self._upsert_people_rows(list(seen.values()))
+
+    async def _upsert_people_rows(self, rows: list[dict]) -> None:
+        """Upsert pre-converted person dicts (ORM-shape: account_id, display_name, ...)."""
+        if not rows:
             return
         async with self._session_factory() as session:
-            stmt = pg_insert(Person).values(list(seen.values()))
+            stmt = pg_insert(Person).values(rows)
             stmt = stmt.on_conflict_do_update(
                 index_elements=[Person.account_id],
                 set_={
@@ -513,8 +518,11 @@ class SyncRunner:
                     seen_authors[p["account_id"]] = p
         rows = list(seen_comments.values())
 
+        # Comment authors may not be team-issue assignees/reporters; upsert
+        # directly via the ORM-row entry-point so the FK on comments.author_id
+        # always finds a row.
         if seen_authors:
-            await self._upsert_people_for([{"fields": {"creator": p}} for p in seen_authors.values()])
+            await self._upsert_people_rows(list(seen_authors.values()))
 
         if not rows:
             return
