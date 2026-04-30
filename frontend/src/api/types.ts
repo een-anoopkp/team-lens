@@ -157,6 +157,24 @@ export interface UpcomingLeavesResponse {
   }[];
 }
 
+export interface LeaderRow {
+  person_account_id: string;
+  person_display_name: string | null;
+  tickets_closed: number;
+  sp_delivered: string | number;
+  avg_sp_per_ticket: string | number | null;
+}
+
+export interface LeaderboardResponse {
+  scope: "sprint" | "quarter" | "project";
+  scope_label: string;
+  window_start: string | null;
+  window_end: string | null;
+  total_tickets: number;
+  total_sp: string | number;
+  rows: LeaderRow[];
+}
+
 export interface ScopeChange {
   id: number;
   issue_key: string;

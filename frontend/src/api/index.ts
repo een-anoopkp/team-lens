@@ -377,6 +377,39 @@ export function useDeleteHoliday() {
   });
 }
 
+// ---- Leaderboard ------------------------------------------------------------
+
+export function useLeaderboardQuarters() {
+  return useQuery({
+    queryKey: ["leaderboard", "quarters"],
+    queryFn: () =>
+      getJSON<{ quarters: string[] }>("/api/v1/leaderboard/quarters"),
+  });
+}
+
+export type LeaderboardScope =
+  | { scope: "sprint"; sprint_id: number }
+  | { scope: "quarter"; quarter: string }
+  | { scope: "project"; project: string };
+
+export function useLeaderboard(s: LeaderboardScope | null) {
+  const qs = new URLSearchParams();
+  if (s) {
+    qs.set("scope", s.scope);
+    if (s.scope === "sprint") qs.set("sprint_id", String(s.sprint_id));
+    if (s.scope === "quarter") qs.set("quarter", s.quarter);
+    if (s.scope === "project") qs.set("project", s.project);
+  }
+  return useQuery({
+    queryKey: ["leaderboard", s],
+    queryFn: () =>
+      getJSON<import("./types").LeaderboardResponse>(
+        `/api/v1/leaderboard?${qs.toString()}`
+      ),
+    enabled: s !== null,
+  });
+}
+
 // ---- Settings ---------------------------------------------------------------
 
 export function useSettings() {

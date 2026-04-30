@@ -20,7 +20,7 @@ const NAV: NavItem[] = [
   { to: "/leaves", label: "Leaves" },
   { to: "/projects", label: "Projects" },
   { to: "/projects/monitoring", label: "Projects · Monitoring" },
-  { to: "/leaderboard", label: "Leaderboard", tag: "v3" },
+  { to: "/leaderboard", label: "Leaderboard" },
   { to: "/insights", label: "Insights", tag: "v3" },
   { to: "/debug", label: "Debug" },
   { to: "/settings", label: "Settings" },

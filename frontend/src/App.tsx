@@ -4,6 +4,7 @@ import { useHealth } from "./api";
 import AppShell from "./components/AppShell";
 import EpicRiskPage from "./features/epic-risk/EpicRiskPage";
 import HygienePage from "./features/hygiene/HygienePage";
+import LeaderboardPage from "./features/leaderboard/LeaderboardPage";
 import LeavesPage from "./features/leaves/LeavesPage";
 import ProjectDetailPage from "./features/projects/ProjectDetailPage";
 import ProjectsMonitoringPage from "./features/projects/ProjectsMonitoringPage";
@@ -75,16 +76,7 @@ export default function App() {
                 element={<ProjectsMonitoringPage />}
               />
               <Route path="/projects/:name" element={<ProjectDetailPage />} />
-              <Route
-                path="/leaderboard"
-                element={
-                  <PlaceholderPage
-                    tag="v3"
-                    name="Leaderboard"
-                    blurb="Multi-source contribution rollup (Jira + GitHub PRs + peer kudos). Needs a GitHub PAT and a contributions table — deferred until v1 is stable. See docs/local-app/10-roadmap-v3.md → v3-B."
-                  />
-                }
-              />
+              <Route path="/leaderboard" element={<LeaderboardPage />} />
               <Route
                 path="/insights"
                 element={
