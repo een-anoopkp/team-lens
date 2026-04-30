@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     team_region: str = "IN"
 
+    # Anthropic API key for Insights LLM rules. When unset, /insights renders
+    # LLM cards in a "needs config" state and skips background runs.
+    anthropic_api_key: str = ""
+    # Default model for LLM rules. Overridable per rule via config.
+    anthropic_model: str = "claude-sonnet-4-6"
+
     app_host: str = "0.0.0.0"
     app_port: int = 8000
 
