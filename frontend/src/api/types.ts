@@ -165,6 +165,7 @@ export interface TeamMember {
   account_id: string;
   display_name: string | null;
   email: string | null;
+  counts_for_capacity: boolean;
   added_at: string;
 }
 

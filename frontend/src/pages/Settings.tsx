@@ -18,8 +18,9 @@ import {
   useSyncStatus,
   useTeamMembers,
   useTestCurrentCreds,
+  useUpdateTeamMember,
 } from "../api";
-import type { TestConnectionResponse } from "../api/types";
+import type { TeamMember, TestConnectionResponse } from "../api/types";
 import InfoIcon from "../components/InfoIcon";
 
 function fmtCronNext(iso: string | null): string {
@@ -251,7 +252,6 @@ function TeamMembersSection() {
   const members = useTeamMembers();
   const people = usePeople(); // all known assignees
   const add = useAddTeamMember();
-  const remove = useRemoveTeamMember();
   const seed = useSeedTeamMembers();
   const [picked, setPicked] = React.useState("");
   const [seedResult, setSeedResult] = React.useState<string | null>(null);
@@ -347,19 +347,66 @@ function TeamMembersSection() {
           starting list, then prune anyone not actually on the team.
         </div>
       ) : (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-          {(members.data ?? []).map((m) => (
-            <span
-              key={m.account_id}
-              className="pill neutral"
-              style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
-            >
+        <TeamMembersTable members={members.data ?? []} />
+      )}
+    </div>
+  );
+}
+
+function TeamMembersTable({ members }: { members: TeamMember[] }) {
+  const remove = useRemoveTeamMember();
+  const update = useUpdateTeamMember();
+
+  return (
+    <table
+      className="datatable"
+      style={{ background: "var(--color-surface)" }}
+    >
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th style={{ width: 200 }}>
+            Counts for capacity{" "}
+            <InfoIcon text="When ON, this person's tickets and available days drive Sprint Health velocity + Person-days. Turn OFF for leads who don't own tickets, embedded QA on a separate flow, etc. They stay in the Leave dropdown either way." />
+          </th>
+          <th style={{ width: 60 }}></th>
+        </tr>
+      </thead>
+      <tbody>
+        {members.map((m) => (
+          <tr key={m.account_id}>
+            <td>
               {m.display_name ?? m.account_id}
+              {!m.counts_for_capacity && (
+                <span
+                  className="pill neutral"
+                  style={{ marginLeft: 8, fontSize: 10 }}
+                >
+                  not in capacity
+                </span>
+              )}
+            </td>
+            <td>
+              <CapacityToggle
+                checked={m.counts_for_capacity}
+                onChange={(v) =>
+                  update.mutate({
+                    account_id: m.account_id,
+                    counts_for_capacity: v,
+                  })
+                }
+              />
+            </td>
+            <td>
               <button
                 type="button"
-                title={`Remove ${m.display_name ?? m.account_id}`}
+                title={`Remove ${m.display_name ?? m.account_id} from the team`}
                 onClick={() => {
-                  if (confirm(`Remove ${m.display_name ?? m.account_id} from the team?`)) {
+                  if (
+                    confirm(
+                      `Remove ${m.display_name ?? m.account_id} from the team?`
+                    )
+                  ) {
                     remove.mutate(m.account_id);
                   }
                 }}
@@ -368,18 +415,69 @@ function TeamMembersSection() {
                   border: "none",
                   color: "var(--color-text-muted)",
                   cursor: "pointer",
-                  fontSize: 16,
+                  fontSize: 18,
                   lineHeight: 1,
                   padding: 0,
                 }}
               >
                 ×
               </button>
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function CapacityToggle({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <label
+      style={{
+        display: "inline-block",
+        position: "relative",
+        width: 32,
+        height: 18,
+        cursor: "pointer",
+      }}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        style={{ opacity: 0, position: "absolute", pointerEvents: "none" }}
+      />
+      <span
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: checked
+            ? "var(--color-accent)"
+            : "var(--color-border-strong)",
+          borderRadius: 999,
+          transition: "background 120ms ease",
+        }}
+      />
+      <span
+        style={{
+          position: "absolute",
+          top: 2,
+          left: 2,
+          width: 14,
+          height: 14,
+          borderRadius: "50%",
+          background: "#fff",
+          transform: checked ? "translateX(14px)" : undefined,
+          transition: "transform 120ms ease",
+        }}
+      />
+    </label>
   );
 }
 

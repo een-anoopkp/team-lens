@@ -33,7 +33,12 @@ class TeamMemberOut(BaseModel):
     account_id: str
     display_name: str | None
     email: str | None
+    counts_for_capacity: bool
     added_at: datetime
+
+
+class TeamMemberPatch(BaseModel):
+    counts_for_capacity: bool
 
 
 class SeedResult(BaseModel):
@@ -46,6 +51,18 @@ async def get_team_member_ids(session: AsyncSession) -> set[str]:
     """Used by metrics / list endpoints — set of whitelisted account_ids."""
     rows = (
         await session.execute(select(TeamMember.account_id))
+    ).scalars().all()
+    return set(rows)
+
+
+async def get_capacity_member_ids(session: AsyncSession) -> set[str]:
+    """Subset who count toward sprint capacity (excludes leads / embedded QA)."""
+    rows = (
+        await session.execute(
+            select(TeamMember.account_id).where(
+                TeamMember.counts_for_capacity.is_(True)
+            )
+        )
     ).scalars().all()
     return set(rows)
 
@@ -69,6 +86,7 @@ async def list_team_members(
             account_id=tm.account_id,
             display_name=p.display_name if p else None,
             email=p.email if p else None,
+            counts_for_capacity=tm.counts_for_capacity,
             added_at=tm.added_at,
         )
         for tm, p in rows
@@ -170,6 +188,40 @@ async def add_team_member(
         account_id=row.account_id,
         display_name=person.display_name,
         email=person.email,
+        counts_for_capacity=row.counts_for_capacity,
+        added_at=row.added_at,
+    )
+
+
+@router.patch("/{account_id}", response_model=TeamMemberOut)
+async def update_team_member(
+    account_id: str,
+    payload: TeamMemberPatch,
+    session: AsyncSession = Depends(get_session),
+) -> TeamMemberOut:
+    """Toggle whether this member counts toward sprint capacity."""
+    row = (
+        await session.execute(
+            select(TeamMember).where(TeamMember.account_id == account_id)
+        )
+    ).scalar_one_or_none()
+    if row is None:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": "not_found", "message": "not on the team"},
+        )
+    row.counts_for_capacity = bool(payload.counts_for_capacity)
+    await session.commit()
+    person = (
+        await session.execute(
+            select(Person).where(Person.account_id == account_id)
+        )
+    ).scalar_one_or_none()
+    return TeamMemberOut(
+        account_id=row.account_id,
+        display_name=person.display_name if person else None,
+        email=person.email if person else None,
+        counts_for_capacity=row.counts_for_capacity,
         added_at=row.added_at,
     )
 

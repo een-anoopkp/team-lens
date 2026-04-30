@@ -298,6 +298,28 @@ export function useAddTeamMember() {
   });
 }
 
+export function useUpdateTeamMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      account_id,
+      counts_for_capacity,
+    }: {
+      account_id: string;
+      counts_for_capacity: boolean;
+    }) =>
+      patchJSON<import("./types").TeamMember>(
+        `/api/v1/team-members/${encodeURIComponent(account_id)}`,
+        { counts_for_capacity }
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["team-members"] });
+      qc.invalidateQueries({ queryKey: ["sprints"] });
+      qc.invalidateQueries({ queryKey: ["metrics"] });
+    },
+  });
+}
+
 export function useRemoveTeamMember() {
   const qc = useQueryClient();
   return useMutation({

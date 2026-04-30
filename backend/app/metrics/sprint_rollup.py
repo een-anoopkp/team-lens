@@ -199,10 +199,19 @@ async def sprint_rollup(
         )
     ).all()
 
+    # Capacity-only: skip team members flagged counts_for_capacity=false
+    # (leads who don't own tickets, embedded QA on their own flow, etc.).
+    # Also skip cross-team contributors entirely — their ticket assignments
+    # land in our DB but they aren't on the Search team.
+    from app.api.routes_team_members import get_capacity_member_ids
+    capacity_ids = await get_capacity_member_ids(session)
+
     per_person: list[PersonRollup] = []
     total_elapsed_person_days = 0
     total_full_person_days = 0
     for r in person_rows:
+        if capacity_ids and r.account_id not in capacity_ids:
+            continue
         avail = (
             await working_days(
                 session,

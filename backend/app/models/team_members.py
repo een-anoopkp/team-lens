@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -25,4 +25,11 @@ class TeamMember(Base):
     )
     added_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    # When false, the person stays in team-scoped views (Leaderboard rows,
+    # Leave dropdown) but is excluded from sprint-capacity computations:
+    # not in /sprint-health per-person rollup, not in person-days. Used
+    # for leads / embedded QA / anyone who doesn't carry a ticket workload.
+    counts_for_capacity: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default="true", default=True
     )
