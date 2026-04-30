@@ -7,9 +7,18 @@
  * you still edit `backend/.env` and restart, OR re-POST to /setup/jira.
  */
 
-import { useState } from "react";
+import React, { useState } from "react";
 
-import { useSettings, useSyncStatus, useTestCurrentCreds } from "../api";
+import {
+  useAddTeamMember,
+  usePeople,
+  useRemoveTeamMember,
+  useSeedTeamMembers,
+  useSettings,
+  useSyncStatus,
+  useTeamMembers,
+  useTestCurrentCreds,
+} from "../api";
 import type { TestConnectionResponse } from "../api/types";
 import InfoIcon from "../components/InfoIcon";
 
@@ -192,6 +201,12 @@ export default function Settings() {
         </Row>
       </div>
 
+      <h2>
+        Team members{" "}
+        <InfoIcon text="Whitelist of current Search-team members. Drives the Leaderboard rows + the Leave-add dropdown. Sprint Health and project drill-ins ignore this list and keep showing whoever did the work historically. Maintain explicitly — sync does not auto-add or remove." />
+      </h2>
+      <TeamMembersSection />
+
       <h2>Holidays + leaves</h2>
       <p className="muted small">
         Managed via <code>/api/v1/leaves</code> and{" "}
@@ -200,6 +215,156 @@ export default function Settings() {
       </p>
     </div>
   );
+}
+
+function TeamMembersSection() {
+  const members = useTeamMembers();
+  const people = usePeople(); // all known assignees
+  const add = useAddTeamMember();
+  const remove = useRemoveTeamMember();
+  const seed = useSeedTeamMembers();
+  const [picked, setPicked] = React.useState("");
+  const [seedResult, setSeedResult] = React.useState<string | null>(null);
+
+  const memberIds = new Set((members.data ?? []).map((m) => m.account_id));
+  const candidates = (people.data ?? [])
+    .filter((p) => !memberIds.has(p.account_id))
+    .sort((a, b) => a.display_name.localeCompare(b.display_name));
+
+  const onAdd = () => {
+    if (!picked) return;
+    add.mutate(picked, { onSuccess: () => setPicked("") });
+  };
+
+  const onSeed = () => {
+    setSeedResult(null);
+    seed.mutate(60, {
+      onSuccess: (r) => {
+        setSeedResult(
+          r.added.length === 0
+            ? `No new candidates from the last 60 days. ${r.kept} kept.`
+            : `Added ${r.added.length} from recent activity: ${r.added.slice(0, 6).join(", ")}${r.added.length > 6 ? "…" : ""}`
+        );
+      },
+    });
+  };
+
+  return (
+    <div className="panel" style={{ marginBottom: "var(--space-4)" }}>
+      <p className="muted small" style={{ marginTop: 0 }}>
+        Currently <strong>{members.data?.length ?? 0}</strong> on the
+        team. Add anyone the search picker is missing; remove with ×.
+      </p>
+
+      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: "var(--space-3)" }}>
+        <select
+          value={picked}
+          onChange={(e) => setPicked(e.target.value)}
+          style={{
+            padding: "6px 10px",
+            borderRadius: "var(--radius-md)",
+            border: "1px solid var(--color-border)",
+            background: "var(--color-surface)",
+            color: "var(--color-text)",
+            fontSize: "var(--font-size-sm)",
+            minWidth: 280,
+          }}
+        >
+          <option value="">— pick a person to add —</option>
+          {candidates.map((p) => (
+            <option key={p.account_id} value={p.account_id}>
+              {p.display_name}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={onAdd}
+          disabled={!picked || add.isPending}
+          style={addButtonStyle(!!picked && !add.isPending)}
+        >
+          {add.isPending ? "Adding…" : "Add"}
+        </button>
+        <span style={{ flex: 1 }} />
+        <button
+          type="button"
+          onClick={onSeed}
+          disabled={seed.isPending}
+          title="Add anyone who's been an assignee on a non-removed issue in the last 60 days. Useful first time; usually you'll want to prune."
+          style={{
+            padding: "6px 12px",
+            borderRadius: "var(--radius-md)",
+            border: "1px solid var(--color-border)",
+            background: "var(--color-surface-2)",
+            color: "var(--color-text)",
+            cursor: seed.isPending ? "wait" : "pointer",
+            fontSize: "var(--font-size-sm)",
+          }}
+        >
+          {seed.isPending ? "Seeding…" : "Seed from recent activity"}
+        </button>
+      </div>
+
+      {seedResult && (
+        <div className="muted small" style={{ marginBottom: "var(--space-2)" }}>
+          {seedResult}
+        </div>
+      )}
+
+      {members.data && members.data.length === 0 ? (
+        <div className="muted small">
+          No members yet. Click <em>Seed from recent activity</em> for a
+          starting list, then prune anyone not actually on the team.
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          {(members.data ?? []).map((m) => (
+            <span
+              key={m.account_id}
+              className="pill neutral"
+              style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+            >
+              {m.display_name ?? m.account_id}
+              <button
+                type="button"
+                title={`Remove ${m.display_name ?? m.account_id}`}
+                onClick={() => {
+                  if (confirm(`Remove ${m.display_name ?? m.account_id} from the team?`)) {
+                    remove.mutate(m.account_id);
+                  }
+                }}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--color-text-muted)",
+                  cursor: "pointer",
+                  fontSize: 16,
+                  lineHeight: 1,
+                  padding: 0,
+                }}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function addButtonStyle(enabled: boolean): React.CSSProperties {
+  return {
+    padding: "6px 14px",
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--color-accent)",
+    background: enabled ? "var(--color-accent)" : "var(--color-surface-2)",
+    color: enabled ? "#fff" : "var(--color-text-muted)",
+    cursor: enabled ? "pointer" : "not-allowed",
+    opacity: enabled ? 1 : 0.6,
+    fontSize: "var(--font-size-sm)",
+    fontWeight: 500,
+  };
 }
 
 function Row({

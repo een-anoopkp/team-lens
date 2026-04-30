@@ -264,10 +264,65 @@ export function useInitiatives() {
 
 // ---- People -----------------------------------------------------------------
 
-export function usePeople() {
+export function usePeople(opts: { teamOnly?: boolean } = {}) {
+  const qs = new URLSearchParams({ active: "true" });
+  if (opts.teamOnly) qs.set("team_only", "true");
   return useQuery({
-    queryKey: ["people"],
-    queryFn: () => getJSON<Person[]>("/api/v1/people?active=true"),
+    queryKey: ["people", opts.teamOnly ? "team" : "all"],
+    queryFn: () => getJSON<Person[]>(`/api/v1/people?${qs.toString()}`),
+  });
+}
+
+// ---- Team members (whitelist) -----------------------------------------------
+
+export function useTeamMembers() {
+  return useQuery({
+    queryKey: ["team-members"],
+    queryFn: () =>
+      getJSON<import("./types").TeamMember[]>("/api/v1/team-members"),
+  });
+}
+
+export function useAddTeamMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (account_id: string) =>
+      postJSON<import("./types").TeamMember>(
+        `/api/v1/team-members/${encodeURIComponent(account_id)}`
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["team-members"] });
+      qc.invalidateQueries({ queryKey: ["people", "team"] });
+      qc.invalidateQueries({ queryKey: ["leaderboard"] });
+    },
+  });
+}
+
+export function useRemoveTeamMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (account_id: string) =>
+      deleteVoid(`/api/v1/team-members/${encodeURIComponent(account_id)}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["team-members"] });
+      qc.invalidateQueries({ queryKey: ["people", "team"] });
+      qc.invalidateQueries({ queryKey: ["leaderboard"] });
+    },
+  });
+}
+
+export function useSeedTeamMembers() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (days: number = 60) =>
+      postJSON<import("./types").SeedResult>(
+        `/api/v1/team-members/seed-recent?days=${days}`
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["team-members"] });
+      qc.invalidateQueries({ queryKey: ["people", "team"] });
+      qc.invalidateQueries({ queryKey: ["leaderboard"] });
+    },
   });
 }
 

@@ -13,6 +13,7 @@ from app.models.project_snapshots import ProjectSnapshot
 from app.models.scope_change_events import ScopeChangeEvent
 from app.models.sprints import Sprint
 from app.models.sync_runs import SyncRun
+from app.models.team_members import TeamMember
 from app.models.ticket_state_snapshots import TicketStateSnapshot
 
 __all__ = [
@@ -29,5 +30,6 @@ __all__ = [
     "ScopeChangeEvent",
     "Sprint",
     "SyncRun",
+    "TeamMember",
     "TicketStateSnapshot",
 ]

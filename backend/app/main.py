@@ -22,6 +22,7 @@ from app.api import (
     routes_setup,
     routes_sprints,
     routes_sync,
+    routes_team_members,
 )
 from app.config import get_settings
 from app.db import dispose_engine, get_session_factory
@@ -151,6 +152,7 @@ def create_app() -> FastAPI:
     app.include_router(routes_metrics.router)
     app.include_router(routes_hygiene.router)
     app.include_router(routes_leaderboard.router)
+    app.include_router(routes_team_members.router)
 
     @app.get("/api/v1/health")
     async def health() -> dict:

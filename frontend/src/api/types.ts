@@ -157,6 +157,19 @@ export interface UpcomingLeavesResponse {
   }[];
 }
 
+export interface TeamMember {
+  account_id: string;
+  display_name: string | null;
+  email: string | null;
+  added_at: string;
+}
+
+export interface SeedResult {
+  added: string[];
+  kept: number;
+  total: number;
+}
+
 export interface LeaderRow {
   person_account_id: string;
   person_display_name: string | null;

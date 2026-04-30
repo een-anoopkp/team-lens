@@ -53,7 +53,7 @@ export default function LeavesPage() {
 // ---- Add leave form --------------------------------------------------------
 
 function AddLeaveForm() {
-  const people = usePeople();
+  const people = usePeople({ teamOnly: true });
   const create = useCreateLeave();
   const [personId, setPersonId] = useState("");
   const [start, setStart] = useState("");

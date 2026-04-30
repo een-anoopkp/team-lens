@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.routes_team_members import get_team_member_ids
 from app.db import get_session
 from app.models import Person
 
@@ -27,11 +28,23 @@ class PersonOut(BaseModel):
 @router.get("", response_model=list[PersonOut])
 async def list_people(
     active: bool | None = Query(None, description="filter by active flag"),
+    team_only: bool = Query(
+        False,
+        description=(
+            "When true, restrict to current Search-team members "
+            "(reads from the user-managed whitelist at /team-members)."
+        ),
+    ),
     session: AsyncSession = Depends(get_session),
 ) -> list[PersonOut]:
     stmt = select(Person)
     if active is not None:
         stmt = stmt.where(Person.active == active)
+    if team_only:
+        ids = await get_team_member_ids(session)
+        if not ids:
+            return []
+        stmt = stmt.where(Person.account_id.in_(ids))
     stmt = stmt.order_by(Person.display_name.asc())
     rows = (await session.execute(stmt)).scalars().all()
     return [

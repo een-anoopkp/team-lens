@@ -15,6 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.routes_team_members import get_team_member_ids
 from app.db import get_session
 from app.metrics.leaderboard import (
     available_quarters,
@@ -62,6 +63,13 @@ async def leaderboard(
     sprint_id: int | None = Query(None),
     quarter: str | None = Query(None, description="YYYY-QN, e.g. 2026-Q2"),
     project: str | None = Query(None, description="project name (the bit after proj_)"),
+    team_only: bool = Query(
+        True,
+        description=(
+            "When true (default), filter rows to the current /team-members "
+            "whitelist. Set false to include cross-team contributors."
+        ),
+    ),
     session: AsyncSession = Depends(get_session),
 ) -> LeaderboardOut:
     try:
@@ -91,6 +99,16 @@ async def leaderboard(
             raise HTTPException(400, {"error": "validation_error", "message": "bad scope"})
     except ValueError as e:
         raise HTTPException(404, {"error": "not_found", "message": str(e)}) from e
+
+    if team_only:
+        member_ids = await get_team_member_ids(session)
+        if member_ids:
+            kept = [r for r in result.rows if r.person_account_id in member_ids]
+            result.total_tickets = sum(r.tickets_closed for r in kept)
+            result.total_sp = sum(
+                (r.sp_delivered for r in kept), result.total_sp.__class__("0")
+            )
+            result.rows = kept
 
     return LeaderboardOut(
         scope=result.scope,
