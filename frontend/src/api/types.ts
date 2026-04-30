@@ -442,3 +442,20 @@ export interface ProjectComparison {
   sprint_length_d: ComparisonStats;
   enough_history: boolean;
 }
+
+// ---- Ticket notes (standup board) ------------------------------------------
+
+export interface TicketNote {
+  id: number;
+  issue_key: string;
+  body: string;
+  done: boolean;
+  created_at: string;
+  updated_at: string;
+  done_at: string | null;
+}
+
+export interface TicketNotesResponse {
+  open: TicketNote[];
+  done_recent: TicketNote[];
+}

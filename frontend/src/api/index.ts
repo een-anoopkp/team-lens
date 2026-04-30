@@ -514,3 +514,73 @@ export function useProjectComparison() {
       ),
   });
 }
+
+// ---- Ticket notes (standup board) ------------------------------------------
+
+export function useTicketNotes(issueKey: string | undefined) {
+  return useQuery({
+    queryKey: ["notes", issueKey],
+    queryFn: () =>
+      getJSON<import("./types").TicketNotesResponse>(
+        `/api/v1/issues/${encodeURIComponent(issueKey!)}/notes`
+      ),
+    enabled: !!issueKey,
+  });
+}
+
+export function useNotesCounts(sprintId: number | undefined) {
+  return useQuery({
+    queryKey: ["notes", "counts", sprintId],
+    queryFn: () =>
+      getJSON<Record<string, number>>(
+        `/api/v1/notes/counts?sprint_id=${sprintId}`
+      ),
+    enabled: sprintId != null,
+  });
+}
+
+function invalidateNotes(
+  qc: ReturnType<typeof useQueryClient>,
+  issueKey: string,
+) {
+  qc.invalidateQueries({ queryKey: ["notes", issueKey] });
+  qc.invalidateQueries({ queryKey: ["notes", "counts"] });
+}
+
+export function useCreateNote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ issueKey, body }: { issueKey: string; body: string }) =>
+      postJSON<import("./types").TicketNote>(
+        `/api/v1/issues/${encodeURIComponent(issueKey)}/notes`,
+        { body },
+      ),
+    onSuccess: (_, vars) => invalidateNotes(qc, vars.issueKey),
+  });
+}
+
+export function useUpdateNote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      issueKey: _issueKey,
+      ...patch
+    }: {
+      id: number;
+      issueKey: string;
+      body?: string;
+      done?: boolean;
+    }) => patchJSON<import("./types").TicketNote>(`/api/v1/notes/${id}`, patch),
+    onSuccess: (_, vars) => invalidateNotes(qc, vars.issueKey),
+  });
+}
+
+export function useDeleteNote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id }: { id: number; issueKey: string }) =>
+      deleteVoid(`/api/v1/notes/${id}`),
+    onSuccess: (_, vars) => invalidateNotes(qc, vars.issueKey),
+  });
+}

@@ -9,7 +9,9 @@ import LeavesPage from "./features/leaves/LeavesPage";
 import ProjectDetailPage from "./features/projects/ProjectDetailPage";
 import ProjectsMonitoringPage from "./features/projects/ProjectsMonitoringPage";
 import ProjectsPage from "./features/projects/ProjectsPage";
+import SprintHealthLayout from "./features/sprint-health/SprintHealthLayout";
 import SprintHealthPage from "./features/sprint-health/SprintHealthPage";
+import StandupBoard from "./features/sprint-health/StandupBoard";
 import Debug from "./pages/Debug";
 import SettingsPage from "./pages/Settings";
 import Setup from "./pages/Setup";
@@ -66,7 +68,10 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/debug" replace />} />
               <Route path="/debug" element={<Debug />} />
-              <Route path="/sprint-health" element={<SprintHealthPage />} />
+              <Route path="/sprint-health" element={<SprintHealthLayout />}>
+                <Route index element={<SprintHealthPage />} />
+                <Route path="board" element={<StandupBoard />} />
+              </Route>
               <Route path="/epic-risk" element={<EpicRiskPage />} />
               <Route path="/hygiene" element={<HygienePage />} />
               <Route path="/leaves" element={<LeavesPage />} />
