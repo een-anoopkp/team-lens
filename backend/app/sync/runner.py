@@ -391,10 +391,14 @@ class SyncRunner:
             await session.commit()
 
     async def _upsert_issues(self, batch: list[dict], stats: SyncStats) -> None:
-        # Dedupe by issue_key — same issue can theoretically appear twice
-        # if the input batch has dupes (e.g. parents fetched a second time).
+        # Dedupe by issue_key, and SKIP issuetypes that own their own tables
+        # (Initiative → initiatives, Epic → epics). The `issues` table is
+        # only Story / Task / Bug / Sub-task per schema design.
         seen: dict[str, dict] = {}
         for i in batch:
+            itype = ((i.get("fields") or {}).get("issuetype") or {}).get("name", "")
+            if itype in ("Initiative", "Epic"):
+                continue
             row = transform.issue_from_jira(i, self._fields)
             seen[row["issue_key"]] = row
         rows = list(seen.values())
@@ -515,22 +519,28 @@ class SyncRunner:
         if not rows:
             return
         now = datetime.now(tz=UTC)
+        # asyncpg has a hard cap of 32767 bind parameters per query. With
+        # ~10 cols per comment, a single batch maxes around ~3000 rows.
+        # Chunk to stay well below the cap; 1000 rows ≈ 10000 params.
+        CHUNK = 1000
         async with self._session_factory() as session:
-            stmt = pg_insert(Comment).values([{**r, "last_seen_at": now} for r in rows])
-            stmt = stmt.on_conflict_do_update(
-                index_elements=[Comment.comment_id],
-                set_={
-                    "issue_key": stmt.excluded.issue_key,
-                    "author_id": stmt.excluded.author_id,
-                    "body_text": stmt.excluded.body_text,
-                    "body_adf": stmt.excluded.body_adf,
-                    "created_at": stmt.excluded.created_at,
-                    "updated_at": stmt.excluded.updated_at,
-                    "last_seen_at": stmt.excluded.last_seen_at,
-                    "removed_at": None,
-                },
-            )
-            await session.execute(stmt)
+            for i in range(0, len(rows), CHUNK):
+                chunk = [{**r, "last_seen_at": now} for r in rows[i : i + CHUNK]]
+                stmt = pg_insert(Comment).values(chunk)
+                stmt = stmt.on_conflict_do_update(
+                    index_elements=[Comment.comment_id],
+                    set_={
+                        "issue_key": stmt.excluded.issue_key,
+                        "author_id": stmt.excluded.author_id,
+                        "body_text": stmt.excluded.body_text,
+                        "body_adf": stmt.excluded.body_adf,
+                        "created_at": stmt.excluded.created_at,
+                        "updated_at": stmt.excluded.updated_at,
+                        "last_seen_at": stmt.excluded.last_seen_at,
+                        "removed_at": None,
+                    },
+                )
+                await session.execute(stmt)
             await session.commit()
 
     # ---- removal detection --------------------------------------------------

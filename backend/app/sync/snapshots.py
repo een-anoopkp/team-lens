@@ -266,10 +266,19 @@ async def update_snapshots(
                 )
 
         # ---- Persist ---------------------------------------------------------
+        # asyncpg caps bind params at 32767. Chunk multi-row inserts to stay
+        # well below — these can run into thousands of rows on a first sync.
+        CHUNK = 1000
         if new_snapshots:
-            await session.execute(insert(TicketStateSnapshot), new_snapshots)
+            for i in range(0, len(new_snapshots), CHUNK):
+                await session.execute(
+                    insert(TicketStateSnapshot), new_snapshots[i : i + CHUNK]
+                )
         if new_events:
-            await session.execute(insert(ScopeChangeEvent), new_events)
+            for i in range(0, len(new_events), CHUNK):
+                await session.execute(
+                    insert(ScopeChangeEvent), new_events[i : i + CHUNK]
+                )
         for payload in update_payloads:
             await session.execute(
                 update(TicketStateSnapshot)
