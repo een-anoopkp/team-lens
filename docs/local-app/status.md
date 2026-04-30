@@ -1,8 +1,8 @@
 # Local App — Build Status
 
 **Last updated:** 2026-04-30
-**Current phase:** Phase 5 — Projects + Monitoring (done)
-**Current step:** Soak period before Phase 6. Phase 5 closed: 4 sub-steps committed; `/projects`, `/projects/:name`, `/projects/monitoring` live and wired to real data.
+**Current phase:** Phase 6 — Decommission legacy (done)
+**Current step:** all phases shipped. Project is in steady-state — feature work driven by usage, not by plan.
 
 This file tracks live progress. Update as steps complete; commit alongside the work. Other files in this folder are specs that change rarely.
 
@@ -61,16 +61,20 @@ This file tracks live progress. Update as steps complete; commit alongside the w
 - [x] 5.4 Monitoring/comparison page — commit `2ed7e91`
 - [x] Polish: `InfoIcon` helper + tooltips on ambiguous columns (Velocity, Churn, Sprints, etc.) — commit `defb00c`
 
-## Phase 6 — Decommission legacy
+## Phase 6 — Decommission legacy — done 2026-04-30
 
-(Starts only after a 2-week soak period of real use post-Phase-5.)
+User opted to skip the 2-week soak — confirmed they're no longer using
+Apps Script. Tag `pre-phase-6-deletion` captures the legacy snapshot
+before deletion; restore with `git checkout pre-phase-6-deletion -- apps-script web`.
 
-- [ ] Soak period elapsed; no fallback to legacy
-- [ ] 6.1 Final verification checklist (see [09-verification.md](./09-verification.md))
-- [ ] 6.2 Delete `apps-script/`
-- [ ] 6.3 Delete `web/`
-- [ ] 6.4 Update root README to point at `docs/local-app/README.md`
-- [ ] 6.5 Tag pre-deletion commit
+- [x] 6.1 Final verification checklist — every legacy use case is now
+      served by a Phase-3/4/5 page (Sprint Health velocity / carry-over /
+      blockers / 6-sprint trend; Epic Risk hero stats / cards /
+      throughput; Hygiene counts).
+- [x] 6.2 Deleted `apps-script/` (16 tracked + 2 untracked .clasp.json files)
+- [x] 6.3 Deleted `web/` (10 tracked + 9 untracked CSV exports)
+- [x] 6.4 Root README rewritten to lead with the local app
+- [x] 6.5 Pre-deletion commit tagged as `pre-phase-6-deletion`
 
 ---
 

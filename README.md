@@ -1,40 +1,52 @@
 # team-lens
 
-Private dashboards for the Search team (290) — visibility into quarterly epic risk and per-person sprint health. Lead-facing; not published.
+Private dashboards for the Search team (290) — visibility into sprint health, epic risk, project ETD, and team hygiene. Lead-facing; not published.
 
 ## What's here
 
-- **`docs/`** — authoritative design docs for both dashboards.
-  - [`epic-risk-design.md`](docs/epic-risk-design.md) — quarterly epic risk-spotting dashboard.
-  - [`sprint-health-design.md`](docs/sprint-health-design.md) — per-person sprint progress + normalized velocity.
-- **`apps-script/<dashboard>/`** — Google Apps Script source managed via [clasp](https://github.com/google/clasp). One Apps Script project per dashboard, bound to its Google Sheet.
-- **`web/<dashboard>/`** — local static page: `index.html` + `app.js` + `styles.css`. Reads exported CSVs placed in the same folder. Served via `python -m http.server <port>`.
-- **`shared/`** — JS utilities shared by both web pages (CSV parsing, staleness badge).
+- **`backend/`** — FastAPI + SQLAlchemy + Postgres. Syncs Jira every few hours, exposes `/api/v1/*` endpoints. See [`backend/README.md`](backend/README.md).
+- **`frontend/`** — React + Vite + TanStack Query SPA. Renders the dashboards. See [`frontend/README.md`](frontend/README.md).
+- **`docs/local-app/`** — authoritative design + ops docs. Start at [`docs/local-app/README.md`](docs/local-app/README.md).
+- **`infra/`** — local-dev compose stack (Postgres) and seed data (`infra/holidays/<region>.yaml`).
+- **`scripts/`** — operational scripts (e.g. `seed_holidays.py`, `e2e_smoke.sh`).
 
 ## Stack
 
-Both dashboards follow the same pattern — see `docs/epic-risk-design.md` → "Shared conventions" for the locked-in details. Summary:
-
 ```
-Jira REST API → Apps Script (daily trigger) → Google Sheet → browser-downloaded CSVs → local HTML + Chart.js
+Jira REST API → backend sync engine (APScheduler) → Postgres → FastAPI → React SPA
 ```
 
-No publish-to-web. No backend. All data stays on the lead's machine.
+Single user. Single tenant. All data stays on the lead's machine.
 
-## Ports
+## Pages
 
-| Dashboard | Web folder | Port |
-|-----------|------------|------|
-| Epic Risk | `web/epic-risk/` | 8080 |
-| Sprint Health | `web/sprint-health/` | 8081 |
+| Route | Purpose |
+|---|---|
+| `/sprint-health` | Per-person SP progress, blockers, carry-over, velocity trend |
+| `/epic-risk` | Quarterly epic risk classification + throughput |
+| `/hygiene` | Epics without initiative, tasks without epic, by-due-date |
+| `/projects` | Label-derived project rollups + ETD |
+| `/projects/:name` | Project drill-in (epics, sprints, ETD, contributors) |
+| `/projects/monitoring` | Active vs. closed-snapshot comparison |
+| `/leaves` | Team leaves + holidays |
+| `/settings` | Read-only config view + Jira re-test |
+| `/debug` | Raw entity browser |
 
-## Workflow
+## Quickstart
 
-1. Apps Script runs daily at 07:00 local, refreshes its Google Sheet.
-2. Open the Sheet, click the custom menu → `Export CSVs`. Files download to your browser's downloads folder.
-3. Move the downloaded CSVs into the dashboard's `web/<dashboard>/` folder.
-4. Refresh the local page. Staleness badge reads the new `meta.csv` timestamp.
+```bash
+make setup        # uv sync, npm install, alembic upgrade, docker compose
+make dev          # backend on :8000, frontend on :8081
+```
 
-## Setup
+Open <http://localhost:8081>; if Jira creds aren't configured the UI routes you to `/setup`.
 
-Per-dashboard setup instructions live in each dashboard's folder (`apps-script/<dashboard>/README.md`, `web/<dashboard>/README.md`). Not filled in yet — see design docs for target behaviour.
+## History — pre-v1 dashboards (Apps Script + CSV pipeline)
+
+The team previously ran two CSV-driven dashboards from Google Apps Script. Both lived under `apps-script/` and `web/` in this repo — deleted in Phase 6 after the local app reached parity. The deletion commit is tagged `pre-phase-6-deletion` if you ever need the old code:
+
+```bash
+git checkout pre-phase-6-deletion -- apps-script web
+```
+
+The original design docs are still in `docs/epic-risk-design.md` and `docs/sprint-health-design.md` for historical context; the new app's design is in `docs/local-app/`.
