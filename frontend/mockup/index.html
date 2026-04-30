@@ -1081,19 +1081,23 @@
               </div>
             </div>
 
-            <!-- Project summary — fresh, for most-recently-updated project -->
+            <!-- Project summary — sprint-scoped, multi-project + miscellaneous -->
             <div class="panel" style="cursor: pointer;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-2);">
-                <strong>Project summary</strong>
+                <strong>Sprint by project</strong>
                 <span class="pill good">fresh · today</span>
               </div>
               <div class="muted small" style="margin-bottom: var(--space-2);">
-                For <strong>poi1</strong> (most recently updated).
+                For <strong>Search 2026-08</strong> (most recently closed).
+                2 projects active + miscellaneous.
               </div>
               <div style="font-size: var(--font-size-sm); line-height: 1.6;">
-                <strong>Where it stands.</strong> 64% delivered (68/105 SP).
-                ETD by velocity 4 Jul, by sprint-asg 10 Jun. <br>
-                <strong>Risks.</strong> One epic has slipped to at-risk band.<br>
+                <strong>poi1</strong> · 41 SP delivered, 7 carried.
+                Bhaskar led; <a class="jira-link" href="#">EEPD-104865</a> still in flight.<br>
+                <strong>evs1</strong> · 12 SP delivered, none carried.
+                Smooth landing.<br>
+                <strong>Miscellaneous</strong> · 38 SP across 18 tickets
+                with no <code>proj_*</code> label. Mostly QA bugs.<br>
                 <span class="muted small">…</span>
               </div>
               <div class="muted small" style="margin-top: var(--space-2);">
@@ -1122,120 +1126,127 @@
           </p>
 
           <h2>Anomaly rules <span class="muted small">(SQL · auto after sync)</span></h2>
+          <p class="muted small" style="margin-top:0;">
+            Anomaly rules are cheap (SQL only). They auto-run after every sync.
+            Toggling off hides a rule from <code>/insights</code> without
+            deleting its history.
+          </p>
           <div class="datatable-demo">
             <table class="datatable">
               <thead>
                 <tr>
+                  <th style="width: 60px;">On</th>
                   <th>Rule</th>
                   <th>Threshold</th>
                   <th>Last fired</th>
                   <th>Firing rate</th>
-                  <th>Status</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
+                  <td><label class="toggle"><input type="checkbox" checked /><span class="toggle-track"></span></label></td>
                   <td><strong>Velocity drop</strong><br><span class="muted small">person &lt; 70% of 6-spr avg</span></td>
                   <td><code>0.7 × avg</code></td>
                   <td>12 min ago</td>
                   <td>3 / 4 syncs</td>
-                  <td><span class="pill good">on</span></td>
                   <td><button class="btn-icon" type="button" title="Configure">⚙</button></td>
                 </tr>
                 <tr>
+                  <td><label class="toggle"><input type="checkbox" checked /><span class="toggle-track"></span></label></td>
                   <td><strong>Stale carry-over</strong><br><span class="muted small">depth ≥ 2 sprints</span></td>
                   <td><code>depth &gt;= 2</code></td>
                   <td>12 min ago</td>
                   <td>4 / 4 syncs</td>
-                  <td><span class="pill good">on</span></td>
                   <td><button class="btn-icon" type="button" title="Configure">⚙</button></td>
                 </tr>
                 <tr>
+                  <td><label class="toggle"><input type="checkbox" checked /><span class="toggle-track"></span></label></td>
                   <td><strong>Aged blocker</strong><br><span class="muted small">sub-task open &gt; 14 d</span></td>
                   <td><code>14 d</code></td>
                   <td>12 min ago</td>
                   <td>2 / 4 syncs</td>
-                  <td><span class="pill good">on</span></td>
                   <td><button class="btn-icon" type="button" title="Configure">⚙</button></td>
                 </tr>
                 <tr>
+                  <td><label class="toggle"><input type="checkbox" checked /><span class="toggle-track"></span></label></td>
                   <td><strong>Epic risk regression</strong><br><span class="muted small">on_track → at_risk in last sync</span></td>
                   <td><code>—</code></td>
                   <td>12 min ago</td>
                   <td>1 / 4 syncs</td>
-                  <td><span class="pill good">on</span></td>
                   <td><button class="btn-icon" type="button" title="Configure">⚙</button></td>
                 </tr>
                 <tr>
+                  <td><label class="toggle"><input type="checkbox" checked /><span class="toggle-track"></span></label></td>
                   <td><strong>Project ETD slippage</strong><br><span class="muted small">ETD shifted &gt; 14 d vs last week</span></td>
                   <td><code>14 d</code></td>
                   <td>12 min ago</td>
                   <td>1 / 4 syncs</td>
-                  <td><span class="pill good">on</span></td>
                   <td><button class="btn-icon" type="button" title="Configure">⚙</button></td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <h2 style="margin-top: var(--space-5);">LLM rules <span class="muted small">(Claude · auto-refresh stale)</span></h2>
-          <p class="muted small" style="margin-top:0;">
-            Each rule auto-runs when its output is stale (per-rule threshold).
-            <code>/insights</code> always shows the most-recent default-scope
-            output. To run for a non-default scope (e.g. a different sprint or
-            project), use "Run for…" here — that result lands on
-            <code>/insights</code>, replacing the default until the default
-            re-runs.
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: var(--space-5);">
+            <h2 style="margin: 0;">LLM rules <span class="muted small">(Claude · auto-refresh stale)</span></h2>
+            <button class="btn btn-primary" type="button" title="Re-runs all rules toggled on, regardless of staleness">Run all enabled (3)</button>
+          </div>
+          <p class="muted small" style="margin-top: 4px;">
+            Toggle a rule to enable it: enabled rules auto-run when stale, and
+            are picked up by <em>Run all enabled</em>. Disabled rules never
+            run, and show a frozen card on <code>/insights</code>. Use
+            <em>Run for…</em> on a row to run that rule against a non-default
+            scope (e.g. a different sprint or project).
           </p>
           <div class="datatable-demo">
             <table class="datatable">
               <thead>
                 <tr>
+                  <th style="width: 60px;">On</th>
                   <th>Rule</th>
                   <th>Job</th>
                   <th>Default scope</th>
                   <th>Stale after</th>
                   <th>Last run</th>
-                  <th>Status</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
+                  <td><label class="toggle"><input type="checkbox" checked /><span class="toggle-track"></span></label></td>
                   <td><strong>weekly-briefing</strong><br><span class="muted small">v1 · Monday self-briefing · 1.5K out / 3K in</span></td>
                   <td>A — lead</td>
                   <td>—</td>
                   <td>7 d</td>
                   <td>3 d ago</td>
-                  <td><span class="pill good">on</span></td>
                   <td><button class="btn btn-secondary btn-small" type="button">Run</button></td>
                 </tr>
                 <tr>
+                  <td><label class="toggle"><input type="checkbox" checked /><span class="toggle-track"></span></label></td>
                   <td><strong>retro-agenda</strong><br><span class="muted small">v1 · sprint-scoped · 2K out / 4K in</span></td>
                   <td>B — retro</td>
                   <td>most-recent closed sprint</td>
                   <td>when sprint closes</td>
                   <td>2 sprints ago</td>
-                  <td><span class="pill good">on</span></td>
                   <td><button class="btn btn-secondary btn-small" type="button">Run for…</button></td>
                 </tr>
                 <tr>
-                  <td><strong>stakeholder-update</strong><br><span class="muted small">v1 · 3-paragraph manager view · 0.6K out / 2.5K in</span></td>
-                  <td>C — exec</td>
-                  <td>—</td>
-                  <td>when sprint ends</td>
-                  <td>never</td>
-                  <td><span class="pill neutral">off</span></td>
-                  <td><button class="btn btn-secondary btn-small" type="button">Enable</button></td>
+                  <td><label class="toggle"><input type="checkbox" /><span class="toggle-track"></span></label></td>
+                  <td style="opacity: 0.6;"><strong>stakeholder-update</strong><br><span class="muted small">v1 · 3-paragraph manager view · 0.6K out / 2.5K in</span></td>
+                  <td style="opacity: 0.6;">C — exec</td>
+                  <td style="opacity: 0.6;">—</td>
+                  <td style="opacity: 0.6;">when sprint ends</td>
+                  <td style="opacity: 0.6;">never</td>
+                  <td><button class="btn btn-secondary btn-small" type="button" disabled>Run</button></td>
                 </tr>
                 <tr>
-                  <td><strong>project-summary</strong><br><span class="muted small">v1 · per-project narrative · 1.2K out / 3.5K in</span></td>
+                  <td><label class="toggle"><input type="checkbox" checked /><span class="toggle-track"></span></label></td>
+                  <td><strong>project-summary</strong><br><span class="muted small">v1 · sprint-scoped · per-project + miscellaneous · 2K out / 5K in</span></td>
                   <td>—</td>
-                  <td>most recently updated project</td>
-                  <td>7 d</td>
+                  <td>most-recent closed sprint</td>
+                  <td>when sprint closes</td>
                   <td>today</td>
-                  <td><span class="pill good">on</span></td>
                   <td><button class="btn btn-secondary btn-small" type="button">Run for…</button></td>
                 </tr>
               </tbody>

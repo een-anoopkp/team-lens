@@ -143,37 +143,59 @@ Data:
 
 ### `project-summary` · v1
 
-**Job:** Per-project narrative (added during brainstorm).
-**Trigger:** `on_demand` (user picks a project from the dropdown).
-**Token budget:** 1200 tokens out, ~3500 in.
-**Use when:** "Someone asked me about project X. I want a narrative
-version of `/projects/X` instead of paraphrasing the dashboard."
+**Job:** Per-sprint roll-up grouped by project, plus a Miscellaneous
+bucket for sprint tickets not labelled with any `proj_*`.
+**Trigger:** auto-refresh stale (per Path-1 UX); default scope = the
+most recently closed sprint.
+**Token budget:** 2000 tokens out, ~5000 in. Single Claude call with
+the whole sprint as context — Claude sees all projects together so
+the output reads coherently.
+**Use when:** "Where did each piece of this sprint's work go? What did
+each project ship, and what work fell outside the project labels?"
 
-**Inputs (project-scoped):**
-- All epics under the project label, with rollup (issue count, SP,
-  done %, days overdue).
-- ETD by velocity + ETD by sprint-assignment + the basis lines.
-- Scope churn totals.
-- Top contributors (display names + their delivered SP).
-- Sprint history this project has touched.
+**Inputs (sprint-scoped):**
+- Sprint metadata (name, dates, total committed/completed SP).
+- For every project (`proj_*` label) with at least one issue in the
+  sprint:
+  - epic keys + summaries
+  - issues completed in the sprint, with SP and assignees
+  - issues carried over (not done at sprint close)
+  - top contributors for that project in the sprint
+- **Miscellaneous bucket:** all sprint issues whose epic carries no
+  `proj_*` label — same fields as above (issues completed, carried
+  over, contributors).
 
 **Prompt:**
 ```
-Summarise this project for someone outside the Search team. Cover:
+Summarise this sprint by project. For each project active in the
+sprint, write a short section:
 
-1. Where it stands — total scope, done %, ETD with confidence basis
-2. Who's driving it — top 2–3 contributors and what they've delivered
-3. Risks — at-risk epics, scope churn if material, stalled work
-4. What's next — open epics with the most remaining SP
+## <project_name>
+- What was delivered (with concrete SP, ticket keys, contributors)
+- What carried over and why if the data hints at it
+- One-line risk callout if anything looks shaky
 
-~200 words. Plain prose. Cite ticket keys with backticks.
+After the project sections, add a "## Miscellaneous" section with the
+same shape, covering tickets in the sprint that don't carry a
+proj_* label.
 
-Project: <project_name>
+End with a one-paragraph bottom line ("## Bottom line") summarising
+the sprint shape across projects.
+
+Plain Markdown. ~50 words per project. Cite ticket keys in backticks.
+
+Sprint: <sprint_name>
 Data:
 <inputs JSON>
 ```
 
-**Output shape:** 4 short Markdown sections, ticket keys in `<code>`.
+**Output shape:** Markdown with N sections (one per project active in
+sprint) + `## Miscellaneous` + `## Bottom line`. Ticket keys in
+`<code>`.
+
+**On `/insights`:** rendered as one card whose body shows the
+section headings + truncated bullets; "view full →" expands the
+whole document.
 
 ---
 
