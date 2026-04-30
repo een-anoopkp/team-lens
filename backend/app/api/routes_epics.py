@@ -8,7 +8,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
@@ -48,23 +48,18 @@ async def list_epics(
     limit: int = Query(100, ge=1, le=500),
     session: AsyncSession = Depends(get_session),
 ) -> list[EpicOut]:
+    sp_done_sum = func.sum(
+        case(
+            (Issue.status_category == "done", Issue.story_points),
+            else_=0,
+        )
+    ).label("sp_done")
     stmt = (
         select(
             Epic,
             func.count(Issue.issue_key).label("issue_count"),
             func.sum(Issue.story_points).label("sp_total"),
-            func.sum(
-                func.coalesce(
-                    func.nullif(
-                        func.case(
-                            (Issue.status_category == "done", Issue.story_points),
-                            else_=None,
-                        ),
-                        None,
-                    ),
-                    0,
-                )
-            ).label("sp_done"),
+            sp_done_sum,
         )
         .outerjoin(
             Issue,
@@ -120,7 +115,7 @@ async def get_epic(
                 func.count(Issue.issue_key),
                 func.sum(Issue.story_points),
                 func.sum(
-                    func.case(
+                    case(
                         (Issue.status_category == "done", Issue.story_points),
                         else_=0,
                     )
