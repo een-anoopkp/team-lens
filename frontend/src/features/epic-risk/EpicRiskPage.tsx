@@ -9,7 +9,7 @@
 
 import { useEpicRisk, useEpicThroughput } from "../../api";
 import type { EpicRiskRow, ThroughputRow } from "../../api/types";
-import { JiraLink } from "../../lib/jira";
+import { JiraFilterLink, JiraLink } from "../../lib/jira";
 
 function num(v: string | number | null | undefined): number {
   if (v == null) return 0;
@@ -31,6 +31,8 @@ export default function EpicRiskPage() {
 
   const atRisk = data.epics.filter((e) => e.risk_band === "at_risk");
   const watch = data.epics.filter((e) => e.risk_band === "watch");
+  const onTrack = data.epics.filter((e) => e.risk_band === "on_track");
+  const done = data.epics.filter((e) => e.risk_band === "done");
 
   return (
     <div>
@@ -44,25 +46,32 @@ export default function EpicRiskPage() {
           <div className="kpi-label">At risk</div>
           <div className="kpi-value">{data.summary.at_risk}</div>
           <div className="kpi-sub">past due / no owner / inactive</div>
+          <JiraFilterLink keys={atRisk.map((e) => e.issue_key)} orderBy="duedate ASC" />
         </div>
         <div className="kpi warn">
           <div className="kpi-label">Watch</div>
           <div className="kpi-value">{data.summary.watch}</div>
           <div className="kpi-sub">slowing velocity</div>
+          <JiraFilterLink keys={watch.map((e) => e.issue_key)} orderBy="duedate ASC" />
         </div>
         <div className="kpi good">
           <div className="kpi-label">On track</div>
           <div className="kpi-value">{data.summary.on_track}</div>
+          <JiraFilterLink keys={onTrack.map((e) => e.issue_key)} orderBy="duedate ASC" />
         </div>
         <div className="kpi neutral">
           <div className="kpi-label">Done</div>
           <div className="kpi-value">{data.summary.done}</div>
+          <JiraFilterLink keys={done.map((e) => e.issue_key)} orderBy="resolutiondate DESC" />
         </div>
       </div>
 
       {atRisk.length > 0 && (
         <>
-          <h2>At-risk epics <span className="pill bad">{atRisk.length}</span></h2>
+          <h2>
+            At-risk epics <span className="pill bad">{atRisk.length}</span>
+            <JiraFilterLink keys={atRisk.map((e) => e.issue_key)} orderBy="duedate ASC" />
+          </h2>
           <div className="three-panel">
             {atRisk.slice(0, 12).map((e) => (
               <EpicRiskCard key={e.issue_key} epic={e} tone="bad" />
@@ -73,7 +82,10 @@ export default function EpicRiskPage() {
 
       {watch.length > 0 && (
         <>
-          <h2>Watch <span className="pill warn">{watch.length}</span></h2>
+          <h2>
+            Watch <span className="pill warn">{watch.length}</span>
+            <JiraFilterLink keys={watch.map((e) => e.issue_key)} orderBy="duedate ASC" />
+          </h2>
           <div className="three-panel">
             {watch.slice(0, 9).map((e) => (
               <EpicRiskCard key={e.issue_key} epic={e} tone="warn" />
