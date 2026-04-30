@@ -6,6 +6,7 @@ import EpicRiskPage from "./features/epic-risk/EpicRiskPage";
 import HygienePage from "./features/hygiene/HygienePage";
 import LeaderboardPage from "./features/leaderboard/LeaderboardPage";
 import LeavesPage from "./features/leaves/LeavesPage";
+import NotesPage from "./features/notes/NotesPage";
 import ProjectDetailPage from "./features/projects/ProjectDetailPage";
 import ProjectsMonitoringPage from "./features/projects/ProjectsMonitoringPage";
 import ProjectsPage from "./features/projects/ProjectsPage";
@@ -75,6 +76,7 @@ export default function App() {
               <Route path="/epic-risk" element={<EpicRiskPage />} />
               <Route path="/hygiene" element={<HygienePage />} />
               <Route path="/leaves" element={<LeavesPage />} />
+              <Route path="/notes" element={<NotesPage />} />
               <Route path="/projects" element={<ProjectsPage />} />
               <Route
                 path="/projects/monitoring"

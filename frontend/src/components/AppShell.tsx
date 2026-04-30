@@ -18,6 +18,7 @@ const NAV: NavItem[] = [
   { to: "/epic-risk", label: "Epic Risk" },
   { to: "/hygiene", label: "Hygiene" },
   { to: "/leaves", label: "Leaves" },
+  { to: "/notes", label: "Notes" },
   { to: "/projects", label: "Projects" },
   { to: "/projects/monitoring", label: "Projects · Monitoring" },
   { to: "/leaderboard", label: "Leaderboard" },

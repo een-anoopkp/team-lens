@@ -48,6 +48,15 @@ class TicketNotesResponse(BaseModel):
     done_recent: list[TicketNoteOut]
 
 
+class TicketNoteWithContext(TicketNoteOut):
+    """A note plus enough context to render it on the global Notes page
+    without a second round-trip per row."""
+
+    summary: str
+    status: str
+    issue_type: str
+
+
 class CreateNotePayload(BaseModel):
     body: str = Field(min_length=1, max_length=2000)
 
@@ -179,6 +188,50 @@ async def delete_note(
             detail={"error": "not_found", "message": "note id not found"},
         )
     await session.commit()
+
+
+@router.get("/notes", response_model=list[TicketNoteWithContext])
+async def list_all_notes(
+    include_done: bool = Query(
+        False,
+        description="Set true to include done items too (otherwise only open).",
+    ),
+    session: AsyncSession = Depends(get_session),
+) -> list[TicketNoteWithContext]:
+    """All notes across every ticket, joined with issue context.
+
+    Open notes only by default — that's the standup follow-up list. Set
+    `include_done=true` for an audit / archive view. Sort: oldest open
+    first (so things you've been carrying longest float to the top).
+    """
+    stmt = (
+        select(
+            TicketNote,
+            Issue.summary,
+            Issue.status,
+            Issue.issue_type,
+        )
+        .join(Issue, Issue.issue_key == TicketNote.issue_key)
+        .order_by(TicketNote.done.asc(), TicketNote.created_at.asc())
+    )
+    if not include_done:
+        stmt = stmt.where(TicketNote.done.is_(False))
+    rows = (await session.execute(stmt)).all()
+    return [
+        TicketNoteWithContext(
+            id=n.id,
+            issue_key=n.issue_key,
+            body=n.body,
+            done=n.done,
+            created_at=n.created_at,
+            updated_at=n.updated_at,
+            done_at=n.done_at,
+            summary=summary,
+            status=status_,
+            issue_type=issue_type,
+        )
+        for n, summary, status_, issue_type in rows
+    ]
 
 
 @router.get("/notes/counts", response_model=dict[str, int])

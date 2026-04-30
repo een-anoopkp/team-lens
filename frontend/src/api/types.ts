@@ -459,3 +459,9 @@ export interface TicketNotesResponse {
   open: TicketNote[];
   done_recent: TicketNote[];
 }
+
+export interface TicketNoteWithContext extends TicketNote {
+  summary: string;
+  status: string;
+  issue_type: string;
+}

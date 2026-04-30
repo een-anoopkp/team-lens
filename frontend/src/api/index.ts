@@ -545,6 +545,7 @@ function invalidateNotes(
 ) {
   qc.invalidateQueries({ queryKey: ["notes", issueKey] });
   qc.invalidateQueries({ queryKey: ["notes", "counts"] });
+  qc.invalidateQueries({ queryKey: ["notes", "all"] });
 }
 
 export function useCreateNote() {
@@ -582,5 +583,16 @@ export function useDeleteNote() {
     mutationFn: ({ id }: { id: number; issueKey: string }) =>
       deleteVoid(`/api/v1/notes/${id}`),
     onSuccess: (_, vars) => invalidateNotes(qc, vars.issueKey),
+  });
+}
+
+/** Every note across every ticket — backs the global Notes page. */
+export function useAllNotes(includeDone = false) {
+  return useQuery({
+    queryKey: ["notes", "all", includeDone],
+    queryFn: () =>
+      getJSON<import("./types").TicketNoteWithContext[]>(
+        `/api/v1/notes?include_done=${includeDone}`
+      ),
   });
 }
