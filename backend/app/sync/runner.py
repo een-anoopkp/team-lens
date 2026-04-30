@@ -28,23 +28,20 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.config import Settings
-from app.jira.client import JiraClient, JiraClientError
+from app.jira.client import JiraClient
 from app.jira.fields import FieldRegistry
 from app.models import (
-    Comment,
     Epic,
     Initiative,
     Issue,
     IssueSprint,
     SyncRun,
 )
-from app.sync import people, sprints, transform
+from app.sync import comments, people, sprints, transform
 from app.sync.context import SyncContext
 from app.sync.stats import SyncStats
 
 logger = structlog.get_logger(__name__)
-
-_COMMENT_FETCH_CONCURRENCY = 8
 
 
 class SyncRunner:
@@ -123,7 +120,7 @@ class SyncRunner:
 
             # 8. Comments for touched issues
             if stats.touched_issue_keys:
-                await self._sync_comments_for(jira, stats.touched_issue_keys)
+                await comments.sync_comments_for(self._ctx, jira, stats.touched_issue_keys)
 
             # 9. Removal detection (full only)
             if effective_scan == "full":
@@ -424,68 +421,6 @@ class SyncRunner:
                         [{"issue_key": ik, "sprint_id": sid} for ik, sid in unique_pairs]
                     )
                 )
-            await session.commit()
-
-    # ---- comments -----------------------------------------------------------
-
-    async def _sync_comments_for(self, jira: JiraClient, issue_keys: set[str]) -> None:
-        sem = asyncio.Semaphore(_COMMENT_FETCH_CONCURRENCY)
-
-        async def fetch_one(key: str) -> tuple[str, list[dict]]:
-            async with sem:
-                items: list[dict] = []
-                try:
-                    async for c in await jira.list_issue_comments(key):
-                        items.append(c)
-                except JiraClientError as e:
-                    logger.warning("comment_fetch_failed", issue=key, err=str(e))
-                return key, items
-
-        results = await asyncio.gather(*(fetch_one(k) for k in issue_keys))
-
-        seen_comments: dict[str, dict] = {}
-        seen_authors: dict[str, dict] = {}
-        for key, items in results:
-            for c in items:
-                row = transform.comment_from_jira(c, key)
-                seen_comments[row["comment_id"]] = row  # dedupe by PK
-                author = (c.get("author") or {})
-                p = transform.person_from_user(author)
-                if p:
-                    seen_authors[p["account_id"]] = p
-        rows = list(seen_comments.values())
-
-        # Comment authors may not be team-issue assignees/reporters; upsert
-        # directly via the ORM-row entry-point so the FK on comments.author_id
-        # always finds a row.
-        if seen_authors:
-            await people.upsert_people_rows(self._ctx, list(seen_authors.values()))
-
-        if not rows:
-            return
-        now = datetime.now(tz=UTC)
-        # asyncpg has a hard cap of 32767 bind parameters per query. With
-        # ~10 cols per comment, a single batch maxes around ~3000 rows.
-        # Chunk to stay well below the cap; 1000 rows ≈ 10000 params.
-        CHUNK = 1000
-        async with self._session_factory() as session:
-            for i in range(0, len(rows), CHUNK):
-                chunk = [{**r, "last_seen_at": now} for r in rows[i : i + CHUNK]]
-                stmt = pg_insert(Comment).values(chunk)
-                stmt = stmt.on_conflict_do_update(
-                    index_elements=[Comment.comment_id],
-                    set_={
-                        "issue_key": stmt.excluded.issue_key,
-                        "author_id": stmt.excluded.author_id,
-                        "body_text": stmt.excluded.body_text,
-                        "body_adf": stmt.excluded.body_adf,
-                        "created_at": stmt.excluded.created_at,
-                        "updated_at": stmt.excluded.updated_at,
-                        "last_seen_at": stmt.excluded.last_seen_at,
-                        "removed_at": None,
-                    },
-                )
-                await session.execute(stmt)
             await session.commit()
 
     # ---- removal detection --------------------------------------------------
