@@ -47,6 +47,8 @@ export function JiraFilterLink({
         fontWeight: 400,
         color: "var(--color-accent)",
         textDecoration: "none",
+        textTransform: "none",
+        letterSpacing: "normal",
       }}
       title={`Open these ${keys.length} ticket${keys.length === 1 ? "" : "s"} in Jira`}
     >

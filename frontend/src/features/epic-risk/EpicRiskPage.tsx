@@ -43,26 +43,34 @@ export default function EpicRiskPage() {
 
       <div className="kpi-row">
         <div className="kpi bad">
-          <div className="kpi-label">At risk</div>
+          <div className="kpi-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>At risk</span>
+            <JiraFilterLink keys={atRisk.map((e) => e.issue_key)} orderBy="duedate ASC" />
+          </div>
           <div className="kpi-value">{data.summary.at_risk}</div>
           <div className="kpi-sub">past due / no owner / inactive</div>
-          <JiraFilterLink keys={atRisk.map((e) => e.issue_key)} orderBy="duedate ASC" />
         </div>
         <div className="kpi warn">
-          <div className="kpi-label">Watch</div>
+          <div className="kpi-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>Watch</span>
+            <JiraFilterLink keys={watch.map((e) => e.issue_key)} orderBy="duedate ASC" />
+          </div>
           <div className="kpi-value">{data.summary.watch}</div>
           <div className="kpi-sub">slowing velocity</div>
-          <JiraFilterLink keys={watch.map((e) => e.issue_key)} orderBy="duedate ASC" />
         </div>
         <div className="kpi good">
-          <div className="kpi-label">On track</div>
+          <div className="kpi-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>On track</span>
+            <JiraFilterLink keys={onTrack.map((e) => e.issue_key)} orderBy="duedate ASC" />
+          </div>
           <div className="kpi-value">{data.summary.on_track}</div>
-          <JiraFilterLink keys={onTrack.map((e) => e.issue_key)} orderBy="duedate ASC" />
         </div>
         <div className="kpi neutral">
-          <div className="kpi-label">Done</div>
+          <div className="kpi-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>Done</span>
+            <JiraFilterLink keys={done.map((e) => e.issue_key)} orderBy="resolutiondate DESC" />
+          </div>
           <div className="kpi-value">{data.summary.done}</div>
-          <JiraFilterLink keys={done.map((e) => e.issue_key)} orderBy="resolutiondate DESC" />
         </div>
       </div>
 
