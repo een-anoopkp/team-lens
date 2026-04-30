@@ -292,7 +292,7 @@ async def test_case_c_mid_sprint_addition_records_event(session_factory) -> None
     assert e.change_type == "added_mid_sprint"
     assert e.sp_delta == Decimal("5")
     assert e.old_value is None
-    assert e.new_value == "5"
+    assert e.new_value == "5.00"  # Numeric(6,2) round-trip
 
 
 # ---------- Existing snapshot: SP / assignee / status changes ---------------

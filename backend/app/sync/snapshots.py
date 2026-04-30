@@ -131,21 +131,6 @@ async def update_snapshots(
             (s.issue_key, s.sprint_name): s for s in existing_rows
         }
 
-        # Has the issue itself been seen in ANY sprint before this sync?
-        # If not, treating this sync as a "first observation" is correct
-        # regardless of is_full_backfill — we have no evidence the issue
-        # was added mid-sprint vs. simply first seen now.
-        any_prior_q = (
-            select(TicketStateSnapshot.issue_key)
-            .where(TicketStateSnapshot.issue_key.in_(
-                {p.issue_key for p in current_pairs}
-            ))
-            .distinct()
-        )
-        issues_with_history: set[str] = {
-            row[0] for row in (await session.execute(any_prior_q)).all()
-        }
-
         new_snapshots: list[dict] = []
         new_events: list[dict] = []
         update_payloads: list[dict] = []
@@ -156,19 +141,14 @@ async def update_snapshots(
 
             if existing_snapshot is None:
                 # ---- First sighting ----------------------------------------
-                # Case A: full backfill, OR sprint hasn't started, OR this
-                # issue has never been seen by us before in any sprint.
-                # The third arm protects against false "added mid-sprint"
-                # tags when an issue appears for the first time after a
-                # sprint has just started (e.g. the team adds tickets on
-                # day 1 and the next scheduled sync runs an hour later).
-                first_observation_of_issue = (
-                    pair.issue_key not in issues_with_history
-                )
+                # Case A: full backfill (silent baseline; no evidence either way).
+                # Case B: sprint hasn't started yet, or only just started (24h
+                #         grace via _is_pre_start) — silent baseline.
+                # Case C: anything else — the issue was added after sprint
+                #         start, emit added_mid_sprint event.
                 if (
                     is_full_backfill
                     or _is_pre_start(pair.sprint_start_date, now)
-                    or first_observation_of_issue
                 ):
                     # Case A or B — silent baseline
                     new_snapshots.append(
