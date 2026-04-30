@@ -235,10 +235,11 @@ function KpiRow({ rollup, isActive }: { rollup: SprintRollup; isActive: boolean 
       <div className="kpi neutral">
         <div className="kpi-label">
           Velocity{" "}
-          <InfoIcon text="Completed SP divided by working days elapsed in this sprint. Working days = weekdays minus team holidays minus leaves." />
+          <InfoIcon text="Completed SP divided by total person-days available so far. Person-days = weekdays minus team holidays minus each individual's leaves, summed across the team. Accounts for leaves directly so cross-sprint comparisons hold even when team availability changes." />
         </div>
         <div className="kpi-value">
-          {rollup.velocity_sp_per_day != null ? fmtSp(rollup.velocity_sp_per_day, 1) : "—"} <span className="kpi-sub">SP/day</span>
+          {rollup.velocity_sp_per_person_day != null ? fmtSp(rollup.velocity_sp_per_person_day, 2) : "—"}{" "}
+          <span className="kpi-sub">SP/day/person</span>
         </div>
         <div className="kpi-sub">
           {rollup.days_elapsed} of {rollup.days_total} days elapsed

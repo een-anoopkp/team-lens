@@ -93,8 +93,16 @@ function OverallStrip({ sprints }: { sprints: Sprint[] }) {
 
   const totalCommitted = all.reduce((n, r) => n + num(r.committed_sp), 0);
   const totalCompleted = all.reduce((n, r) => n + num(r.completed_sp), 0);
-  const totalDays = all.reduce((n, r) => n + r.days_total, 0);
-  const avgVelocity = totalDays > 0 ? totalCompleted / totalDays : 0;
+  // Per-sprint velocities are already SP / person-day. Mean across sprints
+  // gives a stable "what does the average person deliver per working day"
+  // signal regardless of headcount or leave shifts between sprints.
+  const validVelocities = all
+    .map((r) => num(r.velocity_sp_per_person_day))
+    .filter((v) => v > 0);
+  const avgVelocity =
+    validVelocities.length > 0
+      ? validVelocities.reduce((a, b) => a + b, 0) / validVelocities.length
+      : 0;
   const avgPctDone =
     totalCommitted > 0 ? (totalCompleted / totalCommitted) * 100 : 0;
 
@@ -103,8 +111,8 @@ function OverallStrip({ sprints }: { sprints: Sprint[] }) {
       <div className="kpi neutral">
         <div className="kpi-label">Avg velocity</div>
         <div className="kpi-value">
-          {avgVelocity.toFixed(1)}{" "}
-          <span className="kpi-sub">SP/day</span>
+          {avgVelocity.toFixed(2)}{" "}
+          <span className="kpi-sub">SP/day/person</span>
         </div>
         <div className="kpi-sub">across {all.length} sprints</div>
       </div>
@@ -161,9 +169,9 @@ function SprintAccordion({
           <span className="muted small">
             velocity{" "}
             {data
-              ? num(data.velocity_sp_per_day).toFixed(1)
+              ? num(data.velocity_sp_per_person_day).toFixed(2)
               : "…"}{" "}
-            SP/day
+            SP/day/person
           </span>
         </span>
       </summary>
@@ -200,7 +208,8 @@ function SprintBody({ data }: { data: SprintRollup }) {
         <div className="kpi neutral">
           <div className="kpi-label">Velocity</div>
           <div className="kpi-value">
-            {num(data.velocity_sp_per_day).toFixed(1)} SP/day
+            {num(data.velocity_sp_per_person_day).toFixed(2)}{" "}
+            <span className="kpi-sub">SP/day/person</span>
           </div>
         </div>
         <div className="kpi neutral">

@@ -52,7 +52,7 @@ class SprintRollup:
     state: str
     committed_sp: Decimal
     completed_sp: Decimal
-    velocity_sp_per_day: Decimal | None
+    velocity_sp_per_person_day: Decimal | None
     projected_sp: Decimal | None
     days_total: int
     days_elapsed: int
@@ -107,9 +107,8 @@ async def sprint_rollup(
 
     # ---- Days math ------------------------------------------------------
     days_total = days_elapsed = days_remaining = 0
-    velocity = projected = None
+    elapsed_end: date | None = None
     if start is not None and end_d is not None:
-        from datetime import date as _d
         from datetime import datetime as _dt
         from datetime import timezone as _tz
         today = _dt.now(tz=_tz.utc).date()
@@ -121,9 +120,10 @@ async def sprint_rollup(
             else 0
         )
         days_remaining = max(0, days_total - days_elapsed)
-        if days_elapsed > 0:
-            velocity = completed / Decimal(days_elapsed)
-            projected = (velocity * Decimal(days_total)) if days_total > 0 else None
+
+    # `velocity` and `projected` are now per-person-day metrics — computed
+    # below after the per-person loop tells us each person's available days
+    # (their leaves are already netted out by working_days(person_id=...)).
 
     # ---- Hygiene inline -------------------------------------------------
     hyg = (
@@ -200,6 +200,8 @@ async def sprint_rollup(
     ).all()
 
     per_person: list[PersonRollup] = []
+    total_elapsed_person_days = 0
+    total_full_person_days = 0
     for r in person_rows:
         avail = (
             await working_days(
@@ -211,6 +213,20 @@ async def sprint_rollup(
             )
             if start and end_d
             else 1
+        )
+        # Same calc, restricted to elapsed window — used for the team-level
+        # per-person-day velocity below. For closed sprints elapsed_end == end_d
+        # so this equals `avail`.
+        elapsed_avail = (
+            await working_days(
+                session,
+                start=start,
+                end=elapsed_end,
+                region=region,
+                person_account_id=r.account_id,
+            )
+            if start and elapsed_end and elapsed_end >= start
+            else 0
         )
         c = Decimal(r.committed or 0)
         d = Decimal(r.completed or 0)
@@ -232,6 +248,19 @@ async def sprint_rollup(
                 ),
             )
         )
+        total_elapsed_person_days += elapsed_avail
+        total_full_person_days += avail
+
+    velocity = (
+        completed / Decimal(total_elapsed_person_days)
+        if total_elapsed_person_days > 0
+        else None
+    )
+    projected = (
+        velocity * Decimal(total_full_person_days)
+        if velocity is not None and total_full_person_days > 0
+        else None
+    )
 
     return SprintRollup(
         sprint_id=sprint.sprint_id,
@@ -239,7 +268,7 @@ async def sprint_rollup(
         state=sprint.state,
         committed_sp=committed,
         completed_sp=completed,
-        velocity_sp_per_day=velocity,
+        velocity_sp_per_person_day=velocity,
         projected_sp=projected,
         days_total=days_total,
         days_elapsed=days_elapsed,

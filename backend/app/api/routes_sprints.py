@@ -109,7 +109,7 @@ class SprintRollupOut(BaseModel):
     state: str
     committed_sp: Decimal
     completed_sp: Decimal
-    velocity_sp_per_day: Decimal | None
+    velocity_sp_per_person_day: Decimal | None
     projected_sp: Decimal | None
     days_total: int
     days_elapsed: int
@@ -134,7 +134,7 @@ async def get_sprint_rollup(
         state=rollup.state,
         committed_sp=rollup.committed_sp,
         completed_sp=rollup.completed_sp,
-        velocity_sp_per_day=rollup.velocity_sp_per_day,
+        velocity_sp_per_person_day=rollup.velocity_sp_per_person_day,
         projected_sp=rollup.projected_sp,
         days_total=rollup.days_total,
         days_elapsed=rollup.days_elapsed,

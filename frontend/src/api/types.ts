@@ -311,7 +311,7 @@ export interface SprintRollup {
   state: string;
   committed_sp: string | number;
   completed_sp: string | number;
-  velocity_sp_per_day: string | number | null;
+  velocity_sp_per_person_day: string | number | null;
   projected_sp: string | number | null;
   days_total: number;
   days_elapsed: number;
