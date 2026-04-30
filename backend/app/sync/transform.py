@@ -234,17 +234,30 @@ def sprints_from_issue(
 
 # ---------- Comments ---------------------------------------------------------
 
+def _strip_null_bytes(value):
+    """Recursively strip NUL (0x00) bytes — Postgres text/JSONB cannot hold them."""
+    if isinstance(value, str):
+        return value.replace("\x00", "")
+    if isinstance(value, dict):
+        return {k: _strip_null_bytes(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_strip_null_bytes(v) for v in value]
+    return value
+
+
 def comment_from_jira(comment: dict, issue_key: str) -> dict:
     body = comment.get("body")
     body_text = extract_adf_text(body) if isinstance(body, dict) else (body or "")
     if isinstance(body_text, str) and len(body_text) > 100_000:
         body_text = body_text[:100_000]
+    body_text = _strip_null_bytes(body_text or "")
+    body_adf = _strip_null_bytes(body) if isinstance(body, dict) else None
     return {
         "comment_id": comment["id"],
         "issue_key": issue_key,
         "author_id": (comment.get("author") or {}).get("accountId"),
-        "body_text": body_text or "",
-        "body_adf": body if isinstance(body, dict) else None,
+        "body_text": body_text,
+        "body_adf": body_adf,
         "created_at": parse_iso_datetime(comment.get("created")),
         "updated_at": parse_iso_datetime(comment.get("updated"))
         or parse_iso_datetime(comment.get("created")),
