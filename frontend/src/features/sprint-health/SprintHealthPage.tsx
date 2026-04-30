@@ -35,6 +35,7 @@ import type {
   StatusBreakdown,
   VelocityRow,
 } from "../../api/types";
+import InfoIcon from "../../components/InfoIcon";
 import { JiraLink } from "../../lib/jira";
 
 // ---------- Number / decimal helpers -----------------------------------------
@@ -202,17 +203,26 @@ function KpiRow({ rollup, isActive }: { rollup: SprintRollup; isActive: boolean 
   return (
     <div className="kpi-row">
       <div className="kpi neutral">
-        <div className="kpi-label">Committed</div>
+        <div className="kpi-label">
+          Committed{" "}
+          <InfoIcon text="Sum of story points on every non-subtask ticket assigned to this sprint at sprint start. Tickets added later in the sprint don't change this number — they show up under scope churn instead." />
+        </div>
         <div className="kpi-value">{fmtSp(committed)} SP</div>
         <div className="kpi-sub">{rollup.per_person.length} people</div>
       </div>
       <div className={`kpi ${completionPct >= 0.85 ? "good" : completionPct >= 0.6 ? "warn" : "bad"}`}>
-        <div className="kpi-label">Done</div>
+        <div className="kpi-label">
+          Done{" "}
+          <InfoIcon text="Sum of story points on tickets in this sprint that are status_category=done AND whose resolution_date falls within the sprint window. Tickets resolved before sprint start are excluded." />
+        </div>
         <div className="kpi-value">{fmtSp(completed)} SP</div>
         <div className="kpi-sub">{committed > 0 ? pct(completionPct) : "—"}</div>
       </div>
       <div className="kpi neutral">
-        <div className="kpi-label">Velocity</div>
+        <div className="kpi-label">
+          Velocity{" "}
+          <InfoIcon text="Completed SP divided by working days elapsed in this sprint. Working days = weekdays minus team holidays minus leaves." />
+        </div>
         <div className="kpi-value">
           {rollup.velocity_sp_per_day != null ? fmtSp(rollup.velocity_sp_per_day, 1) : "—"} <span className="kpi-sub">SP/day</span>
         </div>
@@ -221,7 +231,16 @@ function KpiRow({ rollup, isActive }: { rollup: SprintRollup; isActive: boolean 
         </div>
       </div>
       <div className={`kpi ${isActive ? (projected >= committed * 0.9 ? "good" : "warn") : "neutral"}`}>
-        <div className="kpi-label">{isActive ? "Projected" : "Carry-over"}</div>
+        <div className="kpi-label">
+          {isActive ? "Projected" : "Carry-over"}{" "}
+          <InfoIcon
+            text={
+              isActive
+                ? "Linear extrapolation: velocity (SP/day) × total working days in the sprint. Answers 'if today's pace continues, where will we land at sprint end?'. Compare against Committed — under by ≥10% shows warn."
+                : "Tickets that were committed but not done by sprint close. Sum of (committed_sp − completed_sp)."
+            }
+          />
+        </div>
         <div className="kpi-value">
           {isActive ? `${fmtSp(projected)} SP` : `${fmtSp(committed - completed)} SP`}
         </div>
@@ -259,10 +278,25 @@ function BurnupChart({ data }: { data: BurnupResponse }) {
 
   return (
     <div className="chart-panel">
-      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="chart">
+      <svg viewBox={`0 0 ${w} ${h}`} className="chart">
         <line x1="0" y1={targetY} x2={w} y2={targetY} className="chart-target" strokeDasharray="4 4" />
         <text x="6" y={targetY - 4} className="chart-label">target {fmtSp(target)} SP</text>
         <polyline className="chart-line" points={polyline} />
+        {/* Per-day hover hit-zones with native title tooltips. */}
+        {points.map((p, i) => {
+          const x = margin.left + i * xStep;
+          const y = margin.top + innerH * (1 - num(p.cumulative_done_sp) / maxY);
+          return (
+            <g key={p.day}>
+              <circle cx={x} cy={y} r={2.5} fill="var(--color-accent)" />
+              <circle cx={x} cy={y} r={9} fill="transparent">
+                <title>
+                  {p.day}: {fmtSp(p.cumulative_done_sp)} SP done
+                </title>
+              </circle>
+            </g>
+          );
+        })}
         <g className="chart-axis">
           {points.length > 0 && (
             <>
@@ -384,8 +418,25 @@ function VelocityTrend({ rows }: { rows: VelocityRow[] }) {
 
   return (
     <div className="chart-panel">
-      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="chart">
+      <svg viewBox={`0 0 ${w} ${h}`} className="chart">
         <polyline className="chart-line" points={polyline} />
+        {/* Hover hit-zones with native title tooltips. The radius is large
+         *  enough to be easy to hover, the fill is transparent so it's
+         *  invisible. Centered dots are drawn separately for the visual. */}
+        {bySprintAvg.map((s, i) => {
+          const x = margin.left + i * xStep;
+          const y = margin.top + innerH * (1 - s.avg / maxY);
+          return (
+            <g key={s.name}>
+              <circle cx={x} cy={y} r={3} fill="var(--color-accent)" />
+              <circle cx={x} cy={y} r={10} fill="transparent">
+                <title>
+                  {s.name}: {s.avg.toFixed(2)} SP/day avg
+                </title>
+              </circle>
+            </g>
+          );
+        })}
         <g className="chart-axis">
           {bySprintAvg.map((s, i) => (
             <text

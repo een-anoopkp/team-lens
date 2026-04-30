@@ -259,7 +259,7 @@ function ThroughputChart({ data }: { data: ThroughputRow[] }) {
   const barW = innerW / data.length - 8;
   return (
     <div className="chart-panel">
-      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="chart">
+      <svg viewBox={`0 0 ${w} ${h}`} className="chart">
         {data.map((d, i) => {
           const x = margin.left + i * (innerW / data.length) + 4;
           const barH = innerH * (d.closed_epics / maxY);
