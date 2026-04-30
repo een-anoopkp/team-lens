@@ -299,6 +299,7 @@ export interface ProjectListRow {
   sprints_active: number;
   avg_velocity_sp: string | number | null;
   avg_sprint_length_d: string | number | null;
+  scope_churn_pct: string | number | null;
   etd_by_velocity: string | null;          // YYYY-MM-DD
   etd_by_sprint_assignment: string | null; // YYYY-MM-DD
   completed_at: string | null;             // ISO timestamp

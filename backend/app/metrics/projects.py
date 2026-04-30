@@ -50,6 +50,7 @@ class ProjectListItem:
     sprints_active: int
     avg_velocity_sp: Decimal | None
     avg_sprint_length_d: Decimal | None
+    scope_churn_pct: Decimal | None
     etd_by_velocity: date | None
     etd_by_sprint_assignment: date | None
     completed_at: datetime | None  # populated only for completed snapshots
@@ -402,6 +403,7 @@ async def list_projects(session: AsyncSession) -> list[ProjectListItem]:
                 sprints_active=roll.sprints_active,
                 avg_velocity_sp=roll.avg_velocity_sp,
                 avg_sprint_length_d=roll.avg_sprint_length_d,
+                scope_churn_pct=roll.scope_churn_pct,
                 etd_by_velocity=etd_v,
                 etd_by_sprint_assignment=roll.latest_open_sprint_end,
                 completed_at=None,
@@ -424,6 +426,7 @@ async def list_projects(session: AsyncSession) -> list[ProjectListItem]:
                 sprints_active=s.sprints_active,
                 avg_velocity_sp=s.avg_velocity_sp,
                 avg_sprint_length_d=s.avg_sprint_length_d,
+                scope_churn_pct=s.scope_churn_pct,
                 etd_by_velocity=None,
                 etd_by_sprint_assignment=None,
                 completed_at=s.completed_at,

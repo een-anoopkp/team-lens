@@ -43,6 +43,7 @@ class ProjectListRow(BaseModel):
     sprints_active: int
     avg_velocity_sp: Decimal | None
     avg_sprint_length_d: Decimal | None
+    scope_churn_pct: Decimal | None
     etd_by_velocity: date | None
     etd_by_sprint_assignment: date | None
     completed_at: datetime | None
@@ -262,6 +263,7 @@ def _to_list_row(r) -> ProjectListRow:
         sprints_active=r.sprints_active,
         avg_velocity_sp=r.avg_velocity_sp,
         avg_sprint_length_d=r.avg_sprint_length_d,
+        scope_churn_pct=r.scope_churn_pct,
         etd_by_velocity=r.etd_by_velocity,
         etd_by_sprint_assignment=r.etd_by_sprint_assignment,
         completed_at=r.completed_at,
