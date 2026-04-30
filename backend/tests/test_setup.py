@@ -110,6 +110,11 @@ async def test_setup_test_falls_back_to_field_when_myself_is_oauth_only(
         mock.get("/rest/api/3/field").respond(
             200, json=[{"id": "customfield_10901", "name": "Story Points"}]
         )
+        # After /field succeeds, the probe also hits /project/search to detect
+        # scoped tokens that pass /field but have no project read access.
+        mock.get("/rest/api/3/project/search").respond(
+            200, json={"total": 1, "values": [{"id": "10000", "key": "EEPD"}]}
+        )
         response = await app_client.post(
             "/api/v1/setup/test",
             json={"email": "test@example.com", "api_token": "valid-token"},
