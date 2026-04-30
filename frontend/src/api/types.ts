@@ -266,6 +266,7 @@ export interface CarryOverRow {
 
 export interface BlockerRow {
   issue_key: string;
+  parent_key: string | null;
   summary: string;
   status: string;
   assignee_display_name: string | null;

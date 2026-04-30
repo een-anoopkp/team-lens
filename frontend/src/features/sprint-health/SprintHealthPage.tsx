@@ -36,7 +36,7 @@ import type {
   VelocityRow,
 } from "../../api/types";
 import InfoIcon from "../../components/InfoIcon";
-import { JiraLink } from "../../lib/jira";
+import { JiraFilterLink, JiraLink } from "../../lib/jira";
 
 // ---------- Number / decimal helpers -----------------------------------------
 
@@ -562,7 +562,10 @@ function VelocityTrend({ rows }: { rows: VelocityRow[] }) {
 function CarryOverPanel({ rows, loading }: { rows: CarryOverRow[]; loading: boolean }) {
   return (
     <div className="panel">
-      <h3>Carry-over</h3>
+      <h3>
+        Carry-over
+        <JiraFilterLink keys={rows.map((r) => r.issue_key)} orderBy="updated DESC" />
+      </h3>
       {loading ? (
         <p className="muted small">Loading…</p>
       ) : rows.length === 0 ? (
@@ -654,6 +657,10 @@ function ScopeChurnLoader({ sprintId }: { sprintId: number }) {
         +{added.reduce((s, r) => s + num(r.sp_delta), 0).toFixed(0)} SP added ·
         {" "}{Math.abs(removed.reduce((s, r) => s + num(r.sp_delta), 0)).toFixed(0)} SP removed ·
         {" "}{midSprint.length} mid-sprint
+        <JiraFilterLink
+          keys={Array.from(new Set(scopeRows.map((r) => r.issue_key)))}
+          orderBy="updated DESC"
+        />
       </p>
       <table className="datatable">
         <tbody>
@@ -678,9 +685,23 @@ function ScopeChurnLoader({ sprintId }: { sprintId: number }) {
 }
 
 function BlockersPanel({ rows, loading }: { rows: BlockerRow[]; loading: boolean }) {
+  // Filter link covers both the parents and the sub-tasks so opening in
+  // Jira shows the surrounding context, not just dangling sub-tasks.
+  const allKeys = useMemo(() => {
+    const s = new Set<string>();
+    for (const r of rows) {
+      s.add(r.issue_key);
+      if (r.parent_key) s.add(r.parent_key);
+    }
+    return Array.from(s);
+  }, [rows]);
+
   return (
     <div className="panel">
-      <h3>Blockers (open sub-tasks)</h3>
+      <h3>
+        Blockers (open sub-tasks)
+        <JiraFilterLink keys={allKeys} orderBy="updated ASC" />
+      </h3>
       {loading ? (
         <p className="muted small">Loading…</p>
       ) : rows.length === 0 ? (
@@ -690,7 +711,15 @@ function BlockersPanel({ rows, loading }: { rows: BlockerRow[]; loading: boolean
           <tbody>
             {rows.slice(0, 8).map((r) => (
               <tr key={r.issue_key}>
-                <td><JiraLink issueKey={r.issue_key} /></td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  {r.parent_key && (
+                    <>
+                      <JiraLink issueKey={r.parent_key} />
+                      <span className="muted small" style={{ margin: "0 4px" }}>/</span>
+                    </>
+                  )}
+                  <JiraLink issueKey={r.issue_key} />
+                </td>
                 <td>{r.summary.length > 36 ? r.summary.slice(0, 36) + "…" : r.summary}</td>
                 <td>
                   <span className={`pill ${r.band === "red" ? "bad" : r.band === "yellow" ? "warn" : "good"}`}>

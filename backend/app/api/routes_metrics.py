@@ -97,6 +97,7 @@ async def carry_over(
 
 class BlockerRow(BaseModel):
     issue_key: str
+    parent_key: str | None
     summary: str
     status: str
     assignee_display_name: str | None
@@ -113,6 +114,7 @@ async def blockers(
     return [
         BlockerRow(
             issue_key=r.issue_key,
+            parent_key=r.parent_key,
             summary=r.summary,
             status=r.status,
             assignee_display_name=r.assignee_display_name,

@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 @dataclass(slots=True)
 class Blocker:
     issue_key: str
+    parent_key: str | None
     summary: str
     status: str
     assignee_display_name: str | None
@@ -31,6 +32,7 @@ async def blockers_for_sprint(
     sql = """
     SELECT
       i.issue_key,
+      i.parent_key,
       i.summary,
       i.status,
       i.updated_at,
@@ -59,6 +61,7 @@ async def blockers_for_sprint(
         out.append(
             Blocker(
                 issue_key=r.issue_key,
+                parent_key=r.parent_key,
                 summary=r.summary,
                 status=r.status,
                 assignee_display_name=r.display_name,
