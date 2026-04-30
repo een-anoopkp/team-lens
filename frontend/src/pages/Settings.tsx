@@ -238,12 +238,6 @@ export default function Settings() {
         </Row>
       </div>
 
-      <h2>Holidays + leaves</h2>
-      <p className="muted small">
-        Managed via <code>/api/v1/leaves</code> and{" "}
-        <code>/api/v1/holidays</code>. UI for these lands when needed —
-        until then, see <code>backend/app/api/routes_leaves.py</code>.
-      </p>
     </div>
   );
 }
