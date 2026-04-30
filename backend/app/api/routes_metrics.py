@@ -207,7 +207,12 @@ class EpicRiskResponse(BaseModel):
 async def epic_risk(
     session: AsyncSession = Depends(get_session),
 ) -> EpicRiskResponse:
-    rows = await classify_epic_risks(session)
+    settings = get_settings()
+    rows = await classify_epic_risks(
+        session,
+        team_field=settings.jira_team_field,
+        team_id=settings.jira_team_value or None,
+    )
     summary = EpicRiskSummary(at_risk=0, watch=0, on_track=0, done=0)
     payload: list[EpicRiskRow] = []
     for r in rows:
@@ -253,7 +258,13 @@ async def epic_throughput_endpoint(
     sprint_window: int = Query(6, ge=1, le=24),
     session: AsyncSession = Depends(get_session),
 ) -> list[ThroughputRow]:
-    rows = await epic_throughput(session, sprint_window=sprint_window)
+    settings = get_settings()
+    rows = await epic_throughput(
+        session,
+        sprint_window=sprint_window,
+        team_field=settings.jira_team_field,
+        team_id=settings.jira_team_value or None,
+    )
     return [
         ThroughputRow(
             sprint_id=r.sprint_id,

@@ -55,10 +55,29 @@ class ThroughputPoint:
 
 async def classify_epic_risks(
     session: AsyncSession,
+    *,
+    team_field: str | None = None,
+    team_id: str | None = None,
 ) -> list[EpicRisk]:
-    """Pull every epic + its rollup + recent-activity timestamp, then classify."""
+    """Pull every epic + its rollup + recent-activity timestamp, then classify.
+
+    When `team_field` and `team_id` are both provided, restrict to epics whose
+    raw_payload has that team set on the configured custom field. This drops
+    parent epics that we only stored as hierarchy context for issues we own
+    (e.g. an epic on another team where one Search-team child happens to be
+    parented under it).
+    """
     today = datetime.now(tz=timezone.utc).date()
-    sql = """
+    team_clause = ""
+    params: dict[str, str] = {}
+    if team_field and team_id:
+        # team_field is config (e.g. "customfield_10500"); safe to inline.
+        team_clause = (
+            f"WHERE e.raw_payload->'fields'->'{team_field}'->>'id' = :team_id"
+        )
+        params["team_id"] = team_id
+
+    sql = f"""
     SELECT
       e.issue_key,
       e.summary,
@@ -77,10 +96,11 @@ async def classify_epic_risks(
     FROM epics e
     LEFT JOIN people p ON p.account_id = e.owner_account_id
     LEFT JOIN issues i ON i.epic_key = e.issue_key
+    {team_clause}
     GROUP BY e.issue_key, e.summary, e.status, e.status_category,
              e.initiative_key, e.owner_account_id, p.display_name, e.due_date
     """
-    rows = (await session.execute(text(sql))).all()
+    rows = (await session.execute(text(sql), params)).all()
 
     out: list[EpicRisk] = []
     for r in rows:
@@ -158,10 +178,28 @@ async def classify_epic_risks(
 
 
 async def epic_throughput(
-    session: AsyncSession, *, sprint_window: int = 6
+    session: AsyncSession,
+    *,
+    sprint_window: int = 6,
+    team_field: str | None = None,
+    team_id: str | None = None,
 ) -> list[ThroughputPoint]:
-    """Per-sprint count of epics that flipped to done within the sprint window."""
-    sql = """
+    """Per-sprint count of epics that flipped to done within the sprint window.
+
+    Same team-scoping behavior as `classify_epic_risks`: when both
+    `team_field` and `team_id` are set, only count epics actually assigned
+    to that team (not parent-context epics from other teams).
+    """
+    team_join_clause = "LEFT JOIN epics e ON true"
+    params: dict[str, object] = {"n": sprint_window}
+    if team_field and team_id:
+        team_join_clause = (
+            "LEFT JOIN epics e ON "
+            f"e.raw_payload->'fields'->'{team_field}'->>'id' = :team_id"
+        )
+        params["team_id"] = team_id
+
+    sql = f"""
     WITH recent_sprints AS (
       SELECT sprint_id, name, start_date, end_date, complete_date
       FROM sprints
@@ -180,11 +218,11 @@ async def epic_throughput(
           AND CAST(e.raw_payload->'fields'->>'resolutiondate' AS timestamptz)::date <= COALESCE(s.complete_date, s.end_date)::date
       ) AS closed_epics
     FROM recent_sprints s
-    LEFT JOIN epics e ON true
+    {team_join_clause}
     GROUP BY s.sprint_id, s.name, s.start_date
     ORDER BY s.start_date ASC
     """
-    rows = (await session.execute(text(sql), {"n": sprint_window})).all()
+    rows = (await session.execute(text(sql), params)).all()
     return [
         ThroughputPoint(
             sprint_id=r.sprint_id,
