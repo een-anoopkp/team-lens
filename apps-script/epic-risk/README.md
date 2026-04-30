@@ -1,4 +1,10 @@
-# apps-script/epic-risk
+# apps-script/epic-risk · DEPRECATED 2026-04-30
+
+> **🚫 Retired.** Phase 4 of the local-app rewrite ([docs/local-app/](../../docs/local-app/)) replaces this dashboard. The daily trigger has been removed; this folder is preserved for reference only and will be deleted in Phase 6 (after the 2-week soak period).
+>
+> **Successor:** `frontend/src/features/epic-risk/EpicRiskPage.tsx`, served by `make backend && make frontend` at `http://localhost:8081/epic-risk`. Backed by `GET /api/v1/metrics/epic-risk` + `/api/v1/metrics/epic-throughput`.
+
+---
 
 Google Apps Script source for the Epic Risk dashboard, managed via `clasp`.
 

@@ -172,6 +172,56 @@ export function useVelocity(sprintWindow = 6, person?: string) {
   });
 }
 
+// ---- Phase 4 metrics --------------------------------------------------------
+
+export function useEpicRisk() {
+  return useQuery({
+    queryKey: ["metrics", "epic-risk"],
+    queryFn: () =>
+      getJSON<import("./types").EpicRiskResponse>("/api/v1/metrics/epic-risk"),
+  });
+}
+
+export function useEpicThroughput(window = 6) {
+  return useQuery({
+    queryKey: ["metrics", "epic-throughput", window],
+    queryFn: () =>
+      getJSON<import("./types").ThroughputRow[]>(
+        `/api/v1/metrics/epic-throughput?sprint_window=${window}`
+      ),
+  });
+}
+
+export function useEpicsNoInitiative() {
+  return useQuery({
+    queryKey: ["hygiene", "epics-no-initiative"],
+    queryFn: () =>
+      getJSON<import("./types").EpicNoInitiativeRow[]>(
+        "/api/v1/hygiene/epics-no-initiative"
+      ),
+  });
+}
+
+export function useTasksNoEpic() {
+  return useQuery({
+    queryKey: ["hygiene", "tasks-no-epic"],
+    queryFn: () =>
+      getJSON<import("./types").TaskNoEpicRow[]>(
+        "/api/v1/hygiene/tasks-no-epic"
+      ),
+  });
+}
+
+export function useTicketsByDueDate(includeClosed = false) {
+  return useQuery({
+    queryKey: ["hygiene", "by-due-date", includeClosed],
+    queryFn: () =>
+      getJSON<import("./types").TicketByDueRow[]>(
+        `/api/v1/hygiene/by-due-date?include_closed=${includeClosed}`
+      ),
+  });
+}
+
 // ---- Issues -----------------------------------------------------------------
 
 export interface IssuesQuery {

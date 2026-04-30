@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import RefreshButton from "./RefreshButton";
 import StalenessBadge from "./StalenessBadge";
+import ThemeToggle from "./ThemeToggle";
 import { useSyncCompletionInvalidator } from "../lib/sync-watcher";
 
 interface NavItem {
@@ -12,8 +13,8 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { to: "/sprint-health", label: "Sprint Health" },
-  { to: "/epic-risk", label: "Epic Risk", phase: 4 },
-  { to: "/hygiene", label: "Hygiene", phase: 4 },
+  { to: "/epic-risk", label: "Epic Risk" },
+  { to: "/hygiene", label: "Hygiene" },
   { to: "/projects", label: "Projects", phase: 5 },
   { to: "/leaderboard", label: "Leaderboard", phase: 5 },
   { to: "/insights", label: "Insights", phase: 5 },
@@ -57,6 +58,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         >
           <StalenessBadge />
           <RefreshButton />
+          <ThemeToggle />
         </div>
       </header>
 

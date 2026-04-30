@@ -1,8 +1,8 @@
 # Local App — Build Status
 
 **Last updated:** 2026-04-30
-**Current phase:** Phase 4 — Epic Risk + Hygiene (ready to begin)
-**Current step:** 4.1 (Epic Risk metrics endpoints). Phase 3 closed: all 4 sub-steps committed; ground-truth verification 10/10 per-person rows match Jira to the SP; Apps Script `sprint-health` daily trigger retired.
+**Current phase:** Phase 5 — Projects + Monitoring (ready to begin)
+**Current step:** 5.1 (Projects backend). Phase 4 closed: 6 sub-steps committed; Epic Risk + Hygiene pages live; theme toggle wired; Apps Script `epic-risk` daily trigger retired.
 
 This file tracks live progress. Update as steps complete; commit alongside the work. Other files in this folder are specs that change rarely.
 
@@ -44,14 +44,14 @@ This file tracks live progress. Update as steps complete; commit alongside the w
 - [x] 3.3 Ground-truth verification — 10/10 per-person rows match Jira; total 157 SP exact. See [09-verification.md](./09-verification.md#phase-3-sprint-health--accepted-2026-04-30).
 - [x] 3.4 Retired Apps Script `sprint-health` daily trigger; README marked deprecated. (Directory deletion happens in Phase 6 after the 2-week soak.)
 
-## Phase 4 — Epic Risk + Hygiene
+## Phase 4 — Epic Risk + Hygiene — done 2026-04-30
 
-- [ ] 4.1 Epic Risk metrics endpoints
-- [ ] 4.2 Epic Risk React page
-- [ ] 4.3 Hygiene endpoints
-- [ ] 4.4 Hygiene React page
-- [ ] 4.5 Cross-page polish
-- [ ] 4.6 Retire Apps Script `epic-risk` daily trigger; mark `apps-script/` + `web/` deprecated
+- [x] 4.1 Epic Risk metrics endpoints — commit `89b8664` (`/metrics/epic-risk`, `/metrics/epic-throughput`)
+- [x] 4.2 Epic Risk React page — this commit (4 KPIs + risk-card grid + throughput chart)
+- [x] 4.3 Hygiene endpoints — commit `89b8664` (`/hygiene/epics-no-initiative`, `/tasks-no-epic`, `/by-due-date`)
+- [x] 4.4 Hygiene React page — this commit (3 sortable panels + include-closed toggle)
+- [x] 4.5 Cross-page polish — RefreshButton invalidates everything (`e5ef028`), ThemeToggle wired, JiraLink everywhere (`3824496`)
+- [x] 4.6 Retired Apps Script `epic-risk` daily trigger; README marked deprecated.
 
 ## Phase 5 — Projects + Monitoring
 

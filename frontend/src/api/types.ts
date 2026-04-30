@@ -207,6 +207,73 @@ export interface VelocityRow {
   accuracy: string | number | null;
 }
 
+// ---- Phase 4 Epic Risk + Hygiene types -------------------------------------
+
+export interface EpicRiskRow {
+  issue_key: string;
+  summary: string;
+  status: string;
+  status_category: string;
+  initiative_key: string | null;
+  owner_account_id: string | null;
+  owner_display_name: string | null;
+  due_date: string | null;
+  days_overdue: number | null;
+  issue_count: number;
+  sp_total: string | number;
+  sp_done: string | number;
+  days_since_activity: number | null;
+  risk_band: "at_risk" | "watch" | "on_track" | "done";
+  risk_reasons: string[];
+}
+
+export interface EpicRiskSummary {
+  at_risk: number;
+  watch: number;
+  on_track: number;
+  done: number;
+}
+
+export interface EpicRiskResponse {
+  summary: EpicRiskSummary;
+  epics: EpicRiskRow[];
+}
+
+export interface ThroughputRow {
+  sprint_id: number;
+  sprint_name: string;
+  closed_epics: number;
+}
+
+export interface EpicNoInitiativeRow {
+  issue_key: string;
+  summary: string;
+  status: string;
+  due_date: string | null;
+  sp_open: string | number;
+  days_since_activity: number | null;
+}
+
+export interface TaskNoEpicRow {
+  issue_key: string;
+  summary: string;
+  issue_type: string;
+  status: string;
+  assignee_display_name: string | null;
+  updated_at: string;
+}
+
+export interface TicketByDueRow {
+  issue_key: string;
+  summary: string;
+  assignee_display_name: string | null;
+  due_date: string;
+  days_to_due: number;
+  band: "red" | "yellow" | "green" | "grey";
+  status: string;
+  status_category: string;
+}
+
 export interface ProjectRaw {
   project_name: string;
   epic_count: number;
