@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import { useHealth } from "./api";
 import AppShell from "./components/AppShell";
+import SprintHealthPage from "./features/sprint-health/SprintHealthPage";
 import Debug from "./pages/Debug";
 import Setup from "./pages/Setup";
 
@@ -60,10 +61,7 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/debug" replace />} />
               <Route path="/debug" element={<Debug />} />
-              <Route
-                path="/sprint-health"
-                element={<PlaceholderPage phase={3} name="Sprint Health" />}
-              />
+              <Route path="/sprint-health" element={<SprintHealthPage />} />
               <Route
                 path="/epic-risk"
                 element={<PlaceholderPage phase={4} name="Epic Risk" />}

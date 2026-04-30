@@ -2,18 +2,22 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
+  BlockerRow,
+  BurnupResponse,
+  CarryOverRow,
   Epic,
   HealthResponse,
   Holiday,
   Initiative,
-  Issue,
   IssuesPage,
   Leave,
   Person,
   ProjectRaw,
   ScopeChange,
   Sprint,
+  SprintRollup,
   SyncStatus,
+  VelocityRow,
 } from "./types";
 
 async function getJSON<T>(path: string): Promise<T> {
@@ -104,6 +108,67 @@ export function useSprints(state: "active" | "closed" | "future" | "all" = "all"
   return useQuery({
     queryKey: ["sprints", state],
     queryFn: () => getJSON<Sprint[]>(`/api/v1/sprints?state=${state}&limit=200`),
+  });
+}
+
+export function useActiveSprint() {
+  return useQuery({
+    queryKey: ["sprints", "active"],
+    queryFn: async () => {
+      try {
+        return await getJSON<Sprint>("/api/v1/sprints/active");
+      } catch (e: unknown) {
+        const status = (e as { status?: number }).status;
+        if (status === 404) return null;
+        throw e;
+      }
+    },
+  });
+}
+
+export function useSprintRollup(sprintId: number | undefined) {
+  return useQuery({
+    queryKey: ["sprints", sprintId, "rollup"],
+    queryFn: () => getJSON<SprintRollup>(`/api/v1/sprints/${sprintId}/rollup`),
+    enabled: sprintId != null,
+  });
+}
+
+// ---- Phase 3 metrics --------------------------------------------------------
+
+export function useBurnup(sprintId: number | undefined) {
+  return useQuery({
+    queryKey: ["metrics", "burnup", sprintId],
+    queryFn: () =>
+      getJSON<BurnupResponse>(`/api/v1/metrics/burnup?sprint_id=${sprintId}`),
+    enabled: sprintId != null,
+  });
+}
+
+export function useCarryOver(sprintId: number | undefined) {
+  return useQuery({
+    queryKey: ["metrics", "carry-over", sprintId],
+    queryFn: () =>
+      getJSON<CarryOverRow[]>(`/api/v1/metrics/carry-over?sprint_id=${sprintId}`),
+    enabled: sprintId != null,
+  });
+}
+
+export function useBlockers(sprintId: number | undefined) {
+  return useQuery({
+    queryKey: ["metrics", "blockers", sprintId],
+    queryFn: () =>
+      getJSON<BlockerRow[]>(`/api/v1/metrics/blockers?sprint_id=${sprintId}`),
+    enabled: sprintId != null,
+  });
+}
+
+export function useVelocity(sprintWindow = 6, person?: string) {
+  const qs = new URLSearchParams({ sprint_window: String(sprintWindow) });
+  if (person) qs.set("person", person);
+  return useQuery({
+    queryKey: ["metrics", "velocity", sprintWindow, person],
+    queryFn: () => getJSON<VelocityRow[]>(`/api/v1/metrics/velocity?${qs}`),
   });
 }
 

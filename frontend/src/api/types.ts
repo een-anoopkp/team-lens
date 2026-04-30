@@ -122,6 +122,91 @@ export interface ScopeChange {
   detected_at: string;
 }
 
+// ---- Phase 3 metrics types -------------------------------------------------
+
+export interface StatusBreakdown {
+  todo_sp: string | number;
+  in_progress_sp: string | number;
+  review_sp: string | number;
+  validation_sp: string | number;
+  done_sp: string | number;
+}
+
+export interface PersonRollup {
+  person_account_id: string;
+  person_display_name: string | null;
+  committed_sp: string | number;
+  completed_sp: string | number;
+  available_days: number;
+  velocity: string | number | null;
+  accuracy: string | number | null;
+  status_breakdown: StatusBreakdown;
+}
+
+export interface HygieneInline {
+  unassigned: number;
+  missing_sp: number;
+  missing_epic: number;
+}
+
+export interface SprintRollup {
+  sprint_id: number;
+  sprint_name: string;
+  state: string;
+  committed_sp: string | number;
+  completed_sp: string | number;
+  velocity_sp_per_day: string | number | null;
+  projected_sp: string | number | null;
+  days_total: number;
+  days_elapsed: number;
+  days_remaining: number;
+  hygiene: HygieneInline;
+  per_person: PersonRollup[];
+}
+
+export interface BurnupPoint {
+  day: string;
+  cumulative_done_sp: string | number;
+  cumulative_committed_sp: string | number;
+}
+
+export interface BurnupResponse {
+  sprint_id: number;
+  sprint_name: string;
+  target_sp: string | number;
+  points: BurnupPoint[];
+}
+
+export interface CarryOverRow {
+  issue_key: string;
+  summary: string;
+  assignee_id: string | null;
+  assignee_display_name: string | null;
+  depth: number;
+  story_points: string | number | null;
+}
+
+export interface BlockerRow {
+  issue_key: string;
+  summary: string;
+  status: string;
+  assignee_display_name: string | null;
+  age_days: number;
+  band: "green" | "yellow" | "red";
+}
+
+export interface VelocityRow {
+  sprint_id: number;
+  sprint_name: string;
+  person_account_id: string;
+  person_display_name: string | null;
+  committed_sp: string | number;
+  completed_sp: string | number;
+  available_days: number;
+  velocity: string | number | null;
+  accuracy: string | number | null;
+}
+
 export interface ProjectRaw {
   project_name: string;
   epic_count: number;
