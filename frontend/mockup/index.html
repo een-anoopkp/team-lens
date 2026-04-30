@@ -446,23 +446,153 @@
         <!-- Sprint Health (closed) -->
         <section data-route="page-sprint-health-closed" class="route hidden">
           <h1>Sprint Health <span class="pill neutral">closed</span></h1>
-          <div class="sprint-banner sprint-banner-closed">
-            <strong>Search 2026-07</strong> · Closed 15 Apr 2026 · 13 days
-          </div>
-          <h2>Final KPIs</h2>
+          <p class="muted">Last 6 closed sprints. Click any sprint to expand its per-sprint KPIs and per-person breakdown.</p>
+
+          <h2>Overall <span class="muted small">(across last 6 closed)</span></h2>
           <div class="kpi-row">
-            <div class="kpi neutral"><div class="kpi-label">Committed</div><div class="kpi-value">38 SP</div></div>
-            <div class="kpi good"><div class="kpi-label">Completed</div><div class="kpi-value">34 SP</div><div class="kpi-sub">89%</div></div>
-            <div class="kpi neutral"><div class="kpi-label">Velocity</div><div class="kpi-value">2.6 SP/day</div></div>
-            <div class="kpi warn"><div class="kpi-label">Carry-over</div><div class="kpi-value">4 SP</div><div class="kpi-sub">2 tickets</div></div>
+            <div class="kpi neutral">
+              <div class="kpi-label">Avg velocity</div>
+              <div class="kpi-value">2.7 <span class="kpi-sub">SP/day</span></div>
+              <div class="kpi-sub">across 6 sprints</div>
+            </div>
+            <div class="kpi good">
+              <div class="kpi-label">Avg completion</div>
+              <div class="kpi-value">87%</div>
+              <div class="kpi-sub">of committed</div>
+            </div>
+            <div class="kpi warn">
+              <div class="kpi-label">Total carry-over</div>
+              <div class="kpi-value">22 SP</div>
+              <div class="kpi-sub">11 tickets</div>
+            </div>
+            <div class="kpi neutral">
+              <div class="kpi-label">Total scope churn</div>
+              <div class="kpi-value">31 SP</div>
+              <div class="kpi-sub">±13% of committed</div>
+            </div>
           </div>
-          <h2>Per-person final</h2>
-          <div class="panel">
-            <div class="proto-row"><div class="proto-label">Anoop K Prabhu</div><div class="progress-track"><span class="seg seg-done" style="width:100%"></span></div><div class="proto-num">7 / 7 · 100%</div></div>
-            <div class="proto-row"><div class="proto-label">Priya Sridhar</div><div class="progress-track"><span class="seg seg-done" style="width:80%"></span><span class="seg seg-todo" style="width:20%"></span></div><div class="proto-num">4 / 5 · 80%</div></div>
-            <div class="proto-row"><div class="proto-label">Karthik Iyer</div><div class="progress-track"><span class="seg seg-done" style="width:100%"></span></div><div class="proto-num">8 / 8 · 100%</div></div>
-            <div class="proto-row"><div class="proto-label">Meera Nair</div><div class="progress-track"><span class="seg seg-done" style="width:60%"></span><span class="seg seg-todo" style="width:40%"></span></div><div class="proto-num">3 / 5 · 60% <span class="pill bad">⚠</span></div></div>
-          </div>
+
+          <h2>Per sprint <span class="muted small">(newest first — click to expand)</span></h2>
+
+          <details class="sprint-accordion" open>
+            <summary>
+              <span class="sprint-acc-name">Search 2026-07</span>
+              <span class="sprint-acc-meta">
+                <span class="muted small">Closed 15 Apr 2026 · 13 days</span>
+                <span class="pill good">89% done</span>
+                <span class="muted small">velocity 2.6 SP/day</span>
+              </span>
+            </summary>
+            <div class="sprint-acc-body">
+              <div class="kpi-row">
+                <div class="kpi neutral"><div class="kpi-label">Committed</div><div class="kpi-value">38 SP</div></div>
+                <div class="kpi good"><div class="kpi-label">Completed</div><div class="kpi-value">34 SP</div><div class="kpi-sub">89%</div></div>
+                <div class="kpi neutral"><div class="kpi-label">Velocity</div><div class="kpi-value">2.6 SP/day</div></div>
+                <div class="kpi warn"><div class="kpi-label">Carry-over</div><div class="kpi-value">4 SP</div><div class="kpi-sub">2 tickets</div></div>
+              </div>
+              <h3>Per-person final</h3>
+              <div class="panel">
+                <div class="proto-row"><div class="proto-label">Anoop K Prabhu</div><div class="progress-track"><span class="seg seg-done" style="width:100%"></span></div><div class="proto-num">7 / 7 · 100%</div></div>
+                <div class="proto-row"><div class="proto-label">Priya Sridhar</div><div class="progress-track"><span class="seg seg-done" style="width:80%"></span><span class="seg seg-todo" style="width:20%"></span></div><div class="proto-num">4 / 5 · 80%</div></div>
+                <div class="proto-row"><div class="proto-label">Karthik Iyer</div><div class="progress-track"><span class="seg seg-done" style="width:100%"></span></div><div class="proto-num">8 / 8 · 100%</div></div>
+                <div class="proto-row"><div class="proto-label">Meera Nair</div><div class="progress-track"><span class="seg seg-done" style="width:60%"></span><span class="seg seg-todo" style="width:40%"></span></div><div class="proto-num">3 / 5 · 60% <span class="pill bad">⚠</span></div></div>
+              </div>
+            </div>
+          </details>
+
+          <details class="sprint-accordion">
+            <summary>
+              <span class="sprint-acc-name">Search 2026-06</span>
+              <span class="sprint-acc-meta">
+                <span class="muted small">Closed 1 Apr 2026 · 7 days</span>
+                <span class="pill good">95% done</span>
+                <span class="muted small">velocity 3.0 SP/day</span>
+              </span>
+            </summary>
+            <div class="sprint-acc-body">
+              <div class="kpi-row">
+                <div class="kpi neutral"><div class="kpi-label">Committed</div><div class="kpi-value">21 SP</div></div>
+                <div class="kpi good"><div class="kpi-label">Completed</div><div class="kpi-value">20 SP</div><div class="kpi-sub">95%</div></div>
+                <div class="kpi neutral"><div class="kpi-label">Velocity</div><div class="kpi-value">3.0 SP/day</div></div>
+                <div class="kpi good"><div class="kpi-label">Carry-over</div><div class="kpi-value">1 SP</div><div class="kpi-sub">1 ticket</div></div>
+              </div>
+              <h3>Per-person final</h3>
+              <div class="panel">
+                <div class="proto-row"><div class="proto-label">Anoop K Prabhu</div><div class="progress-track"><span class="seg seg-done" style="width:100%"></span></div><div class="proto-num">5 / 5 · 100%</div></div>
+                <div class="proto-row"><div class="proto-label">Priya Sridhar</div><div class="progress-track"><span class="seg seg-done" style="width:75%"></span><span class="seg seg-todo" style="width:25%"></span></div><div class="proto-num">3 / 4 · 75%</div></div>
+                <div class="proto-row"><div class="proto-label">Karthik Iyer</div><div class="progress-track"><span class="seg seg-done" style="width:100%"></span></div><div class="proto-num">6 / 6 · 100%</div></div>
+                <div class="proto-row"><div class="proto-label">Meera Nair</div><div class="progress-track"><span class="seg seg-done" style="width:100%"></span></div><div class="proto-num">6 / 6 · 100%</div></div>
+              </div>
+            </div>
+          </details>
+
+          <details class="sprint-accordion">
+            <summary>
+              <span class="sprint-acc-name">Search 2026-05</span>
+              <span class="sprint-acc-meta">
+                <span class="muted small">Closed 18 Mar 2026 · 14 days</span>
+                <span class="pill good">82% done</span>
+                <span class="muted small">velocity 2.5 SP/day</span>
+              </span>
+            </summary>
+            <div class="sprint-acc-body">
+              <div class="kpi-row">
+                <div class="kpi neutral"><div class="kpi-label">Committed</div><div class="kpi-value">42 SP</div></div>
+                <div class="kpi good"><div class="kpi-label">Completed</div><div class="kpi-value">35 SP</div><div class="kpi-sub">82%</div></div>
+                <div class="kpi neutral"><div class="kpi-label">Velocity</div><div class="kpi-value">2.5 SP/day</div></div>
+                <div class="kpi warn"><div class="kpi-label">Carry-over</div><div class="kpi-value">7 SP</div><div class="kpi-sub">3 tickets</div></div>
+              </div>
+              <p class="muted small">(per-person breakdown elided in mockup — same shape as 2026-07 above)</p>
+            </div>
+          </details>
+
+          <details class="sprint-accordion">
+            <summary>
+              <span class="sprint-acc-name">Search 2026-04</span>
+              <span class="sprint-acc-meta">
+                <span class="muted small">Closed 4 Mar 2026 · 14 days</span>
+                <span class="pill warn">76% done</span>
+                <span class="muted small">velocity 2.3 SP/day</span>
+              </span>
+            </summary>
+            <div class="sprint-acc-body">
+              <div class="kpi-row">
+                <div class="kpi neutral"><div class="kpi-label">Committed</div><div class="kpi-value">36 SP</div></div>
+                <div class="kpi warn"><div class="kpi-label">Completed</div><div class="kpi-value">27 SP</div><div class="kpi-sub">76%</div></div>
+                <div class="kpi neutral"><div class="kpi-label">Velocity</div><div class="kpi-value">2.3 SP/day</div></div>
+                <div class="kpi warn"><div class="kpi-label">Carry-over</div><div class="kpi-value">9 SP</div><div class="kpi-sub">4 tickets</div></div>
+              </div>
+              <p class="muted small">(per-person breakdown elided)</p>
+            </div>
+          </details>
+
+          <details class="sprint-accordion">
+            <summary>
+              <span class="sprint-acc-name">Search 2026-03</span>
+              <span class="sprint-acc-meta">
+                <span class="muted small">Closed 18 Feb 2026 · 13 days</span>
+                <span class="pill good">91% done</span>
+                <span class="muted small">velocity 2.9 SP/day</span>
+              </span>
+            </summary>
+            <div class="sprint-acc-body">
+              <p class="muted small">Click-through KPIs same structure as above.</p>
+            </div>
+          </details>
+
+          <details class="sprint-accordion">
+            <summary>
+              <span class="sprint-acc-name">Search 2026-02</span>
+              <span class="sprint-acc-meta">
+                <span class="muted small">Closed 4 Feb 2026 · 14 days</span>
+                <span class="pill bad">68% done</span>
+                <span class="muted small">velocity 2.0 SP/day</span>
+              </span>
+            </summary>
+            <div class="sprint-acc-body">
+              <p class="muted small">Click-through KPIs same structure as above.</p>
+            </div>
+          </details>
         </section>
 
         <!-- Epic Risk -->
