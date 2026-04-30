@@ -82,6 +82,34 @@ async def probe_jira_credentials(
         )
 
     fields = response.json()
+
+    # Field-listing alone isn't enough — scoped API tokens can have
+    # `read:jira-user` (which lets /field through) without
+    # `read:jira-work`/project access. Probe project visibility too so we
+    # don't silently sync zero issues.
+    async with httpx.AsyncClient(timeout=timeout_s) as client:
+        try:
+            project_resp = await client.get(
+                f"{base}/rest/api/3/project/search",
+                auth=(email, api_token),
+                params={"maxResults": 1},
+                headers={"Accept": "application/json"},
+            )
+        except httpx.RequestError as e:
+            raise JiraAuthError(f"Network error reaching Jira: {e}") from e
+
+    if project_resp.status_code == 200:
+        body = project_resp.json()
+        total = body.get("total", 0) if isinstance(body, dict) else 0
+        if total == 0:
+            raise JiraAuthError(
+                "Token authenticates but has no project read access (0 visible projects). "
+                "Likely a scoped API token missing `read:jira-work`. "
+                "Re-create at id.atlassian.com/manage-profile/security/api-tokens "
+                "as a Classic token, or include `read:jira-work` + `read:project:jira` + "
+                "`read:issue:jira` scopes."
+            )
+
     return {
         "verified_via": "/rest/api/3/field",
         "field_count": len(fields) if isinstance(fields, list) else None,
