@@ -10,6 +10,7 @@
 
 import { useProjectComparison } from "../../api";
 import type { ProjectComparison, ProjectListRow } from "../../api/types";
+import InfoIcon from "../../components/InfoIcon";
 
 function num(v: string | number | null | undefined): number | null {
   if (v == null) return null;
@@ -80,11 +81,26 @@ function ComparisonBody({ c }: { c: ProjectComparison }) {
           <thead>
             <tr>
               <th>Project</th>
-              <th>Velocity</th>
-              <th>vs median</th>
-              <th>Churn</th>
-              <th>vs median</th>
-              <th>Sprints</th>
+              <th>
+                Velocity
+                <InfoIcon text="Average story points completed per sprint, computed across every sprint this project's issues have appeared in." />
+              </th>
+              <th>
+                vs median
+                <InfoIcon text="This project's velocity compared to the median velocity across all closed projects. +20% means 20% faster than the historical norm; −20% means slower." />
+              </th>
+              <th>
+                Churn
+                <InfoIcon text="Total scope change as a percentage of total SP — (SP added + SP removed) / total SP. Higher means the scope kept moving while the project was running." />
+              </th>
+              <th>
+                vs median
+                <InfoIcon text="Difference in churn percentage points (pp) vs. the median churn across closed projects. +5pp means 5 points more churn than typical." />
+              </th>
+              <th>
+                Sprints
+                <InfoIcon text="Distinct sprints any of this project's issues have been part of — open or closed. A rough proxy for project age." />
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -208,11 +224,26 @@ function CompletedStatsPanel({ c }: { c: ProjectComparison }) {
   if (c.completed_count === 0) return null;
   return (
     <>
-      <h2>Closed-project distribution</h2>
+      <h2>
+        Closed-project distribution
+        <InfoIcon text="Distribution stats across every closed project. p25 = 25th percentile (the slower / lower quarter), p75 = 75th. Used as the baseline for the comparison table above." />
+      </h2>
       <div className="three-panel">
-        <StatPanel title="Velocity (SP/sprint)" s={c.velocity} />
-        <StatPanel title="Scope churn (%)" s={c.churn_pct} />
-        <StatPanel title="Sprints active" s={c.sprints_active} />
+        <StatPanel
+          title="Velocity (SP/sprint)"
+          s={c.velocity}
+          info="Average SP delivered per sprint, across each closed project's full duration."
+        />
+        <StatPanel
+          title="Scope churn (%)"
+          s={c.churn_pct}
+          info="(SP added + SP removed) / total SP, expressed as a percentage."
+        />
+        <StatPanel
+          title="Sprints active"
+          s={c.sprints_active}
+          info="Distinct sprints the project's issues appeared in, from first sprint to last."
+        />
       </div>
     </>
   );
@@ -221,13 +252,18 @@ function CompletedStatsPanel({ c }: { c: ProjectComparison }) {
 function StatPanel({
   title,
   s,
+  info,
 }: {
   title: string;
   s: ProjectComparison["velocity"];
+  info?: string;
 }) {
   return (
     <div className="panel">
-      <h3>{title}</h3>
+      <h3>
+        {title}
+        {info && <InfoIcon text={info} />}
+      </h3>
       <div className="proto-row" style={{ gridTemplateColumns: "1fr auto" }}>
         <span className="muted small">p25</span>
         <strong>{fmtStat(s.p25)}</strong>

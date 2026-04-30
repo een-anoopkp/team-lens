@@ -13,6 +13,7 @@ import { Link, useParams } from "react-router-dom";
 
 import { useProject } from "../../api";
 import type { ProjectDetail } from "../../api/types";
+import InfoIcon from "../../components/InfoIcon";
 import { JiraFilterLink, JiraLink } from "../../lib/jira";
 
 function num(v: string | number | null | undefined): number {
@@ -214,7 +215,10 @@ function ProjectDetailBody({ p }: { p: ProjectDetail }) {
 
       <div className="three-panel">
         <div className="panel">
-          <h3>Scope churn</h3>
+          <h3>
+            Scope churn
+            <InfoIcon text="(SP added + SP removed) / total SP. High churn means scope kept moving while the project was running — often a sign of unstable requirements or carry-over work being re-scoped." />
+          </h3>
           <div className="proto-row" style={{ gridTemplateColumns: "1fr auto" }}>
             <span className="muted small">SP added</span>
             <strong>+{num(p.sp_added_total).toFixed(0)}</strong>
