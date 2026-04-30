@@ -13,6 +13,7 @@ from app.api import (
     routes_epics,
     routes_holidays,
     routes_hygiene,
+    routes_insights,
     routes_issues,
     routes_leaderboard,
     routes_leaves,
@@ -164,6 +165,7 @@ def create_app() -> FastAPI:
     app.include_router(routes_leaderboard.router)
     app.include_router(routes_team_members.router)
     app.include_router(routes_ticket_notes.router)
+    app.include_router(routes_insights.router)
 
     @app.get("/api/v1/health")
     async def health() -> dict:
