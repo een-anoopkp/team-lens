@@ -12,6 +12,7 @@ import NotesPage from "./features/notes/NotesPage";
 import ProjectDetailPage from "./features/projects/ProjectDetailPage";
 import ProjectsMonitoringPage from "./features/projects/ProjectsMonitoringPage";
 import ProjectsPage from "./features/projects/ProjectsPage";
+import SprintHealthClosedPage from "./features/sprint-health/SprintHealthClosedPage";
 import SprintHealthPage from "./features/sprint-health/SprintHealthPage";
 import StandupBoard from "./features/sprint-health/StandupBoard";
 import Debug from "./pages/Debug";
@@ -49,6 +50,10 @@ export default function App() {
               <Route path="/" element={<Navigate to="/debug" replace />} />
               <Route path="/debug" element={<Debug />} />
               <Route path="/sprint-health" element={<SprintHealthPage />} />
+              <Route
+                path="/sprint-health/closed"
+                element={<SprintHealthClosedPage />}
+              />
               <Route path="/standup" element={<StandupBoard />} />
               <Route path="/epic-risk" element={<EpicRiskPage />} />
               <Route path="/hygiene" element={<HygienePage />} />
