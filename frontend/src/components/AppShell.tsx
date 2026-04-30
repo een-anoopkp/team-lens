@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import RefreshButton from "./RefreshButton";
 import StalenessBadge from "./StalenessBadge";
 import ThemeToggle from "./ThemeToggle";
@@ -11,6 +11,9 @@ interface NavItem {
   /** Tag shown next to the label (e.g. "v3") for routes that are
    *  empty-state placeholders for not-yet-built work. */
   tag?: string;
+  /** Sub-pages. Indented children render only when the group is the
+   *  active section (parent or any child path is current). */
+  children?: NavItem[];
 }
 
 const NAV: NavItem[] = [
@@ -20,11 +23,17 @@ const NAV: NavItem[] = [
   { to: "/hygiene", label: "Hygiene" },
   { to: "/leaves", label: "Leaves" },
   { to: "/notes", label: "Notes" },
-  { to: "/projects", label: "Projects" },
-  { to: "/projects/monitoring", label: "Projects · Monitoring" },
+  {
+    to: "/projects",
+    label: "Projects",
+    children: [{ to: "/projects/monitoring", label: "Monitoring" }],
+  },
   { to: "/leaderboard", label: "Leaderboard" },
-  { to: "/insights", label: "Insights" },
-  { to: "/insights/rules", label: "Insights · Rules" },
+  {
+    to: "/insights",
+    label: "Insights",
+    children: [{ to: "/insights/rules", label: "Rules" }],
+  },
   { to: "/debug", label: "Debug" },
   { to: "/settings", label: "Settings" },
 ];
@@ -69,50 +78,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <nav
-        style={{
-          gridArea: "side",
-          background: "var(--color-surface)",
-          borderRight: "1px solid var(--color-border)",
-          padding: "12px 0",
-        }}
-      >
-        {NAV.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            style={({ isActive }) => ({
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "8px 16px",
-              color: isActive ? "var(--color-accent)" : "var(--color-text)",
-              background: isActive ? "rgba(26,115,232,0.08)" : "transparent",
-              borderLeft: isActive
-                ? "3px solid var(--color-accent)"
-                : "3px solid transparent",
-              fontSize: 14,
-              fontWeight: isActive ? 600 : 400,
-            })}
-          >
-            <span>{item.label}</span>
-            {item.tag && (
-              <span
-                style={{
-                  fontSize: 10,
-                  color: "var(--color-text-muted)",
-                  background: "rgba(0,0,0,0.05)",
-                  padding: "2px 6px",
-                  borderRadius: 999,
-                }}
-                title={`Placeholder — lands in ${item.tag}`}
-              >
-                {item.tag}
-              </span>
-            )}
-          </NavLink>
-        ))}
-      </nav>
+      <NavSidebar />
 
       <main
         style={{
@@ -124,5 +90,106 @@ export default function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
     </div>
+  );
+}
+
+function NavSidebar() {
+  const { pathname } = useLocation();
+  return (
+    <nav
+      style={{
+        gridArea: "side",
+        background: "var(--color-surface)",
+        borderRight: "1px solid var(--color-border)",
+        padding: "12px 0",
+      }}
+    >
+      {NAV.map((item) => (
+        <NavGroup key={item.to} item={item} pathname={pathname} />
+      ))}
+    </nav>
+  );
+}
+
+function NavGroup({ item, pathname }: { item: NavItem; pathname: string }) {
+  // A group is "active" when the parent or any child route matches.
+  const groupActive =
+    pathname === item.to ||
+    (item.children?.some((c) => pathname.startsWith(c.to)) ?? false);
+
+  return (
+    <>
+      <NavRow item={item} depth={0} forceShowAsActive={false} />
+      {item.children && groupActive && (
+        <div>
+          {item.children.map((c) => (
+            <NavRow key={c.to} item={c} depth={1} forceShowAsActive={false} />
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+function NavRow({
+  item,
+  depth,
+}: {
+  item: NavItem;
+  depth: number;
+  forceShowAsActive?: boolean;
+}) {
+  const paddingLeft = depth === 0 ? 16 : 36; // 16 base + 20 indent
+  // Use end-match on rows that have children OR are children themselves.
+  // Otherwise NavLink would highlight `/projects` while on `/projects/monitoring`.
+  const exactMatch = depth > 0 || (item.children?.length ?? 0) > 0;
+  return (
+    <NavLink
+      to={item.to}
+      end={exactMatch}
+      style={({ isActive }) => ({
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: `8px 16px 8px ${paddingLeft}px`,
+        color: isActive ? "var(--color-accent)" : "var(--color-text)",
+        background: isActive ? "rgba(26,115,232,0.08)" : "transparent",
+        borderLeft: isActive
+          ? "3px solid var(--color-accent)"
+          : "3px solid transparent",
+        fontSize: depth === 0 ? 14 : 13,
+        fontWeight: isActive ? 600 : 400,
+      })}
+    >
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        {depth > 0 && (
+          <span
+            aria-hidden="true"
+            style={{
+              color: "var(--color-text-muted)",
+              fontSize: 11,
+              lineHeight: 1,
+            }}
+          >
+            ↳
+          </span>
+        )}
+        {item.label}
+      </span>
+      {item.tag && (
+        <span
+          style={{
+            fontSize: 10,
+            color: "var(--color-text-muted)",
+            background: "rgba(0,0,0,0.05)",
+            padding: "2px 6px",
+            borderRadius: 999,
+          }}
+          title={`Placeholder — lands in ${item.tag}`}
+        >
+          {item.tag}
+        </span>
+      )}
+    </NavLink>
   );
 }
