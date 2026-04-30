@@ -36,10 +36,9 @@ from app.models import (
     Initiative,
     Issue,
     IssueSprint,
-    Person,
     SyncRun,
 )
-from app.sync import sprints, transform
+from app.sync import people, sprints, transform
 from app.sync.context import SyncContext
 from app.sync.stats import SyncStats
 
@@ -274,38 +273,12 @@ class SyncRunner:
 
         # 4. Upsert all issues (people first to satisfy FKs)
         all_issues = batch + parent_issues
-        await self._upsert_people_for(all_issues)
+        await people.upsert_people_for(self._ctx, all_issues)
         await self._upsert_initiatives(parent_issues)
         await self._upsert_epics(parent_issues + batch)
         await self._upsert_issues(batch, stats)
         await self._sync_embedded_sprints(all_issues)
         await self._replace_issue_sprints(batch)
-
-    async def _upsert_people_for(self, issues: Iterable[dict]) -> None:
-        """Extract assignee/reporter/creator from each issue and upsert."""
-        seen: dict[str, dict] = {}
-        for issue in issues:
-            for p in transform.collect_people_from_issue(issue):
-                seen[p["account_id"]] = p
-        await self._upsert_people_rows(list(seen.values()))
-
-    async def _upsert_people_rows(self, rows: list[dict]) -> None:
-        """Upsert pre-converted person dicts (ORM-shape: account_id, display_name, ...)."""
-        if not rows:
-            return
-        async with self._session_factory() as session:
-            stmt = pg_insert(Person).values(rows)
-            stmt = stmt.on_conflict_do_update(
-                index_elements=[Person.account_id],
-                set_={
-                    "display_name": stmt.excluded.display_name,
-                    "email": stmt.excluded.email,
-                    "active": stmt.excluded.active,
-                    "last_seen_at": datetime.now(tz=UTC),
-                },
-            )
-            await session.execute(stmt)
-            await session.commit()
 
     async def _upsert_initiatives(self, issues: Iterable[dict]) -> None:
         seen: dict[str, dict] = {}
@@ -486,7 +459,7 @@ class SyncRunner:
         # directly via the ORM-row entry-point so the FK on comments.author_id
         # always finds a row.
         if seen_authors:
-            await self._upsert_people_rows(list(seen_authors.values()))
+            await people.upsert_people_rows(self._ctx, list(seen_authors.values()))
 
         if not rows:
             return
