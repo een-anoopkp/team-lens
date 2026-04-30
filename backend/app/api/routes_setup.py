@@ -29,6 +29,80 @@ class TestConnectionResponse(BaseModel):
     message: str
 
 
+class SettingsView(BaseModel):
+    """Sanitised view of runtime settings — never includes the api_token."""
+
+    configured: bool
+    jira_email: str
+    jira_base_url: str
+    jira_board_id: int
+    jira_team_field: str
+    jira_team_value_masked: str  # "02623aed…2722de-28" form
+    jira_sprint_name_prefix: str
+    sync_cron: str
+    full_scan_cron: str
+    team_region: str
+    api_token_last4: str  # last 4 chars only, "" when unset
+
+
+def _last4(s: str) -> str:
+    return s[-4:] if len(s) >= 4 else ""
+
+
+def _mask_uuid(v: str) -> str:
+    if len(v) <= 12:
+        return v
+    return f"{v[:8]}…{v[-8:]}"
+
+
+@router.get("/settings", response_model=SettingsView)
+async def view_settings() -> SettingsView:
+    """Read-only summary of current config for the Settings page."""
+    s = get_settings()
+    return SettingsView(
+        configured=s.is_configured,
+        jira_email=s.jira_email,
+        jira_base_url=s.jira_base_url,
+        jira_board_id=s.jira_board_id,
+        jira_team_field=s.jira_team_field,
+        jira_team_value_masked=_mask_uuid(s.jira_team_value),
+        jira_sprint_name_prefix=s.jira_sprint_name_prefix,
+        sync_cron=s.sync_cron,
+        full_scan_cron=s.full_scan_cron,
+        team_region=s.team_region,
+        api_token_last4=_last4(s.jira_api_token),
+    )
+
+
+@router.post("/test-current", response_model=TestConnectionResponse)
+async def test_current_creds() -> TestConnectionResponse:
+    """Re-test the Jira creds *currently in .env* without re-entering them."""
+    s = get_settings()
+    if not s.is_configured:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "setup_required",
+                "message": "Jira credentials not yet configured.",
+            },
+        )
+    try:
+        myself = await probe_jira_credentials(
+            s.jira_base_url, s.jira_email, s.jira_api_token
+        )
+    except JiraAuthError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": "jira_unauthorized", "message": str(e)},
+        ) from e
+    return TestConnectionResponse(
+        ok=True,
+        account_id=myself.get("accountId"),
+        display_name=myself.get("displayName"),
+        message=f"Jira credentials valid (verified via {myself.get('verified_via')}).",
+    )
+
+
 @router.post("/test", response_model=TestConnectionResponse)
 async def test_jira_connection(payload: JiraSetupPayload) -> TestConnectionResponse:
     """Validate creds without persisting anything."""

@@ -30,6 +30,27 @@ export interface ScheduledJob {
   next_run_at: string | null;
 }
 
+export interface SettingsView {
+  configured: boolean;
+  jira_email: string;
+  jira_base_url: string;
+  jira_board_id: number;
+  jira_team_field: string;
+  jira_team_value_masked: string;
+  jira_sprint_name_prefix: string;
+  sync_cron: string;
+  full_scan_cron: string;
+  team_region: string;
+  api_token_last4: string;
+}
+
+export interface TestConnectionResponse {
+  ok: boolean;
+  account_id: string | null;
+  display_name: string | null;
+  message: string;
+}
+
 export interface SyncStatus {
   is_running: boolean;
   last_success_at: string | null;

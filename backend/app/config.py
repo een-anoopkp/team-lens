@@ -32,7 +32,9 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://teamlens:teamlens@localhost:5432/teamlens"
     alembic_database_url: str = "postgresql://teamlens:teamlens@localhost:5432/teamlens"
 
-    sync_cron: str = "0 7 * * *"
+    # Default: incremental sync 4× daily at 07/11/15/19 IST. Once-daily was
+    # too sparse — labels added at 09:00 wouldn't reflect until 07:00 next day.
+    sync_cron: str = "0 7,11,15,19 * * *"
     full_scan_cron: str = "0 3 * * 0"
 
     log_level: str = "INFO"

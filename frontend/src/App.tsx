@@ -9,6 +9,7 @@ import ProjectsMonitoringPage from "./features/projects/ProjectsMonitoringPage";
 import ProjectsPage from "./features/projects/ProjectsPage";
 import SprintHealthPage from "./features/sprint-health/SprintHealthPage";
 import Debug from "./pages/Debug";
+import SettingsPage from "./pages/Settings";
 import Setup from "./pages/Setup";
 
 function PlaceholderPage({ phase, name }: { phase: number; name: string }) {
@@ -17,21 +18,6 @@ function PlaceholderPage({ phase, name }: { phase: number; name: string }) {
       <h1 style={{ marginTop: 0 }}>{name}</h1>
       <p style={{ color: "var(--color-text-muted)" }}>
         Coming in Phase {phase}.
-      </p>
-    </div>
-  );
-}
-
-function SettingsPlaceholder() {
-  return (
-    <div>
-      <h1 style={{ marginTop: 0 }}>Settings</h1>
-      <p style={{ color: "var(--color-text-muted)" }}>
-        Full settings page (Jira creds re-test, sync schedule, team filter,
-        board ID, holidays + leaves management) lands during Phase 2 (UX
-        design) and Phase 3 (wired). For now, edit{" "}
-        <code>backend/.env</code> directly or re-POST to{" "}
-        <code>/api/v1/setup/jira</code>.
       </p>
     </div>
   );
@@ -83,7 +69,7 @@ export default function App() {
                 path="/insights"
                 element={<PlaceholderPage phase={5} name="Insights" />}
               />
-              <Route path="/settings" element={<SettingsPlaceholder />} />
+              <Route path="/settings" element={<SettingsPage />} />
               <Route path="*" element={<Navigate to="/debug" replace />} />
             </Routes>
           </AppShell>

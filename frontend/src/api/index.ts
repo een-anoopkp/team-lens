@@ -344,6 +344,25 @@ export function useHolidays(region = "IN") {
   });
 }
 
+// ---- Settings ---------------------------------------------------------------
+
+export function useSettings() {
+  return useQuery({
+    queryKey: ["setup", "settings"],
+    queryFn: () =>
+      getJSON<import("./types").SettingsView>("/api/v1/setup/settings"),
+  });
+}
+
+export function useTestCurrentCreds() {
+  return useMutation({
+    mutationFn: () =>
+      postJSON<import("./types").TestConnectionResponse>(
+        "/api/v1/setup/test-current"
+      ),
+  });
+}
+
 // ---- Phase 5: projects ------------------------------------------------------
 
 export function useProjects() {
