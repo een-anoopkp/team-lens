@@ -231,8 +231,11 @@ async def epic_risk(
             summary.on_track += 1
         else:
             summary.done += 1
-        # Cross-cutting: count open epics without a proj_* label.
-        if not r.has_project and r.risk_band != "done":
+        # Cross-cutting: count open, dated epics without a proj_* label.
+        # Undated epics are excluded — without a planning anchor they're
+        # likely future / not-yet-scheduled work and aren't actionable
+        # cleanup candidates.
+        if not r.has_project and r.risk_band != "done" and r.due_date is not None:
             summary.no_project += 1
         payload.append(
             EpicRiskRow(

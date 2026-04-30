@@ -33,8 +33,10 @@ export default function EpicRiskPage() {
   const watch = data.epics.filter((e) => e.risk_band === "watch");
   const onTrack = data.epics.filter((e) => e.risk_band === "on_track");
   const done = data.epics.filter((e) => e.risk_band === "done");
+  // Mirror the backend's no_project rule: open + has a due date + no
+  // proj_* label. Undated epics are unscheduled future work.
   const noProject = data.epics.filter(
-    (e) => !e.has_project && e.risk_band !== "done"
+    (e) => !e.has_project && e.risk_band !== "done" && e.due_date != null
   );
 
   return (
