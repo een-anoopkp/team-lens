@@ -124,7 +124,8 @@ export default function SprintHealthPage() {
         <>
           <h2>
             Per-person{" "}
-            <span className="muted small">({rollup.data.per_person.length} people)</span>
+            <span className="muted small">({rollup.data.per_person.length} people)</span>{" "}
+            <InfoIcon text="Each row: name · stacked progress bar by status · completed/committed SP · SP/day · accuracy (completed÷committed). The ⚠ pill flags accuracy below 85% (warn) or 60% (bad). Hover the pill for the exact numbers." />
           </h2>
           <PerPersonPanel people={rollup.data.per_person} />
         </>
@@ -440,7 +441,17 @@ function PerPersonRow({ p }: { p: PersonRollup }) {
         {p.velocity != null && ` · ${fmtSp(p.velocity, 1)}/day`}
         {p.accuracy != null && ` · ${pct(p.accuracy)}`}
         {accuracyTone && accuracyTone !== "good" && (
-          <span className={`pill ${accuracyTone}`} style={{ marginLeft: 4 }}>⚠</span>
+          <span
+            className={`pill ${accuracyTone}`}
+            style={{ marginLeft: 4, cursor: "help" }}
+            title={
+              accuracyTone === "warn"
+                ? `Accuracy below 85% — committed ${fmtSp(p.committed_sp)} SP but on track to deliver less. Consider whether the load was realistic.`
+                : `Accuracy below 60% — significantly over-committed (${fmtSp(p.committed_sp)} SP committed, ${fmtSp(p.completed_sp)} SP delivered so far).`
+            }
+          >
+            ⚠
+          </span>
         )}
       </div>
     </div>
