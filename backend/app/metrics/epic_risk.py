@@ -44,6 +44,7 @@ class EpicRisk:
     days_since_activity: int | None
     risk_band: RiskBand
     risk_reasons: list[str]
+    has_project: bool  # any `proj_*` label on the epic
 
 
 @dataclass(slots=True)
@@ -92,13 +93,19 @@ async def classify_epic_risks(
       COALESCE(SUM(i.story_points) FILTER (
         WHERE i.removed_at IS NULL AND i.status_category = 'done'
       ), 0)::numeric AS sp_done,
-      MAX(i.updated_at) FILTER (WHERE i.removed_at IS NULL) AS most_recent_child_update
+      MAX(i.updated_at) FILTER (WHERE i.removed_at IS NULL) AS most_recent_child_update,
+      COALESCE(
+        (SELECT bool_or(l LIKE 'proj\\_%' ESCAPE '\\')
+         FROM jsonb_array_elements_text(e.raw_payload->'fields'->'labels') l),
+        false
+      ) AS has_project
     FROM epics e
     LEFT JOIN people p ON p.account_id = e.owner_account_id
     LEFT JOIN issues i ON i.epic_key = e.issue_key
     {team_clause}
     GROUP BY e.issue_key, e.summary, e.status, e.status_category,
-             e.initiative_key, e.owner_account_id, p.display_name, e.due_date
+             e.initiative_key, e.owner_account_id, p.display_name, e.due_date,
+             e.raw_payload
     """
     rows = (await session.execute(text(sql), params)).all()
 
@@ -168,6 +175,7 @@ async def classify_epic_risks(
                 days_since_activity=days_since_activity,
                 risk_band=band,
                 risk_reasons=reasons,
+                has_project=bool(r.has_project),
             )
         )
 

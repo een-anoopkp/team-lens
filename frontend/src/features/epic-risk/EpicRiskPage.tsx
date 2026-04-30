@@ -33,6 +33,9 @@ export default function EpicRiskPage() {
   const watch = data.epics.filter((e) => e.risk_band === "watch");
   const onTrack = data.epics.filter((e) => e.risk_band === "on_track");
   const done = data.epics.filter((e) => e.risk_band === "done");
+  const noProject = data.epics.filter(
+    (e) => !e.has_project && e.risk_band !== "done"
+  );
 
   return (
     <div>
@@ -71,6 +74,16 @@ export default function EpicRiskPage() {
             <JiraFilterLink keys={done.map((e) => e.issue_key)} orderBy="resolutiondate DESC" />
           </div>
           <div className="kpi-value">{data.summary.done}</div>
+        </div>
+        <div className={`kpi ${data.summary.no_project > 0 ? "warn" : "neutral"}`}>
+          <div className="kpi-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>No project</span>
+            <JiraFilterLink keys={noProject.map((e) => e.issue_key)} orderBy="duedate ASC" />
+          </div>
+          <div className="kpi-value">{data.summary.no_project}</div>
+          <div className="kpi-sub" title="Open epics with no proj_* label. Add a label in Jira to make them appear on /projects.">
+            no proj_* label
+          </div>
         </div>
       </div>
 

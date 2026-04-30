@@ -382,6 +382,7 @@ export interface EpicRiskRow {
   days_since_activity: number | null;
   risk_band: "at_risk" | "watch" | "on_track" | "done";
   risk_reasons: string[];
+  has_project: boolean;
 }
 
 export interface EpicRiskSummary {
@@ -389,6 +390,7 @@ export interface EpicRiskSummary {
   watch: number;
   on_track: number;
   done: number;
+  no_project: number;
 }
 
 export interface EpicRiskResponse {

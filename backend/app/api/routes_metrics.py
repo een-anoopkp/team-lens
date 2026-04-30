@@ -191,6 +191,7 @@ class EpicRiskRow(BaseModel):
     days_since_activity: int | None
     risk_band: str
     risk_reasons: list[str]
+    has_project: bool
 
 
 class EpicRiskSummary(BaseModel):
@@ -198,6 +199,7 @@ class EpicRiskSummary(BaseModel):
     watch: int
     on_track: int
     done: int
+    no_project: int  # epics with no proj_* label, excluding done
 
 
 class EpicRiskResponse(BaseModel):
@@ -215,7 +217,9 @@ async def epic_risk(
         team_field=settings.jira_team_field,
         team_id=settings.jira_team_value or None,
     )
-    summary = EpicRiskSummary(at_risk=0, watch=0, on_track=0, done=0)
+    summary = EpicRiskSummary(
+        at_risk=0, watch=0, on_track=0, done=0, no_project=0
+    )
     payload: list[EpicRiskRow] = []
     for r in rows:
         # Tally
@@ -227,6 +231,9 @@ async def epic_risk(
             summary.on_track += 1
         else:
             summary.done += 1
+        # Cross-cutting: count open epics without a proj_* label.
+        if not r.has_project and r.risk_band != "done":
+            summary.no_project += 1
         payload.append(
             EpicRiskRow(
                 issue_key=r.issue_key,
@@ -244,6 +251,7 @@ async def epic_risk(
                 days_since_activity=r.days_since_activity,
                 risk_band=r.risk_band,
                 risk_reasons=r.risk_reasons,
+                has_project=r.has_project,
             )
         )
     return EpicRiskResponse(summary=summary, epics=payload)
