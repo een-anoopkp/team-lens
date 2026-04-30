@@ -15,6 +15,7 @@ import { useMemo } from "react";
 import { useSprintRollup, useSprints } from "../../api";
 import type { Sprint, SprintRollup } from "../../api/types";
 import InfoIcon from "../../components/InfoIcon";
+import SprintLeavesPanel from "./SprintLeavesPanel";
 
 function num(v: string | number | null | undefined): number {
   if (v == null) return 0;
@@ -180,14 +181,20 @@ function SprintAccordion({
         {!data ? (
           <div className="muted small">Loading sprint rollup…</div>
         ) : (
-          <SprintBody data={data} />
+          <SprintBody data={data} sprint={sprint} />
         )}
       </div>
     </details>
   );
 }
 
-function SprintBody({ data }: { data: SprintRollup }) {
+function SprintBody({
+  data,
+  sprint,
+}: {
+  data: SprintRollup;
+  sprint: Sprint;
+}) {
   const completedPct =
     num(data.committed_sp) > 0
       ? (num(data.completed_sp) / num(data.committed_sp)) * 100
@@ -225,6 +232,7 @@ function SprintBody({ data }: { data: SprintRollup }) {
         </div>
         <PersonDaysTileClosed data={data} />
       </div>
+      <SprintLeavesPanel sprint={sprint} variant="compact" />
       <h3>Per-person final</h3>
       <div className="panel">
         {data.per_person.length === 0 ? (
