@@ -201,6 +201,19 @@ function KpiRow({ rollup, isActive }: { rollup: SprintRollup; isActive: boolean 
   const completionPct = committed > 0 ? completed / committed : 0;
   const projected = num(rollup.projected_sp);
 
+  // Team-wide status breakdown — summed from per-person status_breakdown.
+  const inProgress = rollup.per_person.reduce(
+    (s, p) => s + num(p.status_breakdown.in_progress_sp),
+    0,
+  );
+  const inReview = rollup.per_person.reduce(
+    (s, p) =>
+      s +
+      num(p.status_breakdown.review_sp) +
+      num(p.status_breakdown.validation_sp),
+    0,
+  );
+
   return (
     <div className="kpi-row">
       <div className="kpi neutral">
@@ -230,6 +243,24 @@ function KpiRow({ rollup, isActive }: { rollup: SprintRollup; isActive: boolean 
         <div className="kpi-sub">
           {rollup.days_elapsed} of {rollup.days_total} days elapsed
         </div>
+      </div>
+      <div className="kpi neutral">
+        <div className="kpi-label">
+          In Progress{" "}
+          <InfoIcon text="Sum of story points on tickets currently in 'In Progress' status across the team. A measure of how much work is actively being shipped right now." />
+        </div>
+        <div className="kpi-value">{fmtSp(inProgress)} SP</div>
+        <div className="kpi-sub">
+          {committed > 0 ? pct(inProgress / committed) : "—"} of committed
+        </div>
+      </div>
+      <div className="kpi neutral">
+        <div className="kpi-label">
+          In Review{" "}
+          <InfoIcon text="Sum of story points on tickets in 'In Review' or 'In Validation' / 'QA' status. Tracks the QA + review queue — high values may signal a reviewer / QA bottleneck." />
+        </div>
+        <div className="kpi-value">{fmtSp(inReview)} SP</div>
+        <div className="kpi-sub">review + validation</div>
       </div>
       <div className={`kpi ${isActive ? (projected >= committed * 0.9 ? "good" : "warn") : "neutral"}`}>
         <div className="kpi-label">
