@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
 interface SetupResponse {
@@ -15,6 +16,7 @@ export default function Setup() {
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
   const submit = async (path: "test" | "jira") => {
     if (!email || !token) {
@@ -44,6 +46,8 @@ export default function Setup() {
           kind: "ok",
           text: `Saved. Authenticated as ${ok.display_name ?? ok.account_id ?? "user"}.`,
         });
+        // Force an immediate re-poll so the unconfigured guard releases.
+        await qc.invalidateQueries({ queryKey: ["health"] });
         setTimeout(() => navigate("/debug"), 800);
       } else {
         setResult({
