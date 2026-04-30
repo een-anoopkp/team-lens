@@ -66,6 +66,7 @@ async def classify_epic_risks(
     *,
     team_field: str | None = None,
     team_id: str | None = None,
+    done_since: date | None = None,
 ) -> list[EpicRisk]:
     """Pull every epic + its rollup + recent-activity timestamp, then classify.
 
@@ -74,8 +75,15 @@ async def classify_epic_risks(
     parent epics that we only stored as hierarchy context for issues we own
     (e.g. an epic on another team where one Search-team child happens to be
     parented under it).
+
+    `done_since` (default: Jan 1 of the current year) clamps the `done`
+    bucket — epics whose `resolutiondate` falls before this cutoff are
+    dropped entirely. Long-tail epics from previous years aren't actionable
+    and just inflate the Done count.
     """
     today = datetime.now(tz=timezone.utc).date()
+    if done_since is None:
+        done_since = date(today.year, 1, 1)
     where_parts: list[str] = []
     params: dict[str, object] = {}
     if team_field and team_id:
@@ -115,7 +123,12 @@ async def classify_epic_risks(
         (SELECT bool_or(l LIKE 'proj\\_%' ESCAPE '\\')
          FROM jsonb_array_elements_text(e.raw_payload->'fields'->'labels') l),
         false
-      ) AS has_project
+      ) AS has_project,
+      CASE
+        WHEN e.raw_payload->'fields'->>'resolutiondate' IS NOT NULL
+          THEN CAST(e.raw_payload->'fields'->>'resolutiondate' AS timestamptz)::date
+        ELSE NULL
+      END AS resolution_date
     FROM epics e
     LEFT JOIN people p ON p.account_id = e.owner_account_id
     LEFT JOIN issues i ON i.epic_key = e.issue_key
@@ -128,6 +141,14 @@ async def classify_epic_risks(
 
     out: list[EpicRisk] = []
     for r in rows:
+        # Skip done epics resolved before the cutoff. They're long-tail
+        # historical work — not actionable, and just inflates the Done
+        # count visible on /epic-risk.
+        if r.status_category == "done":
+            res = r.resolution_date
+            if res is None or res < done_since:
+                continue
+
         days_overdue = None
         if r.due_date and r.status_category != "done" and r.due_date < today:
             days_overdue = (today - r.due_date).days

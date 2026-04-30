@@ -385,6 +385,23 @@ export function useUpcomingLeaves(weeks = 6) {
   });
 }
 
+/** Leaves overlapping the date range [from, to]. Both inclusive. */
+export function useLeavesInRange(
+  from: string | null | undefined,
+  to: string | null | undefined,
+) {
+  return useQuery({
+    queryKey: ["leaves", "range", from, to],
+    queryFn: () => {
+      const qs = new URLSearchParams();
+      if (from) qs.set("from", from);
+      if (to) qs.set("to", to);
+      return getJSON<Leave[]>(`/api/v1/leaves?${qs.toString()}`);
+    },
+    enabled: !!from && !!to,
+  });
+}
+
 export function useCreateLeave() {
   const qc = useQueryClient();
   return useMutation({

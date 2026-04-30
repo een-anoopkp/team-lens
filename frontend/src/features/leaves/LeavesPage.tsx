@@ -17,6 +17,7 @@ import {
   useDeleteHoliday,
   useDeleteLeave,
   useHolidays,
+  useLeavesInRange,
   usePeople,
   useSettings,
   useUpcomingLeaves,
@@ -45,6 +46,7 @@ export default function LeavesPage() {
       <AddLeaveForm />
       <UpcomingTable />
       <OverlapAlerts />
+      <PastLeavesTable />
       <HolidaysList />
     </div>
   );
@@ -346,6 +348,151 @@ function idToName(
 ): string {
   const m = people.find((p) => p.person_account_id === id);
   return m?.person_display_name ?? id;
+}
+
+// ---- Past leaves -----------------------------------------------------------
+
+function PastLeavesTable() {
+  const [days, setDays] = useState(90);
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const from = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - days);
+    return d.toISOString().slice(0, 10);
+  }, [days]);
+  const { data, isLoading } = useLeavesInRange(from, today);
+  const del = useDeleteLeave();
+
+  // Backend returns leaves overlapping [from, today]. We want strictly
+  // past leaves — i.e. ones whose end_date is before today.
+  const past = useMemo(() => {
+    return (data ?? [])
+      .filter((l) => l.end_date < today)
+      .sort((a, b) => b.start_date.localeCompare(a.start_date));
+  }, [data, today]);
+
+  return (
+    <>
+      <h2 style={{ marginTop: "var(--space-6)" }}>
+        Past leaves{" "}
+        <span className="muted small">(last {days} days)</span>{" "}
+        <InfoIcon text="Leaves whose end date is before today, ending in the chosen window. Useful for reviewing completed time-off when reasoning about velocity in past sprints." />
+      </h2>
+      <div
+        style={{
+          marginBottom: "var(--space-2)",
+          fontSize: "var(--font-size-sm)",
+        }}
+      >
+        <label
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            color: "var(--color-text-muted)",
+          }}
+        >
+          Window
+          <select
+            value={days}
+            onChange={(e) => setDays(parseInt(e.target.value, 10))}
+            style={{
+              padding: "4px 8px",
+              borderRadius: "var(--radius-md)",
+              border: "1px solid var(--color-border)",
+              background: "var(--color-surface)",
+              color: "var(--color-text)",
+              fontSize: "var(--font-size-sm)",
+              fontFamily: "inherit",
+            }}
+          >
+            <option value="30">30 days</option>
+            <option value="90">90 days</option>
+            <option value="180">180 days</option>
+            <option value="365">1 year</option>
+          </select>
+        </label>
+      </div>
+      {isLoading ? (
+        <div className="muted small">Loading…</div>
+      ) : past.length === 0 ? (
+        <div
+          className="muted small"
+          style={{ marginBottom: "var(--space-4)" }}
+        >
+          No past leaves in this window.
+        </div>
+      ) : (
+        <div
+          style={{
+            background: "var(--color-surface)",
+            border: "1px solid var(--color-border)",
+            borderRadius: "var(--radius-md)",
+            padding: "var(--space-3)",
+            marginBottom: "var(--space-4)",
+          }}
+        >
+          <table className="datatable">
+            <thead>
+              <tr>
+                <th>Person</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Days</th>
+                <th>Reason</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {past.map((l) => {
+                const days =
+                  Math.floor(
+                    (new Date(l.end_date).getTime() -
+                      new Date(l.start_date).getTime()) /
+                      86_400_000,
+                  ) + 1;
+                return (
+                  <tr key={l.id}>
+                    <td>{l.person_display_name ?? l.person_account_id}</td>
+                    <td>{fmtDate(l.start_date)}</td>
+                    <td>{fmtDate(l.end_date)}</td>
+                    <td>{days}</td>
+                    <td>{l.reason || <span className="muted">—</span>}</td>
+                    <td>
+                      <button
+                        type="button"
+                        title="Delete"
+                        onClick={() => {
+                          if (
+                            confirm(
+                              `Delete leave for ${l.person_display_name ?? l.person_account_id} (${l.start_date} → ${l.end_date})?`,
+                            )
+                          ) {
+                            del.mutate(l.id);
+                          }
+                        }}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          cursor: "pointer",
+                          color: "var(--color-text-muted)",
+                          fontSize: 18,
+                          lineHeight: 1,
+                          padding: "2px 8px",
+                        }}
+                      >
+                        ×
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  );
 }
 
 // ---- Holidays --------------------------------------------------------------
