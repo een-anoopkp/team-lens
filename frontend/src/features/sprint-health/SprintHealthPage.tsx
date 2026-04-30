@@ -772,6 +772,14 @@ function BlockersPanel({ rows, loading }: { rows: BlockerRow[]; loading: boolean
         <p className="muted small">No blockers in flight.</p>
       ) : (
         <table className="datatable">
+          <thead>
+            <tr>
+              <th>Ticket</th>
+              <th>Summary</th>
+              <th>Assignee</th>
+              <th>Age</th>
+            </tr>
+          </thead>
           <tbody>
             {rows.slice(0, 8).map((r) => (
               <tr key={r.issue_key}>
@@ -785,6 +793,9 @@ function BlockersPanel({ rows, loading }: { rows: BlockerRow[]; loading: boolean
                   <JiraLink issueKey={r.issue_key} />
                 </td>
                 <td>{r.summary.length > 36 ? r.summary.slice(0, 36) + "…" : r.summary}</td>
+                <td className="muted small">
+                  {r.assignee_display_name ?? <span className="muted">unassigned</span>}
+                </td>
                 <td>
                   <span className={`pill ${r.band === "red" ? "bad" : r.band === "yellow" ? "warn" : "good"}`}>
                     {r.age_days}d
@@ -793,7 +804,7 @@ function BlockersPanel({ rows, loading }: { rows: BlockerRow[]; loading: boolean
               </tr>
             ))}
             {rows.length > 8 && (
-              <tr><td colSpan={3} className="muted small">… {rows.length - 8} more</td></tr>
+              <tr><td colSpan={4} className="muted small">… {rows.length - 8} more</td></tr>
             )}
           </tbody>
         </table>

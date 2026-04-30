@@ -1,13 +1,16 @@
 """Epic Risk classification + throughput.
 
-Classifies every team epic into one of four risk bands:
+Classifies every team epic into one of five risk bands:
 
-- **at_risk** — past due (due_date < today, not done) OR no owner OR
-  no recent activity (>14 days since updated).
-- **watch** — slowing velocity (completion <50% past mid-window) OR
-  has any aged blockers in the latest sprint.
-- **on_track** — in progress, no immediate concerns.
-- **done** — status_category = 'done'.
+- **at_risk**      — dated, open, AND past due / no owner / inactive >14d.
+- **watch**        — dated, open, slowing velocity OR due soon and behind.
+- **on_track**     — dated, open, no immediate concerns.
+- **future_scope** — open but has NO due date. Future / unscheduled
+  work — no planning anchor to evaluate against.
+- **done**         — status_category = 'done'.
+
+QA-bookkeeping epics labelled `proj_qa` are excluded from the page
+entirely — they're tracking artifacts, not delivery work.
 
 Throughput = # epics whose status flipped to done per sprint window.
 Approximates "epics closed in sprint N" by mapping epic.resolution_date
@@ -24,7 +27,11 @@ from typing import Literal
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-RiskBand = Literal["at_risk", "watch", "on_track", "done"]
+RiskBand = Literal["at_risk", "watch", "on_track", "future_scope", "done"]
+
+# Labels that mean "this epic isn't real delivery work for the page".
+# Epics carrying any of these get filtered out of the classifier output.
+_EXCLUDE_LABELS: tuple[str, ...] = ("proj_qa",)
 
 
 @dataclass(slots=True)
@@ -69,14 +76,24 @@ async def classify_epic_risks(
     parented under it).
     """
     today = datetime.now(tz=timezone.utc).date()
-    team_clause = ""
-    params: dict[str, str] = {}
+    where_parts: list[str] = []
+    params: dict[str, object] = {}
     if team_field and team_id:
         # team_field is config (e.g. "customfield_10500"); safe to inline.
-        team_clause = (
-            f"WHERE e.raw_payload->'fields'->'{team_field}'->>'id' = :team_id"
+        where_parts.append(
+            f"e.raw_payload->'fields'->'{team_field}'->>'id' = :team_id"
         )
         params["team_id"] = team_id
+    # Drop epics carrying any excluded label (e.g. proj_qa).
+    if _EXCLUDE_LABELS:
+        where_parts.append(
+            "NOT EXISTS ("
+            "SELECT 1 FROM jsonb_array_elements_text("
+            "  e.raw_payload->'fields'->'labels'"
+            ") l WHERE l = ANY(:exclude_labels))"
+        )
+        params["exclude_labels"] = list(_EXCLUDE_LABELS)
+    team_clause = ("WHERE " + " AND ".join(where_parts)) if where_parts else ""
 
     sql = f"""
     SELECT
@@ -128,18 +145,19 @@ async def classify_epic_risks(
 
         if r.status_category == "done":
             band = "done"
+        elif r.due_date is None:
+            # No planning anchor → future scope, regardless of other signals.
+            # We don't try to grade "is it on track?" without a target date.
+            band = "future_scope"
         else:
-            # at_risk triggers
+            # at_risk triggers — only relevant for dated epics.
             if days_overdue is not None and days_overdue > 0:
                 reasons.append(f"past due {days_overdue}d")
             if r.owner_account_id is None:
                 reasons.append("no owner")
-            # Inactivity only flags when there's a due date — otherwise we
-            # have no planning anchor, so an undated epic isn't "behind".
             if (
                 days_since_activity is not None
                 and days_since_activity > 14
-                and r.due_date is not None
             ):
                 reasons.append(f"no activity {days_since_activity}d")
 
@@ -180,7 +198,13 @@ async def classify_epic_risks(
         )
 
     # Sort: at_risk first (by days_overdue desc), then watch, then on_track, then done.
-    band_order = {"at_risk": 0, "watch": 1, "on_track": 2, "done": 3}
+    band_order = {
+        "at_risk": 0,
+        "watch": 1,
+        "on_track": 2,
+        "future_scope": 3,
+        "done": 4,
+    }
     out.sort(
         key=lambda e: (
             band_order[e.risk_band],
@@ -204,14 +228,22 @@ async def epic_throughput(
     `team_field` and `team_id` are set, only count epics actually assigned
     to that team (not parent-context epics from other teams).
     """
-    team_join_clause = "LEFT JOIN epics e ON true"
+    join_conds: list[str] = ["true"]
     params: dict[str, object] = {"n": sprint_window}
     if team_field and team_id:
-        team_join_clause = (
-            "LEFT JOIN epics e ON "
+        join_conds = [
             f"e.raw_payload->'fields'->'{team_field}'->>'id' = :team_id"
-        )
+        ]
         params["team_id"] = team_id
+    if _EXCLUDE_LABELS:
+        join_conds.append(
+            "NOT EXISTS ("
+            "SELECT 1 FROM jsonb_array_elements_text("
+            "  e.raw_payload->'fields'->'labels'"
+            ") l WHERE l = ANY(:exclude_labels))"
+        )
+        params["exclude_labels"] = list(_EXCLUDE_LABELS)
+    team_join_clause = "LEFT JOIN epics e ON " + " AND ".join(join_conds)
 
     sql = f"""
     WITH recent_sprints AS (

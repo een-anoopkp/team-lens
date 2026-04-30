@@ -32,18 +32,26 @@ export default function EpicRiskPage() {
   const atRisk = data.epics.filter((e) => e.risk_band === "at_risk");
   const watch = data.epics.filter((e) => e.risk_band === "watch");
   const onTrack = data.epics.filter((e) => e.risk_band === "on_track");
+  const futureScope = data.epics.filter((e) => e.risk_band === "future_scope");
   const done = data.epics.filter((e) => e.risk_band === "done");
-  // Mirror the backend's no_project rule: open + has a due date + no
-  // proj_* label. Undated epics are unscheduled future work.
+  // Mirror the backend's no_project rule: open + dated + no proj_* label.
+  // Undated epics live under future_scope; done is excluded too.
   const noProject = data.epics.filter(
-    (e) => !e.has_project && e.risk_band !== "done" && e.due_date != null
+    (e) =>
+      !e.has_project &&
+      e.risk_band !== "done" &&
+      e.risk_band !== "future_scope" &&
+      e.due_date != null,
   );
 
   return (
     <div>
       <h1>Epic Risk</h1>
       <p className="muted">
-        Quarterly view of all team epics. At-risk first, sorted by days overdue.
+        Quarterly view of team epics. <code>proj_qa</code> tracking epics
+        are excluded. Undated epics land in <em>Future scope</em>; the
+        at-risk / watch / on-track grading only applies once a due date
+        exists.
       </p>
 
       <div className="kpi-row">
@@ -69,6 +77,17 @@ export default function EpicRiskPage() {
             <JiraFilterLink keys={onTrack.map((e) => e.issue_key)} orderBy="duedate ASC" />
           </div>
           <div className="kpi-value">{data.summary.on_track}</div>
+          <div className="kpi-sub">dated, on schedule</div>
+        </div>
+        <div className="kpi neutral">
+          <div className="kpi-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>Future scope</span>
+            <JiraFilterLink keys={futureScope.map((e) => e.issue_key)} orderBy="created DESC" />
+          </div>
+          <div className="kpi-value">{data.summary.future_scope}</div>
+          <div className="kpi-sub" title="Open epics with no due date — unscheduled future work. Add a due date in Jira to grade them against the at_risk / watch / on_track rules.">
+            no due date yet
+          </div>
         </div>
         <div className="kpi neutral">
           <div className="kpi-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -155,7 +174,7 @@ function RiskRulesPanel() {
         How is risk computed? (rules + filters applied)
       </summary>
       <div style={{ paddingTop: "var(--space-2)", lineHeight: 1.6 }}>
-        <strong>Scope filter</strong>
+        <strong>Scope filters</strong>
         <ul style={{ margin: "4px 0 var(--space-2) var(--space-3)" }}>
           <li>
             Only epics where the team field <code>customfield_10500</code>{" "}
@@ -163,30 +182,40 @@ function RiskRulesPanel() {
             epics that we pulled in only as hierarchy context for our
             issues are excluded.
           </li>
+          <li>
+            Epics carrying the <code>proj_qa</code> label are excluded
+            entirely — they're QA-tracking artifacts, not delivery work.
+          </li>
         </ul>
 
         <strong>
-          <span className="pill bad">at_risk</span> — any one triggers
+          <span className="pill neutral">future_scope</span>
+        </strong>{" "}
+        — open epics with no <code>due_date</code>. Unscheduled work; the
+        at_risk / watch / on_track grading is skipped because there's
+        no planning anchor.
+        <br />
+
+        <strong>
+          <span className="pill bad">at_risk</span> — dated, open; any
+          trigger fires
         </strong>
         <ul style={{ margin: "4px 0 var(--space-2) var(--space-3)" }}>
           <li>
-            <code>past due</code> — <code>due_date &lt; today</code> AND
-            not done.
+            <code>past due</code> — <code>due_date &lt; today</code>.
           </li>
           <li>
             <code>no owner</code> — <code>owner_account_id IS NULL</code>.
           </li>
           <li>
             <code>no activity Nd</code> — most recent child-issue update
-            &gt; 14 days ago, <em>only when a due_date is set</em>{" "}
-            (undated epics have no planning anchor, so we don't flag them
-            for inactivity).
+            &gt; 14 days ago.
           </li>
         </ul>
 
         <strong>
-          <span className="pill warn">watch</span> — any one triggers
-          (and no at_risk reason fires)
+          <span className="pill warn">watch</span> — dated, open; any
+          trigger fires (and no at_risk reason fires)
         </strong>
         <ul style={{ margin: "4px 0 var(--space-2) var(--space-3)" }}>
           <li>
@@ -202,7 +231,7 @@ function RiskRulesPanel() {
         <strong>
           <span className="pill good">on_track</span>
         </strong>{" "}
-        — in progress with no triggers above.{" "}
+        — dated, open, no triggers fire.{" "}
         <strong>
           <span className="pill neutral">done</span>
         </strong>{" "}
