@@ -14,11 +14,13 @@ import { useMemo, useState } from "react";
 
 import {
   useCreateLeave,
+  useDeleteHoliday,
   useDeleteLeave,
   useHolidays,
   usePeople,
   useSettings,
   useUpcomingLeaves,
+  useUpsertHoliday,
 } from "../../api";
 import type { Leave } from "../../api/types";
 import InfoIcon from "../../components/InfoIcon";
@@ -355,6 +357,12 @@ function HolidaysList() {
   const settings = useSettings();
   const region = settings.data?.team_region ?? "IN";
   const holidays = useHolidays(region);
+  const upsert = useUpsertHoliday();
+  const del = useDeleteHoliday();
+
+  const [date, setDate] = useState("");
+  const [name, setName] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const upcoming = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -364,17 +372,105 @@ function HolidaysList() {
       .slice(0, 20);
   }, [holidays.data]);
 
+  const canSubmit = !!date && !!name && !upsert.isPending;
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (!canSubmit) return;
+    upsert.mutate(
+      { holiday_date: date, region, name },
+      {
+        onSuccess: () => {
+          setDate("");
+          setName("");
+        },
+        onError: (err: unknown) => {
+          const m =
+            err instanceof Error
+              ? err.message
+              : typeof err === "string"
+                ? err
+                : "Failed to add holiday";
+          setError(m);
+        },
+      }
+    );
+  };
+
   return (
     <>
       <h2>
         Holidays <span className="muted small">({region})</span>{" "}
         <InfoIcon text="Team-wide non-working days. Working-day calculations (sprint capacity, available days) treat these as off — same as weekends." />
       </h2>
-      <p className="muted small" style={{ marginTop: 0 }}>
-        Sourced from <code>infra/holidays/{region}.yaml</code> via{" "}
-        <code>scripts/seed_holidays.py</code>. Edit the YAML and re-seed
-        rather than entering them here — keeps a single source of truth.
-      </p>
+
+      <div className="panel" style={{ marginBottom: "var(--space-4)" }}>
+        <h3 style={{ marginTop: 0 }}>Add holiday</h3>
+        <form
+          onSubmit={submit}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 2.5fr auto",
+            gap: "var(--space-2)",
+            alignItems: "end",
+          }}
+        >
+          <label
+            style={{ display: "flex", flexDirection: "column", fontSize: "var(--font-size-sm)" }}
+          >
+            <span className="muted small">Date</span>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              style={inputStyle}
+            />
+          </label>
+          <label
+            style={{ display: "flex", flexDirection: "column", fontSize: "var(--font-size-sm)" }}
+          >
+            <span className="muted small">Name</span>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Independence Day, Team offsite"
+              style={inputStyle}
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            style={{
+              padding: "8px 14px",
+              borderRadius: "var(--radius-md)",
+              border: "1px solid var(--color-accent)",
+              background: "var(--color-accent)",
+              color: "#fff",
+              cursor: canSubmit ? "pointer" : "not-allowed",
+              opacity: canSubmit ? 1 : 0.5,
+              fontSize: "var(--font-size-sm)",
+              fontWeight: 500,
+            }}
+          >
+            {upsert.isPending ? "Adding…" : "Add"}
+          </button>
+        </form>
+        <div className="muted small" style={{ marginTop: "var(--space-1)" }}>
+          Idempotent on <code>(date, region)</code> — re-adding the same date
+          updates the name.
+        </div>
+        {error && (
+          <div
+            className="pill bad"
+            style={{ marginTop: "var(--space-2)", display: "inline-block" }}
+          >
+            {error}
+          </div>
+        )}
+      </div>
+
       {upcoming.length === 0 ? (
         <div className="muted small">
           No upcoming holidays for region {region}.
@@ -386,7 +482,7 @@ function HolidaysList() {
             border: "1px solid var(--color-border)",
             borderRadius: "var(--radius-md)",
             padding: "var(--space-3)",
-            maxWidth: 480,
+            maxWidth: 560,
           }}
         >
           <table className="datatable">
@@ -394,6 +490,7 @@ function HolidaysList() {
               <tr>
                 <th>Date</th>
                 <th>Name</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -401,6 +498,35 @@ function HolidaysList() {
                 <tr key={h.holiday_date}>
                   <td>{fmtDate(h.holiday_date)}</td>
                   <td>{h.name}</td>
+                  <td>
+                    <button
+                      type="button"
+                      title="Delete"
+                      onClick={() => {
+                        if (
+                          confirm(
+                            `Delete holiday "${h.name}" on ${h.holiday_date}?`
+                          )
+                        ) {
+                          del.mutate({
+                            region: h.region,
+                            date: h.holiday_date,
+                          });
+                        }
+                      }}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "var(--color-text-muted)",
+                        fontSize: 18,
+                        lineHeight: 1,
+                        padding: "2px 8px",
+                      }}
+                    >
+                      ×
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
