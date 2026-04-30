@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import RefreshButton from "./RefreshButton";
 import StalenessBadge from "./StalenessBadge";
+import { useSyncCompletionInvalidator } from "../lib/sync-watcher";
 
 interface NavItem {
   to: string;
@@ -21,6 +22,10 @@ const NAV: NavItem[] = [
 ];
 
 export default function AppShell({ children }: { children: ReactNode }) {
+  // Watch sync runs and invalidate every cached query the moment one
+  // completes — so the page picks up new data without a manual refresh.
+  useSyncCompletionInvalidator();
+
   return (
     <div
       style={{
