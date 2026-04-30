@@ -46,10 +46,17 @@ class SyncRunSummary(BaseModel):
     error_message: str | None
 
 
+class ScheduledJob(BaseModel):
+    id: str
+    cron: str | None
+    next_run_at: datetime | None
+
+
 class SyncStatusResponse(BaseModel):
     is_running: bool
     last_success_at: datetime | None
     runs: list[SyncRunSummary]
+    scheduled: list[ScheduledJob]
 
 
 @router.post("/run", response_model=SyncRunAccepted, status_code=status.HTTP_202_ACCEPTED)
@@ -96,9 +103,12 @@ async def sync_status(
     limit: int = Query(10, ge=1, le=100),
     session: AsyncSession = Depends(get_session),
 ):
-    from app.main import get_runner
+    from app.config import get_settings
+    from app.main import get_runner, get_scheduler
 
     runner = get_runner()
+    scheduler = get_scheduler()
+    settings = get_settings()
     rows = (
         await session.execute(
             select(SyncRun).order_by(SyncRun.started_at.desc()).limit(limit)
@@ -113,9 +123,25 @@ async def sync_status(
         )
     ).scalar_one_or_none()
 
+    cron_by_job = {
+        "sync_incremental": settings.sync_cron,
+        "sync_full": settings.full_scan_cron,
+    }
+    scheduled: list[ScheduledJob] = []
+    if scheduler is not None:
+        for job in scheduler.get_jobs():
+            scheduled.append(
+                ScheduledJob(
+                    id=job.id,
+                    cron=cron_by_job.get(job.id),
+                    next_run_at=job.next_run_time,
+                )
+            )
+
     return SyncStatusResponse(
         is_running=bool(runner and runner.is_running),
         last_success_at=last_success,
+        scheduled=scheduled,
         runs=[
             SyncRunSummary(
                 id=r.id,

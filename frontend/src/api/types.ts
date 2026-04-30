@@ -24,10 +24,17 @@ export interface SyncRunSummary {
   error_message: string | null;
 }
 
+export interface ScheduledJob {
+  id: string;
+  cron: string | null;
+  next_run_at: string | null;
+}
+
 export interface SyncStatus {
   is_running: boolean;
   last_success_at: string | null;
   runs: SyncRunSummary[];
+  scheduled: ScheduledJob[];
 }
 
 export interface Sprint {

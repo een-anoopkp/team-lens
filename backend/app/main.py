@@ -37,6 +37,11 @@ _runner: SyncRunner | None = None
 _scheduler: AsyncIOScheduler | None = None
 
 
+def get_scheduler() -> AsyncIOScheduler | None:
+    """Returns the running scheduler, or None if it hasn't been started yet."""
+    return _scheduler
+
+
 def get_runner() -> SyncRunner | None:
     """Return the runner; lazy-init it (and the scheduler) if creds are present.
 
