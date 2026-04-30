@@ -4,21 +4,112 @@
 
 ## Sections to fill in during Phase 2
 
-### Design tokens (from step 2.1)
+### Design tokens (resolved 2026-04-30)
 
-- **Colors:**
-  - Light theme palette
-  - Dark theme palette (if shipped in v1; deferred otherwise)
-  - Status colors: good / warn / bad — for sync-staleness, velocity bands, due-date bands, blocker-age
-  - Accent / link
-- **Typography:**
-  - Font family stack (system fonts; tabular-numeric for tables)
-  - Type scale (e.g. 12 / 14 / 16 / 20 / 28 / 36)
-  - Weights
-- **Spacing scale:** 4 / 8 / 12 / 16 / 24 / 32 / 48
-- **Radii:** small / medium / large + pill
-- **Shadows:** elevation tiers
-- **Side-by-side migration table:** existing `web/sprint-health/styles.css` `:root` vars → new tokens.
+**Source of truth:** `frontend/src/styles/tokens.css`. Visual reference (open in any browser, no backend needed): `frontend/mockup/tokens.html`.
+
+#### Anchor decision
+
+Anchor on the legacy `web/sprint-health/styles.css` `:root` block. The user has been looking at those colors for months in the Sprint Health POC; switching the palette in the rewrite would create disorienting visual diff with no functional benefit. Phase 2.1 *adds* layers (typography scale, spacing scale, radii, shadows, dark mode, neutral chip, on-accent text) without replacing the existing canonical values.
+
+#### Color naming convention
+
+```
+--color-{role}             # canonical brand/surface colour
+--color-{role}-bg          # light tint background (status pills, chips)
+--color-{role}-fg          # foreground readable on the matching -bg
+```
+
+The `-fg` companion exists because the canonical status colors are tuned for icons + thin borders, not for text on the matching `-bg` tint. e.g. `--color-warn = #f9ab00` (vivid amber) is too light to read on `#fef7e0`; `--color-warn-fg = #8a5a00` (deep amber) is the legible-text variant. Pattern verified against the legacy `.staleness.yellow` rule which already used `#8a5a00` for its foreground.
+
+#### Side-by-side: legacy → new
+
+| Legacy `:root` var | New token | Value | Notes |
+|---|---|---|---|
+| `--bg`             | `--color-bg`              | `#f7f8fa` | unchanged |
+| `--panel`          | `--color-surface`         | `#ffffff` | unchanged |
+| (new)              | `--color-surface-2`       | `#fafbfc` | hover rows / banded tables |
+| `--border`         | `--color-border`          | `#e1e4e8` | unchanged |
+| (new)              | `--color-border-strong`   | `#c8cdd3` | dividers, focus |
+| `--text`           | `--color-text`            | `#1a1a1a` | unchanged |
+| `--muted`          | `--color-text-muted`      | `#5f6368` | unchanged |
+| (new)              | `--color-text-subtle`     | `#909399` | tertiary captions |
+| `--accent`         | `--color-accent`          | `#1a73e8` | unchanged |
+| (new)              | `--color-accent-hover`    | `#1557b0` | button hover |
+| (new)              | `--color-accent-bg`       | `#e8f0fe` | selected row tint |
+| `--green`          | `--color-good`            | `#188038` | unchanged |
+| `--green-bg`       | `--color-good-bg`         | `#e6f4ea` | unchanged |
+| (legacy `.staleness.green` color) | `--color-good-fg` | `#137333` | promoted to a token |
+| `--yellow`         | `--color-warn`            | `#f9ab00` | unchanged |
+| `--yellow-bg`      | `--color-warn-bg`         | `#fef7e0` | unchanged |
+| (legacy `.staleness.yellow` color) | `--color-warn-fg` | `#8a5a00` | promoted to a token |
+| `--red`            | `--color-bad`             | `#d93025` | unchanged |
+| `--red-bg`         | `--color-bad-bg`          | `#fce8e6` | unchanged |
+| (legacy `.staleness.red` color) | `--color-bad-fg` | `#a50e0e` | promoted to a token |
+
+#### Typography
+
+System font stack + a 7-step type scale anchored on the legacy 14px body:
+
+```
+--font-size-xs     11   labels, captions, table caps
+--font-size-sm     12   subtitles, secondary table cells
+--font-size-base   14   default body, primary table cells     ← legacy default
+--font-size-md     16   panel emphasis, section heads
+--font-size-lg     20   h2, KPI numbers                       ← legacy h1
+--font-size-xl     28   h1, hero KPIs
+--font-size-2xl    36   oversize numbers (rare)
+```
+
+Weights: 400 / 500 / 600 — no 700+ since the system font stack covers that range cleanly without bold-ish heaviness.
+
+`--font-mono` for inline code, accountIds, JQL snippets. Browser-default mono stack.
+
+#### Spacing scale
+
+Base-4 with one extra step at 48 for top-level page padding:
+```
+--space-1  4    --space-5  24
+--space-2  8    --space-6  32
+--space-3  12   --space-7  48
+--space-4  16
+```
+
+#### Radii
+
+```
+--radius-xs     2     thin chips
+--radius-sm     4     buttons, inputs                ← legacy default
+--radius-md     6     panels                         ← seen on legacy main panels
+--radius-lg     10    cards, modals
+--radius-pill   9999  status pills, segmented bars
+```
+
+#### Shadows
+
+Three elevation tiers; light tints because the surface/bg contrast is already low:
+
+```
+--shadow-sm   0 1px 2px  rgba(0,0,0,0.04)   resting cards
+--shadow-md   0 2px 8px  rgba(0,0,0,0.06)   modals, dropdowns
+--shadow-lg   0 8px 24px rgba(0,0,0,0.08)   active modals, popovers
+```
+
+Dark mode shadows scale up to compensate for the dark background (alpha 0.4 / 0.5 / 0.6).
+
+#### Dark mode
+
+Designed but not exposed by a UI toggle yet (per Phase 2 inputs — toggle wiring is deferred to Phase 4 polish). Switch manually with `<html data-theme="dark">` to preview. Notable design decisions:
+- `--color-good/-warn/-bad` shift to lighter saturated variants (`#4ade80`, `#facc15`, `#f87171`) so they read against the dark surface.
+- The corresponding `-bg` tints become deep, low-saturation darks (`#0d2818`, `#2c2103`, `#2d0f0f`).
+- The on-bg `-fg` foregrounds collapse back to the canonical color (no need for the darken trick — the dark `-bg` provides contrast directly).
+
+#### Accessibility decisions baked in here
+
+- All `*:focus-visible` gets a 2px `--color-accent` outline at 2px offset. Keyboard users see focus rings; mouse users don't.
+- All status conveyance uses BOTH color AND a textual indicator (the staleness pill says "Synced 4m ago", not just a coloured dot). No color-only signal.
+- Accent on light: `#1a73e8` on `#ffffff` = 4.55:1 (AA passes for body text).
+- Body text on bg: `#1a1a1a` on `#f7f8fa` = 13.2:1 (AAA).
 
 ### Component catalog (from step 2.2)
 

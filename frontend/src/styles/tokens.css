@@ -1,34 +1,155 @@
-/* Phase 1 placeholder tokens — final tokens set in Phase 2 (UX design). */
+/* Design tokens — Phase 2.1.
+ *
+ * Anchored on the legacy `web/sprint-health/styles.css` palette (Google
+ * Material-style cool grey + accent blue + traffic-light status). Dark mode
+ * is designed but not yet exposed by a toggle — the Phase 4 polish step
+ * wires it up. Switch by adding `data-theme="dark"` to <html>.
+ *
+ * Naming convention:
+ *   --color-{role}            — the canonical brand/surface colour
+ *   --color-{role}-bg         — the light tint used as background pill / chip
+ *   --color-{role}-fg         — the foreground colour used ON the -bg tint
+ *
+ * If you change a value here, also update the visual reference at
+ * frontend/mockup/tokens.html so reviewers can see what shifted.
+ */
+
 :root {
-  --color-bg: #fafafa;
+  /* -------- Surfaces ----------------------------------------------------- */
+  --color-bg: #f7f8fa;
   --color-surface: #ffffff;
-  --color-border: #e0e0e0;
-  --color-text: #202124;
+  --color-surface-2: #fafbfc;        /* hover rows, banded tables */
+  --color-border: #e1e4e8;
+  --color-border-strong: #c8cdd3;    /* dividers, focus rings */
+
+  /* -------- Text --------------------------------------------------------- */
+  --color-text: #1a1a1a;
   --color-text-muted: #5f6368;
+  --color-text-subtle: #909399;
+  --color-text-on-accent: #ffffff;
+
+  /* -------- Brand / interactive ----------------------------------------- */
   --color-accent: #1a73e8;
-  --color-good: #137333;
-  --color-warn: #b06000;
-  --color-bad: #a50e0e;
+  --color-accent-hover: #1557b0;
+  --color-accent-bg: #e8f0fe;        /* selected row / focused chip bg */
+
+  /* -------- Status: good / warn / bad ----------------------------------- */
+  /* Each role has 3 derivatives for legibility:
+   *   -bg (light tint)
+   *   -fg (foreground readable on the -bg)
+   *   (canonical) for icons + thin borders
+   */
+  --color-good: #188038;
   --color-good-bg: #e6f4ea;
+  --color-good-fg: #137333;          /* darker than canonical for AAA on -bg */
+
+  --color-warn: #f9ab00;
   --color-warn-bg: #fef7e0;
+  --color-warn-fg: #8a5a00;
+
+  --color-bad: #d93025;
   --color-bad-bg: #fce8e6;
+  --color-bad-fg: #a50e0e;
 
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
+  /* -------- Neutral chip (no semantic meaning) -------------------------- */
+  --color-neutral-bg: rgba(0, 0, 0, 0.06);
+  --color-neutral-fg: var(--color-text-muted);
 
+  /* -------- Typography --------------------------------------------------- */
+  --font-stack: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+  --font-tabular: var(--font-stack);  /* fallback; tabular-nums applied where needed */
+
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 20px;
+  --font-size-xl: 28px;
+  --font-size-2xl: 36px;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  --line-height-tight: 1.2;
+  --line-height-default: 1.4;
+  --line-height-relaxed: 1.6;
+
+  /* -------- Spacing scale (4-8-12-16-24-32-48) -------------------------- */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
   --space-5: 24px;
   --space-6: 32px;
+  --space-7: 48px;
 
-  --font-stack: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
-    sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-    monospace;
+  /* -------- Radii -------------------------------------------------------- */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-pill: 9999px;
+
+  /* -------- Elevation / shadows ----------------------------------------- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+  /* -------- Z-index scale ----------------------------------------------- */
+  --z-base: 1;
+  --z-sticky: 100;
+  --z-modal-backdrop: 900;
+  --z-modal: 1000;
+  --z-toast: 1100;
+
+  /* -------- Animation --------------------------------------------------- */
+  --transition-fast: 120ms ease-out;
+  --transition-default: 200ms ease-out;
 }
+
+/* Dark theme — opt-in via <html data-theme="dark">.
+ * Designed for parity, not yet exposed (Phase 4 polish wires the toggle). */
+[data-theme="dark"] {
+  --color-bg: #0f1419;
+  --color-surface: #1a1f24;
+  --color-surface-2: #232931;
+  --color-border: #2d343c;
+  --color-border-strong: #3d4651;
+
+  --color-text: #e6e8eb;
+  --color-text-muted: #9aa0a6;
+  --color-text-subtle: #6f757d;
+  --color-text-on-accent: #ffffff;
+
+  --color-accent: #4d8fee;
+  --color-accent-hover: #76aaf2;
+  --color-accent-bg: #1c3050;
+
+  --color-good: #4ade80;
+  --color-good-bg: #0d2818;
+  --color-good-fg: #4ade80;
+
+  --color-warn: #facc15;
+  --color-warn-bg: #2c2103;
+  --color-warn-fg: #facc15;
+
+  --color-bad: #f87171;
+  --color-bad-bg: #2d0f0f;
+  --color-bad-fg: #f87171;
+
+  --color-neutral-bg: rgba(255, 255, 255, 0.08);
+  --color-neutral-fg: var(--color-text-muted);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* Reset + base styles */
 
 * {
   box-sizing: border-box;
@@ -41,12 +162,13 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-stack);
-  font-size: 14px;
-  line-height: 1.4;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-default);
 }
 
 button {
   font-family: inherit;
+  font-size: inherit;
 }
 
 a {
@@ -60,7 +182,14 @@ a:hover {
 code {
   font-family: var(--font-mono);
   font-size: 0.92em;
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--color-neutral-bg);
   padding: 1px 4px;
   border-radius: var(--radius-sm);
+}
+
+/* Focus ring — applied universally for keyboard a11y. Mouse users with
+ * :focus-visible see no ring, keyboard users do. */
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
