@@ -1,8 +1,8 @@
 # Local App — Build Status
 
 **Last updated:** 2026-04-30
-**Current phase:** Phase 5 — Projects + Monitoring (ready to begin)
-**Current step:** 5.1 (Projects backend). Phase 4 closed: 6 sub-steps committed; Epic Risk + Hygiene pages live; theme toggle wired; Apps Script `epic-risk` daily trigger retired.
+**Current phase:** Phase 5 — Projects + Monitoring (done)
+**Current step:** Soak period before Phase 6. Phase 5 closed: 4 sub-steps committed; `/projects`, `/projects/:name`, `/projects/monitoring` live and wired to real data.
 
 This file tracks live progress. Update as steps complete; commit alongside the work. Other files in this folder are specs that change rarely.
 
@@ -53,12 +53,13 @@ This file tracks live progress. Update as steps complete; commit alongside the w
 - [x] 4.5 Cross-page polish — RefreshButton invalidates everything (`e5ef028`), ThemeToggle wired, JiraLink everywhere (`3824496`)
 - [x] 4.6 Retired Apps Script `epic-risk` daily trigger; README marked deprecated.
 
-## Phase 5 — Projects + Monitoring
+## Phase 5 — Projects + Monitoring — done 2026-04-30
 
-- [ ] 5.1 Projects backend (`/projects`, `/projects/{name}`, `/projects/comparison`)
-- [ ] 5.2 Projects list page
-- [ ] 5.3 Project drill-in
-- [ ] 5.4 Monitoring/comparison page
+- [x] 5.1 Projects backend (`/projects`, `/projects/{name}`, `/projects/comparison`) — commit `ecb3b97`
+- [x] 5.2 Projects list page — commit `81a6adb`
+- [x] 5.3 Project drill-in — commit `e970f0e`
+- [x] 5.4 Monitoring/comparison page — commit `2ed7e91`
+- [x] Polish: `InfoIcon` helper + tooltips on ambiguous columns (Velocity, Churn, Sprints, etc.) — commit `defb00c`
 
 ## Phase 6 — Decommission legacy
 
@@ -85,3 +86,4 @@ This file tracks live progress. Update as steps complete; commit alongside the w
 - 2026-04-30: Phase 1 acceptance pass: 14 bugs found and fixed during live e2e (see commits `9ea4e4f` through `bcc1dc3`). 20/20 endpoint tests passing; full backfill of 4817 issues; subsequent incremental sync 7 issues in 3s. Browser walkthrough confirmed UI rendering. Deferred manual checks (F1-F5) noted in `09-verification.md` for later. Phase 1 closed.
 - 2026-04-30: Phase 2 (UX Design) complete in 5 sub-steps: tokens locked (anchored on legacy palette + dark mode designed), component catalog as static HTML, 13 page wireframes with realistic placeholder data, 6 live interaction demos (refresh, modal, sort/filter, deep-link, keyboard, copy-URL), 5-state gallery (empty/loading/error/partial/sync-failed-stale). All deliverables in `frontend/mockup/` — open `frontend/mockup/index.html` to walk through.
 - 2026-04-30: Phase 3 (Sprint Health) complete in 4 sub-steps. 6 metrics modules (working_days, velocity, carry_over, blockers, burnup, sprint_rollup) all pure SQL on synced data. Sprint Health React page implements the Phase-2 mockup against `useSprintRollup` / `useBurnup` / `useCarryOver` / `useBlockers` / `useVelocity` hooks. Ground truth: every per-person SP figure for sprint 18279 matches the Phase-1 baseline exactly (10/10 rows). Apps Script `sprint-health` README marked deprecated; daily trigger retired.
+- 2026-04-30: Phase 5 (Projects + Monitoring) complete in 4 sub-steps. Backend module `app/metrics/projects.py` adds `list_projects`, `get_project`, and `compare_projects` — pure SQL on already-synced data. Three new endpoints under `/api/v1/projects/` plus `/raw` (kept). React pages `/projects`, `/projects/:name`, `/projects/monitoring` wired with `useProjects` / `useProject` / `useProjectComparison` hooks. Live tenant: 5 epics labelled `proj_evs1` / `proj_poi1` → 2 active projects discovered; comparison columns render "n/a" until ≥5 closed snapshots accumulate. Soak period for Phase 6 starts now.
