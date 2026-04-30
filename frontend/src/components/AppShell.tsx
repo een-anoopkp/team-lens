@@ -8,7 +8,9 @@ import { useSyncCompletionInvalidator } from "../lib/sync-watcher";
 interface NavItem {
   to: string;
   label: string;
-  phase?: number; // marks the route as pending in a future phase
+  /** Tag shown next to the label (e.g. "v3") for routes that are
+   *  empty-state placeholders for not-yet-built work. */
+  tag?: string;
 }
 
 const NAV: NavItem[] = [
@@ -18,8 +20,8 @@ const NAV: NavItem[] = [
   { to: "/leaves", label: "Leaves" },
   { to: "/projects", label: "Projects" },
   { to: "/projects/monitoring", label: "Projects · Monitoring" },
-  { to: "/leaderboard", label: "Leaderboard", phase: 5 },
-  { to: "/insights", label: "Insights", phase: 5 },
+  { to: "/leaderboard", label: "Leaderboard", tag: "v3" },
+  { to: "/insights", label: "Insights", tag: "v3" },
   { to: "/debug", label: "Debug" },
   { to: "/settings", label: "Settings" },
 ];
@@ -91,7 +93,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             })}
           >
             <span>{item.label}</span>
-            {item.phase && (
+            {item.tag && (
               <span
                 style={{
                   fontSize: 10,
@@ -100,9 +102,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   padding: "2px 6px",
                   borderRadius: 999,
                 }}
-                title={`Coming in Phase ${item.phase}`}
+                title={`Placeholder — lands in ${item.tag}`}
               >
-                P{item.phase}
+                {item.tag}
               </span>
             )}
           </NavLink>
