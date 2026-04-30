@@ -40,10 +40,15 @@ export default function HygienePage() {
       <h2>
         Epics without initiative{" "}
         {epics.data && (
-          <span className="pill bad">{epics.data.length}</span>
+          <span className="pill bad">{epics.data.epics.length}</span>
+        )}
+        {epics.data && epics.data.no_due_date_count > 0 && (
+          <span className="muted small" style={{ marginLeft: 8, fontWeight: 400 }}>
+            (+{epics.data.no_due_date_count} unscheduled — no due date)
+          </span>
         )}
       </h2>
-      <EpicsNoInitiativeTable rows={epics.data ?? []} loading={epics.isLoading} />
+      <EpicsNoInitiativeTable rows={epics.data?.epics ?? []} loading={epics.isLoading} />
 
       <h2>
         Tasks without epic{" "}

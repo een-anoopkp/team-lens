@@ -29,6 +29,19 @@ class EpicNoInitiative:
 
 
 @dataclass(slots=True)
+class EpicsNoInitiativeResult:
+    """List of actionable epics + count of non-done epics with no due date.
+
+    `epics` is the list to render; `no_due_date_count` is informational —
+    epics without a due date are future/un-scheduled work that we don't track
+    in the cleanup table but want a visible count of.
+    """
+
+    epics: list[EpicNoInitiative]
+    no_due_date_count: int
+
+
+@dataclass(slots=True)
 class TaskNoEpic:
     issue_key: str
     summary: str
@@ -56,56 +69,54 @@ async def epics_without_initiative(
     *,
     active_only: bool = True,
     activity_since_year: int | None = None,
-) -> list[EpicNoInitiative]:
+) -> EpicsNoInitiativeResult:
     """Epics with no Initiative parent.
 
-    With `active_only=True` (default) the result is filtered to actionable
-    cleanup items only — epics that are NOT already done and have at least
-    one child issue in a sprint whose start_date falls on or after Jan 1 of
-    `activity_since_year` (defaults to the current calendar year).
+    With `active_only=True` (default) the result is restricted to actionable
+    cleanup items: epics that are NOT already done AND have a `due_date` on
+    or after Jan 1 of `activity_since_year` (defaults to the current year).
 
-    Pass `active_only=False` for the full historical list (debug / retro).
+    Epics with `due_date IS NULL` are unscheduled future work — we don't
+    list them, but we return the count via `no_due_date_count` so callers
+    can surface it.
+
+    Pass `active_only=False` for the full historical list (debug / retro);
+    in that mode `no_due_date_count` is 0 (the rows are in `epics`).
     """
     from datetime import date as _date
-    from sqlalchemy import text as _text
+    from sqlalchemy import func as _func
 
     if active_only:
         cutoff_year = activity_since_year or _date.today().year
         cutoff = _date(cutoff_year, 1, 1)
-        active_sql = """
-        SELECT DISTINCT e.issue_key
-        FROM epics e
-        WHERE e.initiative_key IS NULL
-          AND e.status_category <> 'done'
-          AND EXISTS (
-            SELECT 1
-            FROM issues i
-            JOIN issue_sprints isp ON isp.issue_key = i.issue_key
-            JOIN sprints s ON s.sprint_id = isp.sprint_id
-            WHERE i.epic_key = e.issue_key
-              AND i.removed_at IS NULL
-              AND s.start_date >= :cutoff
-          )
-        """
-        keys = [
-            r[0]
-            for r in (
-                await session.execute(_text(active_sql), {"cutoff": cutoff})
-            ).all()
-        ]
-        if not keys:
-            return []
         rows = (
             await session.execute(
-                select(Epic).where(Epic.issue_key.in_(keys))
+                select(Epic).where(
+                    Epic.initiative_key.is_(None),
+                    Epic.status_category != "done",
+                    Epic.due_date.is_not(None),
+                    Epic.due_date >= cutoff,
+                )
             )
         ).scalars().all()
+        no_due_date_count = (
+            await session.execute(
+                select(_func.count())
+                .select_from(Epic)
+                .where(
+                    Epic.initiative_key.is_(None),
+                    Epic.status_category != "done",
+                    Epic.due_date.is_(None),
+                )
+            )
+        ).scalar_one()
     else:
         rows = (
             await session.execute(
                 select(Epic).where(Epic.initiative_key.is_(None))
             )
         ).scalars().all()
+        no_due_date_count = 0
 
     out: list[EpicNoInitiative] = []
     for e in rows:
@@ -140,7 +151,7 @@ async def epics_without_initiative(
         )
     # Sort by due_date asc, nulls last
     out.sort(key=lambda r: (r.due_date is None, r.due_date or date.max))
-    return out
+    return EpicsNoInitiativeResult(epics=out, no_due_date_count=no_due_date_count)
 
 
 async def tasks_without_epic(

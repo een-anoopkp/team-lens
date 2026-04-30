@@ -196,7 +196,7 @@ export function useEpicsNoInitiative() {
   return useQuery({
     queryKey: ["hygiene", "epics-no-initiative"],
     queryFn: () =>
-      getJSON<import("./types").EpicNoInitiativeRow[]>(
+      getJSON<import("./types").EpicsNoInitiativeResponse>(
         "/api/v1/hygiene/epics-no-initiative"
       ),
   });

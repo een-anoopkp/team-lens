@@ -24,37 +24,45 @@ class EpicNoInitiativeRow(BaseModel):
     days_since_activity: int | None
 
 
-@router.get("/epics-no-initiative", response_model=list[EpicNoInitiativeRow])
+class EpicsNoInitiativeResponse(BaseModel):
+    epics: list[EpicNoInitiativeRow]
+    no_due_date_count: int
+
+
+@router.get("/epics-no-initiative", response_model=EpicsNoInitiativeResponse)
 async def epics_no_initiative_endpoint(
     active_only: bool = Query(
         True,
         description=(
-            "Default: only epics not done AND with a child issue in a sprint "
-            "that started this year. Set false to see the full historical list."
+            "Default: only epics not done AND with a due_date on/after Jan 1 "
+            "of `since_year`. Set false to see the full historical list."
         ),
     ),
     since_year: int | None = Query(
         None,
         ge=2010,
         le=2100,
-        description="Year-of-activity cutoff (default: current year).",
+        description="Due-date cutoff year (default: current year).",
     ),
     session: AsyncSession = Depends(get_session),
-) -> list[EpicNoInitiativeRow]:
-    rows = await epics_without_initiative(
+) -> EpicsNoInitiativeResponse:
+    result = await epics_without_initiative(
         session, active_only=active_only, activity_since_year=since_year
     )
-    return [
-        EpicNoInitiativeRow(
-            issue_key=r.issue_key,
-            summary=r.summary,
-            status=r.status,
-            due_date=r.due_date,
-            sp_open=r.sp_open,
-            days_since_activity=r.days_since_activity,
-        )
-        for r in rows
-    ]
+    return EpicsNoInitiativeResponse(
+        epics=[
+            EpicNoInitiativeRow(
+                issue_key=r.issue_key,
+                summary=r.summary,
+                status=r.status,
+                due_date=r.due_date,
+                sp_open=r.sp_open,
+                days_since_activity=r.days_since_activity,
+            )
+            for r in result.epics
+        ],
+        no_due_date_count=result.no_due_date_count,
+    )
 
 
 class TaskNoEpicRow(BaseModel):

@@ -254,6 +254,11 @@ export interface EpicNoInitiativeRow {
   days_since_activity: number | null;
 }
 
+export interface EpicsNoInitiativeResponse {
+  epics: EpicNoInitiativeRow[];
+  no_due_date_count: number;
+}
+
 export interface TaskNoEpicRow {
   issue_key: string;
   summary: string;
