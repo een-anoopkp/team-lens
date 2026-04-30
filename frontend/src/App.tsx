@@ -4,6 +4,7 @@ import { useHealth } from "./api";
 import AppShell from "./components/AppShell";
 import EpicRiskPage from "./features/epic-risk/EpicRiskPage";
 import HygienePage from "./features/hygiene/HygienePage";
+import ProjectDetailPage from "./features/projects/ProjectDetailPage";
 import ProjectsPage from "./features/projects/ProjectsPage";
 import SprintHealthPage from "./features/sprint-health/SprintHealthPage";
 import Debug from "./pages/Debug";
@@ -68,6 +69,7 @@ export default function App() {
               <Route path="/epic-risk" element={<EpicRiskPage />} />
               <Route path="/hygiene" element={<HygienePage />} />
               <Route path="/projects" element={<ProjectsPage />} />
+              <Route path="/projects/:name" element={<ProjectDetailPage />} />
               <Route
                 path="/leaderboard"
                 element={<PlaceholderPage phase={5} name="Leaderboard" />}
