@@ -35,6 +35,7 @@ import type {
   StatusBreakdown,
   VelocityRow,
 } from "../../api/types";
+import { JiraLink } from "../../lib/jira";
 
 // ---------- Number / decimal helpers -----------------------------------------
 
@@ -425,7 +426,7 @@ function CarryOverPanel({ rows, loading }: { rows: CarryOverRow[]; loading: bool
             <tbody>
               {rows.slice(0, 10).map((r) => (
                 <tr key={r.issue_key}>
-                  <td><code>{r.issue_key}</code></td>
+                  <td><JiraLink issueKey={r.issue_key} /></td>
                   <td>{r.assignee_display_name ?? "—"}</td>
                   <td>
                     <span className={`pill ${r.depth >= 3 ? "bad" : "warn"}`}>d{r.depth}</span>
@@ -490,7 +491,7 @@ function ScopeChurnLoader({ sprintId }: { sprintId: number }) {
         <tbody>
           {rows.slice(0, 8).map((r, i) => (
             <tr key={`${r.issue_key}-${i}`}>
-              <td><code>{r.issue_key}</code></td>
+              <td><JiraLink issueKey={r.issue_key} /></td>
               <td>{r.change_type === "added_mid_sprint" ? "added mid-sprint" : `${r.old_value ?? "·"} → ${r.new_value ?? "·"}`}</td>
               <td>
                 {r.sp_delta != null ? (
@@ -521,7 +522,7 @@ function BlockersPanel({ rows, loading }: { rows: BlockerRow[]; loading: boolean
           <tbody>
             {rows.slice(0, 8).map((r) => (
               <tr key={r.issue_key}>
-                <td><code>{r.issue_key}</code></td>
+                <td><JiraLink issueKey={r.issue_key} /></td>
                 <td>{r.summary.length > 36 ? r.summary.slice(0, 36) + "…" : r.summary}</td>
                 <td>
                   <span className={`pill ${r.band === "red" ? "bad" : r.band === "yellow" ? "warn" : "good"}`}>

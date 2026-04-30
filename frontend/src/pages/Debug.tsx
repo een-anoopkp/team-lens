@@ -12,6 +12,7 @@ import {
   useSyncStatus,
 } from "../api";
 import DataTable, { type Column } from "../components/DataTable";
+import { JiraLink } from "../lib/jira";
 import LeavesTab from "./debug/LeavesTab";
 import type {
   Epic,
@@ -129,7 +130,7 @@ function IssuesTab() {
       key: "key",
       label: "Key",
       sortValue: (r) => r.issue_key,
-      render: (r) => <code>{r.issue_key}</code>,
+      render: (r) => <JiraLink issueKey={r.issue_key} />,
     },
     { key: "type", label: "Type", sortValue: (r) => r.issue_type, render: (r) => r.issue_type },
     {
@@ -161,7 +162,7 @@ function IssuesTab() {
       key: "epic",
       label: "Epic",
       sortValue: (r) => r.epic_key,
-      render: (r) => (r.epic_key ? <code>{r.epic_key}</code> : ""),
+      render: (r) => (r.epic_key ? <JiraLink issueKey={r.epic_key} /> : ""),
     },
     {
       key: "removed",
@@ -230,14 +231,14 @@ function EpicsTab() {
   const { data = [], isLoading } = useEpics();
   if (isLoading) return <div>Loading…</div>;
   const columns: Column<Epic>[] = [
-    { key: "key", label: "Key", sortValue: (r) => r.issue_key, render: (r) => <code>{r.issue_key}</code> },
+    { key: "key", label: "Key", sortValue: (r) => r.issue_key, render: (r) => <JiraLink issueKey={r.issue_key} /> },
     { key: "summary", label: "Summary", sortValue: (r) => r.summary, render: (r) => r.summary },
     { key: "status", label: "Status", sortValue: (r) => r.status, render: (r) => r.status },
     {
       key: "init",
       label: "Initiative",
       sortValue: (r) => r.initiative_key,
-      render: (r) => (r.initiative_key ? <code>{r.initiative_key}</code> : ""),
+      render: (r) => (r.initiative_key ? <JiraLink issueKey={r.initiative_key} /> : ""),
     },
     { key: "due", label: "Due", sortValue: (r) => r.due_date, render: (r) => r.due_date ?? "" },
     {
@@ -269,7 +270,7 @@ function InitiativesTab() {
   const { data = [], isLoading } = useInitiatives();
   if (isLoading) return <div>Loading…</div>;
   const columns: Column<Initiative>[] = [
-    { key: "key", label: "Key", sortValue: (r) => r.issue_key, render: (r) => <code>{r.issue_key}</code> },
+    { key: "key", label: "Key", sortValue: (r) => r.issue_key, render: (r) => <JiraLink issueKey={r.issue_key} /> },
     { key: "summary", label: "Summary", sortValue: (r) => r.summary, render: (r) => r.summary },
     { key: "status", label: "Status", sortValue: (r) => r.status, render: (r) => r.status },
     {
@@ -331,7 +332,7 @@ function ScopeChangesTab() {
   if (isLoading) return <div>Loading…</div>;
   const columns: Column<ScopeChange>[] = [
     { key: "when", label: "Detected", sortValue: (r) => r.detected_at, render: (r) => r.detected_at },
-    { key: "issue", label: "Issue", sortValue: (r) => r.issue_key, render: (r) => <code>{r.issue_key}</code> },
+    { key: "issue", label: "Issue", sortValue: (r) => r.issue_key, render: (r) => <JiraLink issueKey={r.issue_key} /> },
     { key: "sprint", label: "Sprint", sortValue: (r) => r.sprint_name, render: (r) => r.sprint_name },
     { key: "type", label: "Type", sortValue: (r) => r.change_type, render: (r) => <code>{r.change_type}</code> },
     { key: "old", label: "Old", render: (r) => r.old_value ?? "" },

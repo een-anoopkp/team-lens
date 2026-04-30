@@ -8,6 +8,14 @@
     <link rel="stylesheet" href="./mockup.css" />
   </head>
   <body>
+    <!-- Static-mockup notice — sits above the app shell so it's not missed
+         when this page is mistaken for the live app. -->
+    <div class="mockup-banner" role="note">
+      ⚠ This is the static design mockup with hardcoded placeholder data.
+      Live app with real data is at
+      <a href="/sprint-health">/sprint-health</a>.
+    </div>
+
     <!-- ====================== App shell ============================ -->
     <div class="app-shell">
       <header class="topbar">
@@ -245,10 +253,10 @@
                 </tr>
               </thead>
               <tbody>
-                <tr><td><code>EEPD-1180</code></td><td>Index migration v3</td><td>Anoop K Prabhu</td><td>Apr 26 <span class="pill bad">−4d</span></td><td>In Progress</td></tr>
-                <tr><td><code>EEPD-1198</code></td><td>Sharding plan</td><td>Priya Sridhar</td><td>May 2 <span class="pill warn">+2d</span></td><td>Review</td></tr>
-                <tr><td><code>EEPD-1234</code></td><td>Re-rank A/B</td><td>Karthik Iyer</td><td>May 9 <span class="pill good">+9d</span></td><td>To Do</td></tr>
-                <tr><td><code>EEPD-1255</code></td><td>Query intent v2</td><td>Meera Nair</td><td>May 16 <span class="pill good">+16d</span></td><td>To Do</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/EEPD-1180" target="_blank" rel="noopener">EEPD-1180</a></td><td>Index migration v3</td><td>Anoop K Prabhu</td><td>Apr 26 <span class="pill bad">−4d</span></td><td>In Progress</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/EEPD-1198" target="_blank" rel="noopener">EEPD-1198</a></td><td>Sharding plan</td><td>Priya Sridhar</td><td>May 2 <span class="pill warn">+2d</span></td><td>Review</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/EEPD-1234" target="_blank" rel="noopener">EEPD-1234</a></td><td>Re-rank A/B</td><td>Karthik Iyer</td><td>May 9 <span class="pill good">+9d</span></td><td>To Do</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/EEPD-1255" target="_blank" rel="noopener">EEPD-1255</a></td><td>Query intent v2</td><td>Meera Nair</td><td>May 16 <span class="pill good">+16d</span></td><td>To Do</td></tr>
               </tbody>
             </table>
             <div class="datatable-footer">4 rows</div>
@@ -407,25 +415,25 @@
               <h3>Carry-over</h3>
               <p class="muted small">3 tickets · 8 SP carried from S-1</p>
               <table class="datatable"><tbody>
-                <tr><td><code>EEPD-1234</code></td><td>Anoop</td><td><span class="pill warn">d2</span></td></tr>
-                <tr><td><code>EEPD-1241</code></td><td>Priya</td><td><span class="pill warn">d3</span></td></tr>
-                <tr><td><code>EEPD-1255</code></td><td>Meera</td><td><span class="pill warn">d2</span></td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/EEPD-1234" target="_blank" rel="noopener">EEPD-1234</a></td><td>Anoop</td><td><span class="pill warn">d2</span></td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/EEPD-1241" target="_blank" rel="noopener">EEPD-1241</a></td><td>Priya</td><td><span class="pill warn">d3</span></td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/EEPD-1255" target="_blank" rel="noopener">EEPD-1255</a></td><td>Meera</td><td><span class="pill warn">d2</span></td></tr>
               </tbody></table>
             </div>
             <div class="panel">
               <h3>Scope churn</h3>
               <p class="muted small">+2 SP added · −1 removed · 1 mid-sprint</p>
               <table class="datatable"><tbody>
-                <tr><td><code>EEPD-1198</code></td><td>3 → 5</td><td><span class="pill bad">+2</span></td></tr>
-                <tr><td><code>EEPD-1212</code></td><td>2 → 1</td><td><span class="pill good">−1</span></td></tr>
-                <tr><td><code>EEPD-1290</code></td><td>0 → 5</td><td><span class="pill bad">+5 new</span></td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/EEPD-1198" target="_blank" rel="noopener">EEPD-1198</a></td><td>3 → 5</td><td><span class="pill bad">+2</span></td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/EEPD-1212" target="_blank" rel="noopener">EEPD-1212</a></td><td>2 → 1</td><td><span class="pill good">−1</span></td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/EEPD-1290" target="_blank" rel="noopener">EEPD-1290</a></td><td>0 → 5</td><td><span class="pill bad">+5 new</span></td></tr>
               </tbody></table>
             </div>
             <div class="panel">
               <h3>Blockers (open sub-tasks)</h3>
               <table class="datatable"><tbody>
-                <tr><td><code>EEPD-1301</code></td><td>"Waiting on Infra"</td><td><span class="pill bad">9d</span></td></tr>
-                <tr><td><code>EEPD-1289</code></td><td>"QA env down"</td><td><span class="pill warn">4d</span></td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/EEPD-1301" target="_blank" rel="noopener">EEPD-1301</a></td><td>"Waiting on Infra"</td><td><span class="pill bad">9d</span></td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/EEPD-1289" target="_blank" rel="noopener">EEPD-1289</a></td><td>"QA env down"</td><td><span class="pill warn">4d</span></td></tr>
               </tbody></table>
             </div>
           </div>
@@ -435,8 +443,8 @@
             <table class="datatable">
               <thead><tr><th>Sub-task</th><th>Parent</th><th>GitHub</th><th>Age</th><th></th></tr></thead>
               <tbody>
-                <tr><td><code>EEPD-1287</code></td><td><code>EEPD-1280</code> · In Review</td><td><a href="#">een/searchworkers#4521</a></td><td>2h</td><td><button class="btn" disabled>Run Claude →</button></td></tr>
-                <tr><td><code>EEPD-1291</code></td><td><code>EEPD-1284</code> · In Review</td><td><a href="#">een/searchworkers#4528</a></td><td>5h</td><td><button class="btn" disabled>Run Claude →</button></td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/EEPD-1287" target="_blank" rel="noopener">EEPD-1287</a></td><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/EEPD-1280" target="_blank" rel="noopener">EEPD-1280</a> · In Review</td><td><a href="#">een/searchworkers#4521</a></td><td>2h</td><td><button class="btn" disabled>Run Claude →</button></td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/EEPD-1291" target="_blank" rel="noopener">EEPD-1291</a></td><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/EEPD-1284" target="_blank" rel="noopener">EEPD-1284</a> · In Review</td><td><a href="#">een/searchworkers#4528</a></td><td>5h</td><td><button class="btn" disabled>Run Claude →</button></td></tr>
               </tbody>
             </table>
             <div class="muted small" style="margin-top: var(--space-2);">"Run Claude" lights up in v3.</div>
@@ -667,9 +675,9 @@
             <table class="datatable">
               <thead><tr><th>Epic</th><th>Summary</th><th>Due</th><th>SP open</th><th>Last activity</th></tr></thead>
               <tbody>
-                <tr><td><code>SEARCH-942</code></td><td>Re-rank rollout</td><td>May 30</td><td>14</td><td>2d ago</td></tr>
-                <tr><td><code>SEARCH-1010</code></td><td>Ingest pipeline cleanup</td><td>—</td><td>21</td><td>1d ago</td></tr>
-                <tr><td><code>SEARCH-1077</code></td><td>Multilingual support</td><td>Jun 15</td><td>8</td><td>4h ago</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/SEARCH-942" target="_blank" rel="noopener">SEARCH-942</a></td><td>Re-rank rollout</td><td>May 30</td><td>14</td><td>2d ago</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/SEARCH-1010" target="_blank" rel="noopener">SEARCH-1010</a></td><td>Ingest pipeline cleanup</td><td>—</td><td>21</td><td>1d ago</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/SEARCH-1077" target="_blank" rel="noopener">SEARCH-1077</a></td><td>Multilingual support</td><td>Jun 15</td><td>8</td><td>4h ago</td></tr>
               </tbody>
             </table>
           </div>
@@ -678,8 +686,8 @@
             <table class="datatable">
               <thead><tr><th>Ticket</th><th>Type</th><th>Assignee</th><th>Status</th><th>Created</th><th>Updated</th></tr></thead>
               <tbody>
-                <tr><td><code>SEARCH-1290</code></td><td>Bug</td><td>Anoop</td><td>In Progress</td><td>2d</td><td>1h</td></tr>
-                <tr><td><code>SEARCH-1295</code></td><td>Task</td><td>Priya</td><td>To Do</td><td>1d</td><td>1d</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/SEARCH-1290" target="_blank" rel="noopener">SEARCH-1290</a></td><td>Bug</td><td>Anoop</td><td>In Progress</td><td>2d</td><td>1h</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/SEARCH-1295" target="_blank" rel="noopener">SEARCH-1295</a></td><td>Task</td><td>Priya</td><td>To Do</td><td>1d</td><td>1d</td></tr>
                 <tr><td colspan="6" class="muted small">… 3 more</td></tr>
               </tbody>
             </table>
@@ -689,10 +697,10 @@
             <table class="datatable">
               <thead><tr><th>Ticket</th><th>Summary</th><th>Assignee</th><th>Due</th><th>Days</th><th>Status</th></tr></thead>
               <tbody>
-                <tr><td><code>SEARCH-1180</code></td><td>Index migration v3</td><td>Anoop</td><td>Apr 26</td><td><span class="pill bad">−4</span></td><td>In Progress</td></tr>
-                <tr><td><code>SEARCH-1198</code></td><td>Sharding plan</td><td>Priya</td><td>May 2</td><td><span class="pill warn">+2</span></td><td>Review</td></tr>
-                <tr><td><code>SEARCH-1234</code></td><td>Re-rank A/B</td><td>Karthik</td><td>May 9</td><td><span class="pill good">+9</span></td><td>To Do</td></tr>
-                <tr><td><code>SEARCH-1255</code></td><td>Query intent v2</td><td>Meera</td><td>May 16</td><td><span class="pill good">+16</span></td><td>To Do</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/SEARCH-1180" target="_blank" rel="noopener">SEARCH-1180</a></td><td>Index migration v3</td><td>Anoop</td><td>Apr 26</td><td><span class="pill bad">−4</span></td><td>In Progress</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/SEARCH-1198" target="_blank" rel="noopener">SEARCH-1198</a></td><td>Sharding plan</td><td>Priya</td><td>May 2</td><td><span class="pill warn">+2</span></td><td>Review</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/SEARCH-1234" target="_blank" rel="noopener">SEARCH-1234</a></td><td>Re-rank A/B</td><td>Karthik</td><td>May 9</td><td><span class="pill good">+9</span></td><td>To Do</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/SEARCH-1255" target="_blank" rel="noopener">SEARCH-1255</a></td><td>Query intent v2</td><td>Meera</td><td>May 16</td><td><span class="pill good">+16</span></td><td>To Do</td></tr>
               </tbody>
             </table>
           </div>
@@ -810,10 +818,10 @@
             <table class="datatable">
               <thead><tr><th>Epic</th><th>Summary</th><th>Status</th><th>SP</th><th>Done</th><th>Owner</th></tr></thead>
               <tbody>
-                <tr><td><code>SEARCH-942</code></td><td>Re-rank model v2</td><td>In Progress</td><td>28</td><td>18</td><td>Anoop</td></tr>
-                <tr><td><code>SEARCH-967</code></td><td>Online eval pipeline</td><td><span class="pill good">Done</span></td><td>14</td><td>14</td><td>Priya</td></tr>
-                <tr><td><code>SEARCH-1010</code></td><td>A/B framework</td><td>In Progress</td><td>24</td><td>12</td><td>Karthik</td></tr>
-                <tr><td><code>SEARCH-1077</code></td><td>Production rollout</td><td>To Do</td><td>16</td><td>3</td><td>Anoop</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/SEARCH-942" target="_blank" rel="noopener">SEARCH-942</a></td><td>Re-rank model v2</td><td>In Progress</td><td>28</td><td>18</td><td>Anoop</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/SEARCH-967" target="_blank" rel="noopener">SEARCH-967</a></td><td>Online eval pipeline</td><td><span class="pill good">Done</span></td><td>14</td><td>14</td><td>Priya</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/SEARCH-1010" target="_blank" rel="noopener">SEARCH-1010</a></td><td>A/B framework</td><td>In Progress</td><td>24</td><td>12</td><td>Karthik</td></tr>
+                <tr><td><a class="jira-link" href="https://eagleeyenetworks.atlassian.net/browse/SEARCH-1077" target="_blank" rel="noopener">SEARCH-1077</a></td><td>Production rollout</td><td>To Do</td><td>16</td><td>3</td><td>Anoop</td></tr>
               </tbody>
             </table>
           </div>
