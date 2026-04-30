@@ -22,6 +22,7 @@ import {
   useBlockers,
   useBurnup,
   useCarryOver,
+  useLeavesInRange,
   useSprintRollup,
   useSprints,
   useVelocity,
@@ -119,6 +120,8 @@ export default function SprintHealthPage() {
           <BurnupChart data={burnup.data} />
         </>
       )}
+
+      <SprintLeavesPanel sprint={sprint} />
 
       {rollup.data && rollup.data.per_person.length > 0 && (
         <>
@@ -314,6 +317,91 @@ function PersonDaysTile({ rollup }: { rollup: SprintRollup }) {
         {leaveDaysLost > 0
           ? ` − ${leaveDaysLost} leave d`
           : null}
+      </div>
+    </div>
+  );
+}
+
+function SprintLeavesPanel({
+  sprint,
+}: {
+  sprint: { start_date?: string | null; end_date?: string | null };
+}) {
+  // Window leaves to the sprint range so we capture anyone away during
+  // the sprint — past or future. Date-only strings; backend filter is
+  // inclusive on both ends.
+  const from = sprint.start_date ? sprint.start_date.slice(0, 10) : null;
+  const to = sprint.end_date ? sprint.end_date.slice(0, 10) : null;
+  const { data, isLoading } = useLeavesInRange(from, to);
+
+  // Group by person so two leaves for the same person collapse into one row.
+  const grouped = useMemo(() => {
+    const m = new Map<
+      string,
+      { name: string; leaves: { start: string; end: string; reason: string | null }[] }
+    >();
+    for (const l of data ?? []) {
+      const key = l.person_account_id;
+      const name = l.person_display_name ?? key;
+      if (!m.has(key)) m.set(key, { name, leaves: [] });
+      m.get(key)!.leaves.push({
+        start: l.start_date,
+        end: l.end_date,
+        reason: l.reason,
+      });
+    }
+    return Array.from(m.values()).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+  }, [data]);
+
+  if (isLoading) return null;
+  if (grouped.length === 0) return null;
+
+  return (
+    <div
+      className="panel"
+      style={{
+        marginBottom: "var(--space-4)",
+        borderLeft: "4px solid var(--color-accent)",
+      }}
+    >
+      <h3 style={{ marginTop: 0 }}>
+        Leaves during this sprint{" "}
+        <span className="muted small">({grouped.length} people)</span>{" "}
+        <InfoIcon text="Anyone away during the sprint window. Velocity calculations already factor in available days, so this panel exists for visibility only — it doesn't double-count capacity." />
+      </h3>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "var(--space-3)",
+          marginTop: "var(--space-1)",
+        }}
+      >
+        {grouped.map((g) => {
+          const totalDays = g.leaves.reduce((sum, l) => {
+            const d =
+              Math.floor(
+                (new Date(l.end).getTime() - new Date(l.start).getTime()) /
+                  86_400_000,
+              ) + 1;
+            return sum + d;
+          }, 0);
+          const ranges = g.leaves
+            .map((l) => `${l.start.slice(5)} → ${l.end.slice(5)}`)
+            .join(", ");
+          return (
+            <span
+              key={g.name}
+              title={ranges + (g.leaves[0].reason ? ` · ${g.leaves[0].reason}` : "")}
+              className="pill warn"
+              style={{ cursor: "help" }}
+            >
+              {g.name} · {totalDays}d
+            </span>
+          );
+        })}
       </div>
     </div>
   );
