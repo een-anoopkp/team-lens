@@ -357,8 +357,10 @@ async def test_existing_sp_change_emits_event(session_factory) -> None:
     e = events[0]
     assert e.change_type == "sp"
     assert e.sp_delta == Decimal("3")
-    assert e.old_value == "5"
-    assert e.new_value == "8"
+    # Numeric(6,2) round-trip stringifies Decimal("5") as "5.00" on both
+    # Postgres and SQLite. Assert against the canonical 2dp form.
+    assert e.old_value == "5.00"
+    assert e.new_value == "8.00"
     assert stats.sp_changes == 1
 
     snap = await _get_snapshot(session_factory, "EEPD-1", "Search 2026-08")
