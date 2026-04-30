@@ -80,6 +80,7 @@ export default function EpicRiskPage() {
             At-risk epics <span className="pill bad">{atRisk.length}</span>
             <JiraFilterLink keys={atRisk.map((e) => e.issue_key)} orderBy="duedate ASC" />
           </h2>
+          <RiskRulesPanel />
           <div className="three-panel">
             {atRisk.slice(0, 12).map((e) => (
               <EpicRiskCard key={e.issue_key} epic={e} tone="bad" />
@@ -109,6 +110,90 @@ export default function EpicRiskPage() {
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * Always-visible (default-collapsed) summary of the rules behind every
+ * "at_risk" / "watch" classification. Surfaced here so the filter logic
+ * doesn't get lost as more rules accumulate over time.
+ */
+function RiskRulesPanel() {
+  return (
+    <details
+      style={{
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
+        borderRadius: "var(--radius-md)",
+        padding: "var(--space-2) var(--space-3)",
+        marginBottom: "var(--space-3)",
+        fontSize: "var(--font-size-sm)",
+      }}
+    >
+      <summary
+        style={{
+          cursor: "pointer",
+          color: "var(--color-text-muted)",
+          userSelect: "none",
+        }}
+      >
+        How is risk computed? (rules + filters applied)
+      </summary>
+      <div style={{ paddingTop: "var(--space-2)", lineHeight: 1.6 }}>
+        <strong>Scope filter</strong>
+        <ul style={{ margin: "4px 0 var(--space-2) var(--space-3)" }}>
+          <li>
+            Only epics where the team field <code>customfield_10500</code>{" "}
+            equals the configured Search-team UUID. Foreign-team parent
+            epics that we pulled in only as hierarchy context for our
+            issues are excluded.
+          </li>
+        </ul>
+
+        <strong>
+          <span className="pill bad">at_risk</span> — any one triggers
+        </strong>
+        <ul style={{ margin: "4px 0 var(--space-2) var(--space-3)" }}>
+          <li>
+            <code>past due</code> — <code>due_date &lt; today</code> AND
+            not done.
+          </li>
+          <li>
+            <code>no owner</code> — <code>owner_account_id IS NULL</code>.
+          </li>
+          <li>
+            <code>no activity Nd</code> — most recent child-issue update
+            &gt; 14 days ago, <em>only when a due_date is set</em>{" "}
+            (undated epics have no planning anchor, so we don't flag them
+            for inactivity).
+          </li>
+        </ul>
+
+        <strong>
+          <span className="pill warn">watch</span> — any one triggers
+          (and no at_risk reason fires)
+        </strong>
+        <ul style={{ margin: "4px 0 var(--space-2) var(--space-3)" }}>
+          <li>
+            <code>slow progress</code> — &lt; 30% SP done AND no activity
+            for &gt; 7 days.
+          </li>
+          <li>
+            <code>due soon, behind</code> — due in ≤ 14 days AND &lt; 70%
+            SP done.
+          </li>
+        </ul>
+
+        <strong>
+          <span className="pill good">on_track</span>
+        </strong>{" "}
+        — in progress with no triggers above.{" "}
+        <strong>
+          <span className="pill neutral">done</span>
+        </strong>{" "}
+        — <code>status_category = done</code>.
+      </div>
+    </details>
   );
 }
 

@@ -127,7 +127,13 @@ async def classify_epic_risks(
                 reasons.append(f"past due {days_overdue}d")
             if r.owner_account_id is None:
                 reasons.append("no owner")
-            if days_since_activity is not None and days_since_activity > 14:
+            # Inactivity only flags when there's a due date — otherwise we
+            # have no planning anchor, so an undated epic isn't "behind".
+            if (
+                days_since_activity is not None
+                and days_since_activity > 14
+                and r.due_date is not None
+            ):
                 reasons.append(f"no activity {days_since_activity}d")
 
             if reasons:
