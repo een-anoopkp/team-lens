@@ -45,7 +45,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        // Pin the layout to viewport height; only <main> scrolls so the
+        // header and sidebar stay put while reading long pages.
+        height: "100vh",
+        overflow: "hidden",
         display: "grid",
         gridTemplateColumns: "220px 1fr",
         gridTemplateRows: "56px 1fr",
@@ -100,6 +103,9 @@ function NavSidebar() {
         background: "var(--color-surface)",
         borderRight: "1px solid var(--color-border)",
         padding: "12px 0",
+        // Sidebar can scroll independently if the nav grows beyond
+        // viewport height — main content scrolling stays unaffected.
+        overflowY: "auto",
       }}
     >
       {NAV.map((item) => (
