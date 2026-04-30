@@ -4,6 +4,7 @@ from app.models.comments import Comment
 from app.models.epics import Epic
 from app.models.holidays import Holiday
 from app.models.initiatives import Initiative
+from app.models.insights import InsightRule, InsightRun
 from app.models.issue_sprints import IssueSprint
 from app.models.issues import Issue
 from app.models.leaves import Leave
@@ -22,6 +23,8 @@ __all__ = [
     "Epic",
     "Holiday",
     "Initiative",
+    "InsightRule",
+    "InsightRun",
     "Issue",
     "IssueSprint",
     "Leave",

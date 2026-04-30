@@ -121,6 +121,15 @@ async def lifespan(app: FastAPI):
         _scheduler = build_scheduler(settings, _runner)
         _scheduler.start()
 
+    # Seed the insight_rules table with any new registry entries.
+    # Idempotent — existing rows (and their toggle state) are preserved.
+    try:
+        from app.insights import seed_rules
+        async with get_session_factory()() as session:
+            await seed_rules(session)
+    except Exception:
+        logger.exception("insight_rules_seed_failed")
+
     try:
         yield
     finally:
