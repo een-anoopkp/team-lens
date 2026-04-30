@@ -286,3 +286,79 @@ export interface ProjectRaw {
   epic_status_categories: Record<string, number>;
   classification: "active" | "completed";
 }
+
+// ---- Phase 5: projects -----------------------------------------------------
+
+export interface ProjectListRow {
+  project_name: string;
+  classification: "active" | "completed";
+  epic_count: number;
+  total_sp: string | number;
+  done_sp: string | number;
+  pct_done: string | number;
+  sprints_active: number;
+  avg_velocity_sp: string | number | null;
+  avg_sprint_length_d: string | number | null;
+  etd_by_velocity: string | null;          // YYYY-MM-DD
+  etd_by_sprint_assignment: string | null; // YYYY-MM-DD
+  completed_at: string | null;             // ISO timestamp
+}
+
+export interface ProjectEpicRollup {
+  issue_key: string;
+  summary: string;
+  status: string;
+  status_category: string;
+  issue_count: number;
+  sp_total: string | number;
+  sp_done: string | number;
+}
+
+export interface ProjectSprintTouched {
+  sprint_id: number;
+  name: string;
+  state: string;
+  start_date: string | null;
+  end_date: string | null;
+}
+
+export interface ProjectDetail {
+  project_name: string;
+  classification: "active" | "completed";
+  epic_count: number;
+  total_sp: string | number;
+  done_sp: string | number;
+  pct_done: string | number;
+  sprints_active: number;
+  avg_velocity_sp: string | number | null;
+  avg_sprint_length_d: string | number | null;
+  etd_by_velocity: string | null;
+  etd_by_velocity_basis: string;
+  etd_by_sprint_assignment: string | null;
+  etd_by_sprint_assignment_basis: string;
+  sp_added_total: string | number;
+  sp_removed_total: string | number;
+  scope_churn_pct: string | number | null;
+  contributors: string[];
+  initiative_keys: string[];
+  epics: ProjectEpicRollup[];
+  sprints: ProjectSprintTouched[];
+  completed_at: string | null;
+}
+
+export interface ComparisonStats {
+  p25: string | number | null;
+  median: string | number | null;
+  p75: string | number | null;
+  n: number;
+}
+
+export interface ProjectComparison {
+  active: ProjectListRow[];
+  completed_count: number;
+  velocity: ComparisonStats;
+  churn_pct: ComparisonStats;
+  sprints_active: ComparisonStats;
+  sprint_length_d: ComparisonStats;
+  enough_history: boolean;
+}

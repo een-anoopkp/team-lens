@@ -343,3 +343,34 @@ export function useHolidays(region = "IN") {
     queryFn: () => getJSON<Holiday[]>(`/api/v1/holidays?region=${region}`),
   });
 }
+
+// ---- Phase 5: projects ------------------------------------------------------
+
+export function useProjects() {
+  return useQuery({
+    queryKey: ["projects", "list"],
+    queryFn: () =>
+      getJSON<import("./types").ProjectListRow[]>("/api/v1/projects"),
+  });
+}
+
+export function useProject(name: string) {
+  return useQuery({
+    queryKey: ["projects", "detail", name],
+    queryFn: () =>
+      getJSON<import("./types").ProjectDetail>(
+        `/api/v1/projects/${encodeURIComponent(name)}`
+      ),
+    enabled: !!name,
+  });
+}
+
+export function useProjectComparison() {
+  return useQuery({
+    queryKey: ["projects", "comparison"],
+    queryFn: () =>
+      getJSON<import("./types").ProjectComparison>(
+        "/api/v1/projects/comparison"
+      ),
+  });
+}
