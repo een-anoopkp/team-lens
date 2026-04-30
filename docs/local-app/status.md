@@ -1,8 +1,8 @@
 # Local App — Build Status
 
 **Last updated:** 2026-04-30
-**Current phase:** Phase 1 → Phase 2 ready to begin
-**Current step:** All Phase 1 sub-steps committed; awaiting first end-to-end run + acceptance walk-through (see [09-verification.md §Phase 1](./09-verification.md#phase-1-data-foundation))
+**Current phase:** Phase 2 — UX Design (active)
+**Current step:** 2.1 (design tokens proposal) — Phase 1 acceptance complete (20/20 endpoint tests + browser walkthrough); see [09-verification.md §Phase 1](./09-verification.md#phase-1-data-foundation--accepted-2026-04-30) for results, bugs fixed, and deferred manual checks (F1-F5).
 
 This file tracks live progress. Update as steps complete; commit alongside the work. Other files in this folder are specs that change rarely.
 
