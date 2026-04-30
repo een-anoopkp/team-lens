@@ -107,15 +107,15 @@ so they render as Jira chips downstream.
 ### `stakeholder-update` · v1
 
 **Job:** Stakeholder one-liner (Job C).
-**Trigger:** `on_demand`.
+**Trigger:** auto-refresh stale; default scope = the most recently closed sprint.
 **Token budget:** 600 tokens out, ~2500 in.
 **Use when:** "I need to send a 3-paragraph update to my manager / a
 weekly Slack channel — give me the draft."
 
-**Inputs:**
-- Most recent sprint rollup.
-- Active epic count by risk band.
-- Project ETD slippage in the last week.
+**Inputs (sprint-scoped):**
+- Sprint rollup (committed/completed SP, dates).
+- Active epic count by risk band at sprint end.
+- Project ETD slippage from the sprint window.
 
 **Prompt:**
 ```
