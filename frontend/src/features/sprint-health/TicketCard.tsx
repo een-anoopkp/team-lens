@@ -18,6 +18,16 @@ function truncate(s: string, n: number): string {
   return s.length > n ? s.slice(0, n - 1) + "…" : s;
 }
 
+/** Display SP as a clean integer when whole, one decimal otherwise.
+ *  Story points come back from the backend as numbers, but Decimal
+ *  fields can serialize as "5.00" — strip the noise. */
+function fmtSp(sp: number | string | null | undefined): string | null {
+  if (sp == null) return null;
+  const n = typeof sp === "number" ? sp : parseFloat(sp);
+  if (!Number.isFinite(n)) return null;
+  return Number.isInteger(n) ? n.toString() : n.toFixed(1);
+}
+
 interface Props {
   issue: Issue;
   assigneeName: string | null;
@@ -93,14 +103,14 @@ export default function TicketCard({
         <span title={assigneeName ?? "unassigned"}>
           {initials(assigneeName)}
         </span>
-        {issue.story_points != null && (
+        {fmtSp(issue.story_points) && (
           <span
             style={{
               fontVariantNumeric: "tabular-nums",
               fontWeight: 500,
             }}
           >
-            {issue.story_points} SP
+            {fmtSp(issue.story_points)} SP
           </span>
         )}
       </div>

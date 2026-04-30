@@ -29,6 +29,7 @@ export default function StandupBoard() {
   const { data: noteCounts } = useNotesCounts(sprintId);
 
   const [openIssueKey, setOpenIssueKey] = useState<string | null>(null);
+  const [assigneeFilter, setAssigneeFilter] = useState<string>(""); // "" = everyone
 
   // assignee_id → display_name lookup
   const peopleById = useMemo(() => {
@@ -37,7 +38,36 @@ export default function StandupBoard() {
     return m;
   }, [people]);
 
+  // Only people who actually have a non-subtask in the active sprint show
+  // up in the filter — keeps the dropdown short + useful.
+  const sprintAssignees = useMemo(() => {
+    const ids = new Set<string>();
+    for (const i of issuesPage?.issues ?? []) {
+      if (i.issue_type === "Sub-task") continue;
+      if (i.assignee_id) ids.add(i.assignee_id);
+    }
+    const list: { account_id: string; display_name: string }[] = [];
+    for (const id of ids) {
+      list.push({
+        account_id: id,
+        display_name: peopleById.get(id) ?? id,
+      });
+    }
+    list.sort((a, b) => a.display_name.localeCompare(b.display_name));
+    return list;
+  }, [issuesPage, peopleById]);
+
+  const visibleIssues = useMemo(() => {
+    const issues = issuesPage?.issues ?? [];
+    if (!assigneeFilter) return issues;
+    if (assigneeFilter === "__unassigned__") {
+      return issues.filter((i) => !i.assignee_id);
+    }
+    return issues.filter((i) => i.assignee_id === assigneeFilter);
+  }, [issuesPage, assigneeFilter]);
+
   // Bucket issues by column. Sub-tasks excluded — they clutter the board.
+  // Honors the assignee filter via `visibleIssues`.
   const grouped = useMemo<Record<ColumnId, Issue[]>>(() => {
     const out: Record<ColumnId, Issue[]> = {
       todo: [],
@@ -46,8 +76,7 @@ export default function StandupBoard() {
       in_validation: [],
       done: [],
     };
-    const issues = issuesPage?.issues ?? [];
-    for (const i of issues) {
+    for (const i of visibleIssues) {
       if (i.issue_type === "Sub-task") continue;
       out[statusToColumn(i.status)].push(i);
     }
@@ -64,7 +93,7 @@ export default function StandupBoard() {
       });
     }
     return out;
-  }, [issuesPage]);
+  }, [visibleIssues]);
 
   if (sprintLoading) return <div className="muted">Loading sprint…</div>;
   if (!sprint) {
@@ -82,16 +111,57 @@ export default function StandupBoard() {
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "baseline",
+          alignItems: "center",
           marginBottom: "var(--space-3)",
+          gap: "var(--space-3)",
         }}
       >
         <h2 style={{ margin: 0 }}>{sprint.name}</h2>
-        <span className="muted small">
-          {issuesLoading
-            ? "loading tickets…"
-            : `${(issuesPage?.issues ?? []).filter((i) => i.issue_type !== "Sub-task").length} tickets`}
-        </span>
+        <div
+          style={{
+            display: "flex",
+            gap: "var(--space-3)",
+            alignItems: "center",
+          }}
+        >
+          <label
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: "var(--font-size-sm)",
+              color: "var(--color-text-muted)",
+            }}
+          >
+            Assignee
+            <select
+              value={assigneeFilter}
+              onChange={(e) => setAssigneeFilter(e.target.value)}
+              style={{
+                padding: "4px 8px",
+                borderRadius: "var(--radius-md)",
+                border: "1px solid var(--color-border)",
+                background: "var(--color-surface)",
+                color: "var(--color-text)",
+                fontSize: "var(--font-size-sm)",
+                fontFamily: "inherit",
+              }}
+            >
+              <option value="">Everyone</option>
+              <option value="__unassigned__">Unassigned</option>
+              {sprintAssignees.map((p) => (
+                <option key={p.account_id} value={p.account_id}>
+                  {p.display_name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <span className="muted small" style={{ whiteSpace: "nowrap" }}>
+            {issuesLoading
+              ? "loading…"
+              : `${visibleIssues.filter((i) => i.issue_type !== "Sub-task").length} tickets`}
+          </span>
+        </div>
       </div>
 
       <div
