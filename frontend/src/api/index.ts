@@ -298,6 +298,16 @@ export function useLeaves() {
   });
 }
 
+export function useUpcomingLeaves(weeks = 6) {
+  return useQuery({
+    queryKey: ["leaves", "upcoming", weeks],
+    queryFn: () =>
+      getJSON<import("./types").UpcomingLeavesResponse>(
+        `/api/v1/leaves/upcoming?weeks=${weeks}`
+      ),
+  });
+}
+
 export function useCreateLeave() {
   const qc = useQueryClient();
   return useMutation({

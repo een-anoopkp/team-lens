@@ -139,6 +139,24 @@ export interface Holiday {
   created_at: string;
 }
 
+export interface UpcomingPersonWindow {
+  person_account_id: string;
+  person_display_name: string | null;
+  leaves: Leave[];
+  total_days_in_window: number;
+}
+
+export interface UpcomingLeavesResponse {
+  window_start: string;
+  window_end: string;
+  people: UpcomingPersonWindow[];
+  overlap_alerts: {
+    week_start: string;
+    people_count: number;
+    people: string[];
+  }[];
+}
+
 export interface ScopeChange {
   id: number;
   issue_key: string;
