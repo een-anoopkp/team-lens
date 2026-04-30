@@ -346,6 +346,11 @@ def _is_pre_start(sprint_start_date: datetime | None, now: datetime) -> bool:
     if sprint_start_date is None:
         # No start date known — be conservative: treat as Case B (silent).
         return True
+    # Postgres DateTime(timezone=True) returns aware values, but SQLite (used
+    # by unit tests) returns naive. Treat naive timestamps as UTC so the
+    # comparison with `now` (always aware) doesn't raise.
+    if sprint_start_date.tzinfo is None:
+        sprint_start_date = sprint_start_date.replace(tzinfo=UTC)
     if sprint_start_date > now:
         return True
     age = now - sprint_start_date
