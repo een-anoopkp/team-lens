@@ -37,10 +37,9 @@ from app.models import (
     Issue,
     IssueSprint,
     Person,
-    Sprint,
     SyncRun,
 )
-from app.sync import transform
+from app.sync import sprints, transform
 from app.sync.context import SyncContext
 from app.sync.stats import SyncStats
 
@@ -112,7 +111,7 @@ class SyncRunner:
             await self._fields.refresh(jira)
 
             # 3. Sprints
-            await self._sync_board_sprints(jira)
+            await sprints.sync_board_sprints(self._ctx, jira)
 
             # 4. Issues + parents
             last_iso = await self._last_successful_sync_iso()
@@ -165,48 +164,6 @@ class SyncRunner:
                 logger.exception("insight_anomalies_failed")
 
         return stats
-
-    # ---- sprints -----------------------------------------------------------
-
-    async def _sync_board_sprints(self, jira: JiraClient) -> None:
-        prefix = self._settings.jira_sprint_name_prefix
-        board_id = self._settings.jira_board_id
-        all_sprints: list[dict] = []
-
-        for state in ("active", "closed", "future"):
-            try:
-                async for sp in await jira.list_board_sprints(board_id, state=state):
-                    all_sprints.append(sp)
-            except JiraClientError as e:
-                logger.warning("sprint_state_fetch_failed", state=state, err=str(e))
-
-        rows = [
-            transform.sprint_from_jira(sp)
-            for sp in all_sprints
-            if (sp.get("name") or "").startswith(prefix)
-        ]
-        if not rows:
-            return
-        await self._upsert_sprints(rows)
-
-    async def _upsert_sprints(self, rows: list[dict]) -> None:
-        async with self._session_factory() as session:
-            stmt = pg_insert(Sprint).values(rows)
-            stmt = stmt.on_conflict_do_update(
-                index_elements=[Sprint.sprint_id],
-                set_={
-                    "name": stmt.excluded.name,
-                    "state": stmt.excluded.state,
-                    "start_date": stmt.excluded.start_date,
-                    "end_date": stmt.excluded.end_date,
-                    "complete_date": stmt.excluded.complete_date,
-                    "board_id": stmt.excluded.board_id,
-                    "raw_payload": stmt.excluded.raw_payload,
-                    "synced_at": datetime.now(tz=UTC),
-                },
-            )
-            await session.execute(stmt)
-            await session.commit()
 
     # ---- issues -------------------------------------------------------------
 
@@ -467,7 +424,7 @@ class SyncRunner:
                 seen[sp["sprint_id"]] = sp
         if not seen:
             return
-        await self._upsert_sprints(list(seen.values()))
+        await sprints.upsert_sprints(self._ctx, list(seen.values()))
 
     async def _replace_issue_sprints(self, batch: list[dict]) -> None:
         prefix = self._settings.jira_sprint_name_prefix
