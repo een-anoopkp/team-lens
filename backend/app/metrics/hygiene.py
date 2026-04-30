@@ -51,12 +51,61 @@ class TicketByDue:
     status_category: str
 
 
-async def epics_without_initiative(session: AsyncSession) -> list[EpicNoInitiative]:
-    rows = (
-        await session.execute(
-            select(Epic).where(Epic.initiative_key.is_(None))
-        )
-    ).scalars().all()
+async def epics_without_initiative(
+    session: AsyncSession,
+    *,
+    active_only: bool = True,
+    activity_since_year: int | None = None,
+) -> list[EpicNoInitiative]:
+    """Epics with no Initiative parent.
+
+    With `active_only=True` (default) the result is filtered to actionable
+    cleanup items only — epics that are NOT already done and have at least
+    one child issue in a sprint whose start_date falls on or after Jan 1 of
+    `activity_since_year` (defaults to the current calendar year).
+
+    Pass `active_only=False` for the full historical list (debug / retro).
+    """
+    from datetime import date as _date
+    from sqlalchemy import text as _text
+
+    if active_only:
+        cutoff_year = activity_since_year or _date.today().year
+        cutoff = _date(cutoff_year, 1, 1)
+        active_sql = """
+        SELECT DISTINCT e.issue_key
+        FROM epics e
+        WHERE e.initiative_key IS NULL
+          AND e.status_category <> 'done'
+          AND EXISTS (
+            SELECT 1
+            FROM issues i
+            JOIN issue_sprints isp ON isp.issue_key = i.issue_key
+            JOIN sprints s ON s.sprint_id = isp.sprint_id
+            WHERE i.epic_key = e.issue_key
+              AND i.removed_at IS NULL
+              AND s.start_date >= :cutoff
+          )
+        """
+        keys = [
+            r[0]
+            for r in (
+                await session.execute(_text(active_sql), {"cutoff": cutoff})
+            ).all()
+        ]
+        if not keys:
+            return []
+        rows = (
+            await session.execute(
+                select(Epic).where(Epic.issue_key.in_(keys))
+            )
+        ).scalars().all()
+    else:
+        rows = (
+            await session.execute(
+                select(Epic).where(Epic.initiative_key.is_(None))
+            )
+        ).scalars().all()
 
     out: list[EpicNoInitiative] = []
     for e in rows:

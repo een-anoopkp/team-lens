@@ -26,9 +26,24 @@ class EpicNoInitiativeRow(BaseModel):
 
 @router.get("/epics-no-initiative", response_model=list[EpicNoInitiativeRow])
 async def epics_no_initiative_endpoint(
+    active_only: bool = Query(
+        True,
+        description=(
+            "Default: only epics not done AND with a child issue in a sprint "
+            "that started this year. Set false to see the full historical list."
+        ),
+    ),
+    since_year: int | None = Query(
+        None,
+        ge=2010,
+        le=2100,
+        description="Year-of-activity cutoff (default: current year).",
+    ),
     session: AsyncSession = Depends(get_session),
 ) -> list[EpicNoInitiativeRow]:
-    rows = await epics_without_initiative(session)
+    rows = await epics_without_initiative(
+        session, active_only=active_only, activity_since_year=since_year
+    )
     return [
         EpicNoInitiativeRow(
             issue_key=r.issue_key,
