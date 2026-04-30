@@ -157,6 +157,20 @@ class SyncRunner:
             except (ImportError, AttributeError):
                 logger.debug("projects_module_not_yet_implemented")
 
+            # 12. Insight anomaly evaluation (v3) — never aborts the sync.
+            try:
+                from app.insights.anomalies import evaluate_all_anomalies
+                async with self._session_factory() as session:
+                    n = await evaluate_all_anomalies(
+                        session,
+                        team_field=self._settings.jira_team_field,
+                        team_id=self._settings.jira_team_value or None,
+                        region=self._settings.team_region,
+                    )
+                logger.info("insight_anomalies_evaluated", count=n)
+            except Exception:
+                logger.exception("insight_anomalies_failed")
+
         return stats
 
     # ---- sprints -----------------------------------------------------------

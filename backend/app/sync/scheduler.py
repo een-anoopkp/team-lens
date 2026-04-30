@@ -1,4 +1,7 @@
-"""APScheduler wiring for incremental + weekly full-scan sync jobs."""
+"""APScheduler wiring for incremental + weekly full-scan sync jobs.
+
+Also schedules the daily insight_runs retention sweep at 04:00 IST.
+"""
 
 from __future__ import annotations
 
@@ -7,6 +10,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from app.config import Settings
+from app.db import get_session_factory
 from app.sync.runner import SyncRunner
 
 logger = structlog.get_logger(__name__)
@@ -59,9 +63,28 @@ def build_scheduler(settings: Settings, runner: SyncRunner) -> AsyncIOScheduler:
         coalesce=True,
     )
 
+    async def fire_insight_retention() -> None:
+        try:
+            from app.insights.retention import purge_expired
+
+            async with get_session_factory()() as session:
+                await purge_expired(session)
+        except Exception:
+            logger.exception("insight_retention_failed")
+
+    scheduler.add_job(
+        fire_insight_retention,
+        trigger=_parse_cron("0 4 * * *"),  # daily 04:00 IST
+        id="insight_retention",
+        replace_existing=True,
+        max_instances=1,
+        coalesce=True,
+    )
+
     logger.info(
         "scheduler_configured",
         sync_cron=settings.sync_cron,
         full_scan_cron=settings.full_scan_cron,
+        insight_retention_cron="0 4 * * *",
     )
     return scheduler
