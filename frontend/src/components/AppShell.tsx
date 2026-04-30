@@ -24,6 +24,7 @@ const NAV: NavItem[] = [
   { to: "/projects/monitoring", label: "Projects · Monitoring" },
   { to: "/leaderboard", label: "Leaderboard" },
   { to: "/insights", label: "Insights" },
+  { to: "/insights/rules", label: "Insights · Rules" },
   { to: "/debug", label: "Debug" },
   { to: "/settings", label: "Settings" },
 ];

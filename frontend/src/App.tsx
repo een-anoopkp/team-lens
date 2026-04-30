@@ -5,6 +5,7 @@ import AppShell from "./components/AppShell";
 import EpicRiskPage from "./features/epic-risk/EpicRiskPage";
 import HygienePage from "./features/hygiene/HygienePage";
 import InsightsPage from "./features/insights/InsightsPage";
+import InsightsRulesPage from "./features/insights/InsightsRulesPage";
 import LeaderboardPage from "./features/leaderboard/LeaderboardPage";
 import LeavesPage from "./features/leaves/LeavesPage";
 import NotesPage from "./features/notes/NotesPage";
@@ -61,6 +62,7 @@ export default function App() {
               <Route path="/projects/:name" element={<ProjectDetailPage />} />
               <Route path="/leaderboard" element={<LeaderboardPage />} />
               <Route path="/insights" element={<InsightsPage />} />
+              <Route path="/insights/rules" element={<InsightsRulesPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="*" element={<Navigate to="/debug" replace />} />
             </Routes>
