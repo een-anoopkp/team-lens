@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import RefreshButton from "./RefreshButton";
 import StalenessBadge from "./StalenessBadge";
 import ThemeToggle from "./ThemeToggle";
@@ -11,8 +11,7 @@ interface NavItem {
   /** Tag shown next to the label (e.g. "v3") for routes that are
    *  empty-state placeholders for not-yet-built work. */
   tag?: string;
-  /** Sub-pages. Indented children render only when the group is the
-   *  active section (parent or any child path is current). */
+  /** Sub-pages — rendered indented underneath the parent. Always visible. */
   children?: NavItem[];
 }
 
@@ -94,7 +93,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
 }
 
 function NavSidebar() {
-  const { pathname } = useLocation();
   return (
     <nav
       style={{
@@ -105,28 +103,19 @@ function NavSidebar() {
       }}
     >
       {NAV.map((item) => (
-        <NavGroup key={item.to} item={item} pathname={pathname} />
+        <NavGroup key={item.to} item={item} />
       ))}
     </nav>
   );
 }
 
-function NavGroup({ item, pathname }: { item: NavItem; pathname: string }) {
-  // A group is "active" when the parent or any child route matches.
-  const groupActive =
-    pathname === item.to ||
-    (item.children?.some((c) => pathname.startsWith(c.to)) ?? false);
-
+function NavGroup({ item }: { item: NavItem }) {
   return (
     <>
-      <NavRow item={item} depth={0} forceShowAsActive={false} />
-      {item.children && groupActive && (
-        <div>
-          {item.children.map((c) => (
-            <NavRow key={c.to} item={c} depth={1} forceShowAsActive={false} />
-          ))}
-        </div>
-      )}
+      <NavRow item={item} depth={0} />
+      {item.children?.map((c) => (
+        <NavRow key={c.to} item={c} depth={1} />
+      ))}
     </>
   );
 }
@@ -137,7 +126,6 @@ function NavRow({
 }: {
   item: NavItem;
   depth: number;
-  forceShowAsActive?: boolean;
 }) {
   const paddingLeft = depth === 0 ? 16 : 36; // 16 base + 20 indent
   // Use end-match on rows that have children OR are children themselves.
