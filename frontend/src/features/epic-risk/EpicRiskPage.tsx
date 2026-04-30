@@ -265,18 +265,58 @@ function EpicRiskCard({ epic, tone }: { epic: EpicRiskRow; tone: "bad" | "warn" 
 }
 
 function ThroughputChart({ data }: { data: ThroughputRow[] }) {
-  const w = 600;
-  const h = 140;
-  const margin = { left: 10, right: 10, top: 10, bottom: 30 };
+  // Larger viewBox so 12-14px text inside the SVG renders close to its
+  // native CSS pixel size when the chart is laid out at typical widths
+  // (~800px on most screens). Smaller viewBoxes were forcing ~2× upscale
+  // which looked soft / pixelated on the bar labels.
+  const w = 1200;
+  const h = 240;
+  const margin = { left: 44, right: 16, top: 16, bottom: 36 };
   const innerW = w - margin.left - margin.right;
   const innerH = h - margin.top - margin.bottom;
   const maxY = Math.max(...data.map((d) => d.closed_epics), 1);
-  const barW = innerW / data.length - 8;
+  const slotW = data.length > 0 ? innerW / data.length : innerW;
+  const barW = Math.max(slotW * 0.6, 4);
+
+  // Y-axis ticks at 0, mid, max. Integer labels (epic counts).
+  const yTicks = Array.from(
+    new Set([0, Math.round(maxY / 2), maxY]),
+  ).sort((a, b) => a - b);
+
   return (
     <div className="chart-panel">
       <svg viewBox={`0 0 ${w} ${h}`} className="chart">
+        {/* Y-axis gridlines + labels */}
+        <g className="chart-axis">
+          {yTicks.map((tick) => {
+            const y = margin.top + innerH * (1 - tick / maxY);
+            return (
+              <g key={tick}>
+                <line
+                  x1={margin.left}
+                  y1={y}
+                  x2={w - margin.right}
+                  y2={y}
+                  stroke="var(--color-border)"
+                  strokeWidth={tick === 0 ? 1 : 0.5}
+                  strokeDasharray={tick === 0 ? undefined : "4 6"}
+                />
+                <text
+                  x={margin.left - 8}
+                  y={y + 5}
+                  textAnchor="end"
+                  fontSize="14"
+                >
+                  {tick}
+                </text>
+              </g>
+            );
+          })}
+        </g>
+        {/* Bars + labels */}
         {data.map((d, i) => {
-          const x = margin.left + i * (innerW / data.length) + 4;
+          const slotX = margin.left + i * slotW;
+          const x = slotX + (slotW - barW) / 2;
           const barH = innerH * (d.closed_epics / maxY);
           const y = margin.top + (innerH - barH);
           return (
@@ -289,19 +329,19 @@ function ThroughputChart({ data }: { data: ThroughputRow[] }) {
                 fill="var(--color-accent)"
               />
               <text
-                x={x + barW / 2}
-                y={y - 4}
+                x={slotX + slotW / 2}
+                y={y - 6}
                 fill="var(--color-text-muted)"
-                fontSize="10"
+                fontSize="14"
                 textAnchor="middle"
               >
                 {d.closed_epics}
               </text>
               <text
-                x={x + barW / 2}
-                y={h - 8}
+                x={slotX + slotW / 2}
+                y={h - 12}
                 fill="var(--color-text-muted)"
-                fontSize="10"
+                fontSize="13"
                 textAnchor="middle"
               >
                 {d.sprint_name.replace("Search ", "")}
