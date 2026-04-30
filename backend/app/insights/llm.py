@@ -426,25 +426,51 @@ async def evaluate_all_enabled_llm(
 
 
 def _to_jsonable(v: Any) -> Any:
+    """json.dumps `default=` callback. Handles every shape we hit in the
+    metrics modules: Decimal, datetime/date, dataclass (slots or not),
+    Pydantic model, raw dict / list, etc. Falls back to str() so we
+    never raise — failure modes here would manifest as 'Circular
+    reference detected' and we don't want to mask a real bug behind one.
+    """
+    import dataclasses
+
+    if v is None or isinstance(v, (str, int, float, bool)):
+        return v
     if isinstance(v, Decimal):
         return float(v)
     if isinstance(v, datetime):
         return v.isoformat()
     if hasattr(v, "isoformat"):
         return v.isoformat()
-    return v
+    if dataclasses.is_dataclass(v) and not isinstance(v, type):
+        return dataclasses.asdict(v)
+    if hasattr(v, "model_dump"):
+        return v.model_dump()
+    if isinstance(v, (list, tuple, set)):
+        return [_to_jsonable(x) for x in v]
+    if isinstance(v, dict):
+        return {str(k): _to_jsonable(x) for k, x in v.items()}
+    return str(v)
 
 
 def _model_to_dict(obj: Any) -> dict[str, Any]:
-    """Best-effort conversion of dataclass / Pydantic / sqlalchemy row → dict."""
+    """Convert a dataclass / Pydantic / row-like into a plain dict that
+    json.dumps can swallow. Built on top of `_to_jsonable` for nested
+    values."""
+    import dataclasses
+
+    if obj is None:
+        return {}
+    if dataclasses.is_dataclass(obj) and not isinstance(obj, type):
+        return {k: _to_jsonable(v) for k, v in dataclasses.asdict(obj).items()}
     if hasattr(obj, "model_dump"):
-        return obj.model_dump()
+        return {k: _to_jsonable(v) for k, v in obj.model_dump().items()}
+    if isinstance(obj, dict):
+        return {str(k): _to_jsonable(v) for k, v in obj.items()}
     if hasattr(obj, "__dict__"):
         return {
             k: _to_jsonable(v)
             for k, v in obj.__dict__.items()
             if not k.startswith("_")
         }
-    if isinstance(obj, dict):
-        return {k: _to_jsonable(v) for k, v in obj.items()}
     return {"value": _to_jsonable(obj)}
