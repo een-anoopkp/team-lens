@@ -274,6 +274,26 @@ h4 { font-size: var(--font-size-base); font-weight: var(--font-weight-semibold);
   display: flex;
   justify-content: center;
 }
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+}
+.modal-overlay.hidden { display: none; }
+.modal-overlay .modal { max-width: 480px; width: 90%; }
+
+kbd {
+  background: var(--color-neutral-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
 .modal {
   background: var(--color-surface);
   border-radius: var(--radius-lg);

@@ -886,7 +886,109 @@
         </section>
         <section data-route="interactions" class="route hidden">
           <h1>Interaction patterns</h1>
-          <p class="muted">Filled in step 2.4.</p>
+          <p class="subtitle">
+            Concrete demos of the six recurring interactions used across
+            the app. Every demo is wired up via the small JS block in
+            <code>mockup.js</code>; the React port will use the same
+            timing and semantics with TanStack Query mutations.
+          </p>
+
+          <!-- 1. Refresh flow -->
+          <h2>1. Refresh flow</h2>
+          <p class="muted">Click → spinner → success-flash → idle. Top-bar Refresh button drives this. Real flow: <code>POST /api/v1/sync/run</code>, poll <code>/sync/status</code> at 2s while running, fire <code>queryClient.invalidateQueries()</code> on completion.</p>
+          <p class="muted small">Try the <strong>↻ Refresh</strong> button in the top bar (right side) — staleness pill flips through "Synced 4m ago" → "↻ Syncing…" → "● Synced just now".</p>
+
+          <!-- 2. Modal open/close -->
+          <h2>2. Modal open/close</h2>
+          <p class="muted">Backdrop click + Escape close. Focus trapped inside modal; first focusable element gets focus on open; on close, focus returns to the trigger.</p>
+          <button class="btn btn-primary" id="open-modal">Open whitelist modal</button>
+          <div id="modal-overlay" class="modal-overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+              <div class="modal-header">
+                <h3 id="modal-title">Whitelist (who counts as "team")</h3>
+                <button class="btn-icon" aria-label="Close" id="close-modal">×</button>
+              </div>
+              <div class="modal-body">
+                <div class="check-grid">
+                  <label><input type="checkbox" checked /> Anoop K Prabhu</label>
+                  <label><input type="checkbox" checked /> Priya Sridhar</label>
+                  <label><input type="checkbox" checked /> Karthik Iyer</label>
+                  <label><input type="checkbox" /> Sahithy Tumma</label>
+                  <label><input type="checkbox" /> Mathew Sebastian</label>
+                  <label><input type="checkbox" /> deep.o</label>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn" id="modal-cancel">Cancel</button>
+                <button class="btn btn-primary" id="modal-save">Save</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Sortable + filterable table -->
+          <h2>3. Sortable + filterable DataTable</h2>
+          <p class="muted">Click any column header to sort asc/desc/clear. Type in the search box to filter. Sort indicator shown after the column name.</p>
+          <div class="datatable-demo">
+            <input type="search" class="input" id="table-filter" placeholder="Filter…" style="margin-bottom: var(--space-2); max-width: 240px;" />
+            <table class="datatable" id="sort-table">
+              <thead><tr>
+                <th class="sortable" data-col="0">Ticket</th>
+                <th class="sortable" data-col="1">Summary</th>
+                <th class="sortable" data-col="2">Assignee</th>
+                <th class="sortable" data-col="3" data-numeric>SP</th>
+              </tr></thead>
+              <tbody>
+                <tr><td>EEPD-1180</td><td>Index migration v3</td><td>Anoop</td><td>5</td></tr>
+                <tr><td>EEPD-1198</td><td>Sharding plan</td><td>Priya</td><td>3</td></tr>
+                <tr><td>EEPD-1234</td><td>Re-rank A/B</td><td>Karthik</td><td>8</td></tr>
+                <tr><td>EEPD-1255</td><td>Query intent v2</td><td>Meera</td><td>2</td></tr>
+                <tr><td>EEPD-1290</td><td>Bug: Pulsar backlog</td><td>Anoop</td><td>1</td></tr>
+              </tbody>
+            </table>
+            <div class="datatable-footer" id="table-footer">5 rows</div>
+          </div>
+
+          <!-- 4. Deep linking -->
+          <h2>4. Deep-linking</h2>
+          <p class="muted">Page state goes into the URL hash so links can be shared (with the localhost caveat) and the back button works.</p>
+          <div class="panel">
+            <p class="small muted">Try clicking these:</p>
+            <ul style="font-family: var(--font-mono); font-size: var(--font-size-sm); line-height: 1.8;">
+              <li><a href="#page-sprint-health">#page-sprint-health</a> · default sprint-health view</li>
+              <li><a href="#page-projects">#page-projects</a> · projects list</li>
+              <li><a href="#page-project-drill">#page-project-drill</a> · single project drill-in</li>
+              <li><a href="#components">#components</a> · component catalog</li>
+            </ul>
+            <p class="small muted">React Router will use search params (<code>?tab=issues</code>, <code>?sprintId=18279</code>) instead of hash, but the principle is the same.</p>
+          </div>
+
+          <!-- 5. Keyboard nav -->
+          <h2>5. Keyboard navigation</h2>
+          <p class="muted">All interactive elements reachable via Tab. Specific shortcuts:</p>
+          <table class="datatable" style="max-width: 600px;">
+            <thead><tr><th>Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd></td><td>Move between focusable elements</td></tr>
+              <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Activate buttons + sortable headers</td></tr>
+              <tr><td><kbd>j</kbd> / <kbd>k</kbd></td><td>Move down / up in the active table (Phase 4 polish)</td></tr>
+              <tr><td><kbd>/</kbd></td><td>Focus the table search filter (Phase 4 polish)</td></tr>
+              <tr><td><kbd>Esc</kbd></td><td>Close modal / clear search filter</td></tr>
+              <tr><td><kbd>r</kbd></td><td>Trigger refresh (when no input is focused — Phase 4)</td></tr>
+            </tbody>
+          </table>
+          <p class="muted small" style="margin-top: var(--space-2);">
+            Try <kbd>Esc</kbd> while the whitelist modal above is open. Focus rings are always visible for keyboard users (<code>:focus-visible</code> styling).
+          </p>
+
+          <!-- 6. Copy URL with caveat -->
+          <h2>6. Copy URL (with localhost caveat)</h2>
+          <p class="muted">PM-shareable links are tagged with their reality: the URL only works on the user's own machine until v3 deploys to a server. The button copies the URL but its label + tooltip are honest about the limitation.</p>
+          <div class="proto-flex">
+            <button class="btn" id="copy-url-btn" title="Will only work on Anoop's machine until v3 deploy.">
+              📋 Copy URL ⓘ
+            </button>
+            <span class="muted small" id="copy-feedback"></span>
+          </div>
         </section>
       </main>
     </div>
