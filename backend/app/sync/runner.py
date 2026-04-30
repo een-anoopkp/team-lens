@@ -18,26 +18,17 @@ Pipeline (per docs/local-app/03-sync-engine.md):
 from __future__ import annotations
 
 import asyncio
-import contextlib
-from collections.abc import Iterable
 from datetime import UTC, datetime
 
 import structlog
-from sqlalchemy import delete, select, update
-from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.config import Settings
 from app.jira.client import JiraClient
 from app.jira.fields import FieldRegistry
-from app.models import (
-    Epic,
-    Initiative,
-    Issue,
-    IssueSprint,
-    SyncRun,
-)
-from app.sync import comments, people, sprints, transform
+from app.models import Issue, SyncRun
+from app.sync import comments, issues, sprints
 from app.sync.context import SyncContext
 from app.sync.stats import SyncStats
 
@@ -116,7 +107,7 @@ class SyncRunner:
                 logger.info("incremental_fallback_to_full", reason="no prior success")
                 effective_scan = "full"
 
-            await self._sync_issues(jira, effective_scan, last_iso, stats)
+            await issues.sync_issues(self._ctx, jira, effective_scan, last_iso, stats)
 
             # 8. Comments for touched issues
             if stats.touched_issue_keys:
@@ -160,268 +151,6 @@ class SyncRunner:
                 logger.exception("insight_anomalies_failed")
 
         return stats
-
-    # ---- issues -------------------------------------------------------------
-
-    async def _sync_issues(
-        self,
-        jira: JiraClient,
-        scan_type: str,
-        last_iso: str | None,
-        stats: SyncStats,
-    ) -> None:
-        team_field = self._settings.jira_team_field
-        team_value = self._settings.jira_team_value
-        if not team_value:
-            raise RuntimeError("JIRA_TEAM_VALUE is empty — refusing to sync without team filter")
-
-        cf_num = (
-            team_field.replace("customfield_", "cf[") + "]"
-            if team_field.startswith("customfield_")
-            else team_field
-        )
-        # Sub-tasks on this tenant inherit cf[10500] from their parent (per
-        # tenant memory note + verified in spike). The legacy Apps Script also
-        # uses just the team-field equality; no `parent in (...)` subquery
-        # because JQL doesn't accept sub-predicates inside `in`.
-        base_jql = f'{cf_num} = "{team_value}"'
-
-        if scan_type == "incremental" and last_iso:
-            jql = f'{base_jql} AND updated >= "{last_iso}"'
-        else:
-            jql = base_jql
-
-        logger.info("sync_issues_jql", jql=jql, scan_type=scan_type)
-
-        # Buffer issues; flush in batches to keep memory bounded.
-        BATCH = 200
-        buf: list[dict] = []
-        async for issue in await jira.search_issues(
-            jql, fields=self._fields.core_fields(), page_size=100
-        ):
-            buf.append(issue)
-            stats.issues_seen += 1
-            stats.touched_issue_keys.add(issue["key"])
-            if len(buf) >= BATCH:
-                await self._flush_issues_batch(jira, buf, stats)
-                buf = []
-        if buf:
-            await self._flush_issues_batch(jira, buf, stats)
-
-    async def _flush_issues_batch(
-        self, jira: JiraClient, batch: list[dict], stats: SyncStats
-    ) -> None:
-        # 1. Collect all referenced parents we don't yet have
-        parent_keys_needed: set[str] = set()
-        for issue in batch:
-            parent = (issue.get("fields") or {}).get("parent") or {}
-            if parent.get("key"):
-                parent_keys_needed.add(parent["key"])
-
-        # Filter to those NOT already in DB (initiatives + epics)
-        async with self._session_factory() as session:
-            existing_epics = await session.scalars(
-                select(Epic.issue_key).where(Epic.issue_key.in_(parent_keys_needed))
-            )
-            existing_initiatives = await session.scalars(
-                select(Initiative.issue_key).where(Initiative.issue_key.in_(parent_keys_needed))
-            )
-            already_have = set(existing_epics.all()) | set(existing_initiatives.all())
-        missing_parents = parent_keys_needed - already_have
-
-        # 2. Fetch missing parents (small batches via key in (...))
-        parent_issues: list[dict] = []
-        if missing_parents:
-            keys_list = list(missing_parents)
-            for i in range(0, len(keys_list), 50):
-                chunk = keys_list[i : i + 50]
-                jql = "key in (" + ",".join(chunk) + ")"
-                async for p in await jira.search_issues(
-                    jql, fields=self._fields.core_fields(), page_size=50
-                ):
-                    parent_issues.append(p)
-
-        # 3. Walk parents one more level if any are Epics — pull their parent Initiatives
-        initiative_keys_needed: set[str] = set()
-        for p in parent_issues:
-            ptype = ((p.get("fields") or {}).get("issuetype") or {}).get("name")
-            if ptype == "Epic":
-                grand = ((p.get("fields") or {}).get("parent") or {}).get("key")
-                if grand:
-                    initiative_keys_needed.add(grand)
-
-        if initiative_keys_needed:
-            async with self._session_factory() as session:
-                existing = await session.scalars(
-                    select(Initiative.issue_key).where(
-                        Initiative.issue_key.in_(initiative_keys_needed)
-                    )
-                )
-                already_have = set(existing.all())
-            initiative_keys_needed -= already_have
-            keys_list = list(initiative_keys_needed)
-            for i in range(0, len(keys_list), 50):
-                chunk = keys_list[i : i + 50]
-                jql = "key in (" + ",".join(chunk) + ")"
-                async for p in await jira.search_issues(
-                    jql, fields=self._fields.core_fields(), page_size=50
-                ):
-                    parent_issues.append(p)
-
-        # 4. Upsert all issues (people first to satisfy FKs)
-        all_issues = batch + parent_issues
-        await people.upsert_people_for(self._ctx, all_issues)
-        await self._upsert_initiatives(parent_issues)
-        await self._upsert_epics(parent_issues + batch)
-        await self._upsert_issues(batch, stats)
-        await self._sync_embedded_sprints(all_issues)
-        await self._replace_issue_sprints(batch)
-
-    async def _upsert_initiatives(self, issues: Iterable[dict]) -> None:
-        seen: dict[str, dict] = {}
-        for i in issues:
-            if ((i.get("fields") or {}).get("issuetype") or {}).get("name") == "Initiative":
-                row = transform.initiative_from_jira(i)
-                seen[row["issue_key"]] = row  # dedupe by PK
-        rows = list(seen.values())
-        if not rows:
-            return
-        async with self._session_factory() as session:
-            stmt = pg_insert(Initiative).values(rows)
-            stmt = stmt.on_conflict_do_update(
-                index_elements=[Initiative.issue_key],
-                set_={
-                    "summary": stmt.excluded.summary,
-                    "status": stmt.excluded.status,
-                    "status_category": stmt.excluded.status_category,
-                    "owner_account_id": stmt.excluded.owner_account_id,
-                    "raw_payload": stmt.excluded.raw_payload,
-                    "synced_at": datetime.now(tz=UTC),
-                },
-            )
-            await session.execute(stmt)
-            await session.commit()
-
-    async def _upsert_epics(self, issues: Iterable[dict]) -> None:
-        seen: dict[str, dict] = {}
-        for i in issues:
-            if ((i.get("fields") or {}).get("issuetype") or {}).get("name") == "Epic":
-                row = transform.epic_from_jira(i)
-                seen[row["issue_key"]] = row  # dedupe by PK
-        rows = list(seen.values())
-        if not rows:
-            return
-        async with self._session_factory() as session:
-            stmt = pg_insert(Epic).values(rows)
-            stmt = stmt.on_conflict_do_update(
-                index_elements=[Epic.issue_key],
-                set_={
-                    "summary": stmt.excluded.summary,
-                    "status": stmt.excluded.status,
-                    "status_category": stmt.excluded.status_category,
-                    "initiative_key": stmt.excluded.initiative_key,
-                    "owner_account_id": stmt.excluded.owner_account_id,
-                    "due_date": stmt.excluded.due_date,
-                    "raw_payload": stmt.excluded.raw_payload,
-                    "synced_at": datetime.now(tz=UTC),
-                },
-            )
-            await session.execute(stmt)
-            await session.commit()
-
-    async def _upsert_issues(self, batch: list[dict], stats: SyncStats) -> None:
-        # Dedupe by issue_key, and SKIP issuetypes that own their own tables
-        # (Initiative → initiatives, Epic → epics). The `issues` table is
-        # only Story / Task / Bug / Sub-task per schema design.
-        seen: dict[str, dict] = {}
-        for i in batch:
-            itype = ((i.get("fields") or {}).get("issuetype") or {}).get("name", "")
-            if itype in ("Initiative", "Epic"):
-                continue
-            row = transform.issue_from_jira(i, self._fields)
-            seen[row["issue_key"]] = row
-        rows = list(seen.values())
-        if not rows:
-            return
-        now = datetime.now(tz=UTC)
-        async with self._session_factory() as session:
-            # Determine which keys exist before upsert (so we can attribute insert vs update counts)
-            keys = [r["issue_key"] for r in rows]
-            existing = await session.scalars(
-                select(Issue.issue_key).where(Issue.issue_key.in_(keys))
-            )
-            existing_set = set(existing.all())
-            stats.issues_inserted += sum(1 for k in keys if k not in existing_set)
-            stats.issues_updated += sum(1 for k in keys if k in existing_set)
-
-            for r in rows:
-                r["last_seen_at"] = now
-                r["synced_at"] = now
-                r["removed_at"] = None  # restoring a previously-removed key reactivates it
-
-            stmt = pg_insert(Issue).values(rows)
-            stmt = stmt.on_conflict_do_update(
-                index_elements=[Issue.issue_key],
-                set_={
-                    "issue_type": stmt.excluded.issue_type,
-                    "summary": stmt.excluded.summary,
-                    "status": stmt.excluded.status,
-                    "status_category": stmt.excluded.status_category,
-                    "assignee_id": stmt.excluded.assignee_id,
-                    "reporter_id": stmt.excluded.reporter_id,
-                    "parent_key": stmt.excluded.parent_key,
-                    "epic_key": stmt.excluded.epic_key,
-                    "story_points": stmt.excluded.story_points,
-                    "resolution_date": stmt.excluded.resolution_date,
-                    "due_date": stmt.excluded.due_date,
-                    "updated_at": stmt.excluded.updated_at,
-                    "raw_payload": stmt.excluded.raw_payload,
-                    "last_seen_at": stmt.excluded.last_seen_at,
-                    "removed_at": None,
-                    "synced_at": stmt.excluded.synced_at,
-                },
-            )
-            await session.execute(stmt)
-            await session.commit()
-
-    async def _sync_embedded_sprints(self, issues: Iterable[dict]) -> None:
-        seen: dict[int, dict] = {}
-        prefix = self._settings.jira_sprint_name_prefix
-        for issue in issues:
-            for sp in transform.sprints_from_issue(
-                issue, self._fields, sprint_name_prefix=prefix
-            ):
-                seen[sp["sprint_id"]] = sp
-        if not seen:
-            return
-        await sprints.upsert_sprints(self._ctx, list(seen.values()))
-
-    async def _replace_issue_sprints(self, batch: list[dict]) -> None:
-        prefix = self._settings.jira_sprint_name_prefix
-        # Dedupe (issue_key, sprint_id) pairs — same pair from a duplicated issue
-        # in the batch would otherwise violate the PK on insert.
-        unique_pairs: set[tuple[str, int]] = set()
-        keys_touched: set[str] = set()
-        for issue in batch:
-            keys_touched.add(issue["key"])
-            for ik, sid in transform.issue_sprint_pairs(
-                issue, self._fields, sprint_name_prefix=prefix
-            ):
-                unique_pairs.add((ik, sid))
-
-        if not keys_touched:
-            return
-        async with self._session_factory() as session:
-            await session.execute(
-                delete(IssueSprint).where(IssueSprint.issue_key.in_(keys_touched))
-            )
-            if unique_pairs:
-                await session.execute(
-                    pg_insert(IssueSprint).values(
-                        [{"issue_key": ik, "sprint_id": sid} for ik, sid in unique_pairs]
-                    )
-                )
-            await session.commit()
 
     # ---- removal detection --------------------------------------------------
 
@@ -485,7 +214,3 @@ class SyncRunner:
                 return None
             # Jira accepts JQL "updated >= '<iso>'" — use the same format.
             return row.strftime("%Y-%m-%d %H:%M")
-
-
-# Suppress "unused import" if snapshots/projects modules are absent during early phases.
-_ = contextlib  # noqa: F841
