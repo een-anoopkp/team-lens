@@ -12,6 +12,49 @@ export function jiraIssueUrl(issueKey: string): string {
   return `${JIRA_BASE_URL}/browse/${encodeURIComponent(issueKey)}`;
 }
 
+/**
+ * Build a Jira "Issue Navigator" URL for an arbitrary JQL string.
+ * Lands on the issue list page with the JQL pre-filled.
+ */
+export function jiraFilterUrl(jql: string): string {
+  return `${JIRA_BASE_URL}/issues/?jql=${encodeURIComponent(jql)}`;
+}
+
+/**
+ * Inline link rendered next to a section header — opens Jira showing
+ * exactly the listed issue keys. Renders nothing when `keys` is empty.
+ */
+export function JiraFilterLink({
+  keys,
+  orderBy,
+  label = "View in Jira ↗",
+}: {
+  keys: string[];
+  orderBy?: string;
+  label?: string;
+}) {
+  if (keys.length === 0) return null;
+  const jql =
+    `key in (${keys.join(",")})` + (orderBy ? ` ORDER BY ${orderBy}` : "");
+  return (
+    <a
+      href={jiraFilterUrl(jql)}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        marginLeft: 12,
+        fontSize: "var(--font-size-sm)",
+        fontWeight: 400,
+        color: "var(--color-accent)",
+        textDecoration: "none",
+      }}
+      title={`Open these ${keys.length} ticket${keys.length === 1 ? "" : "s"} in Jira`}
+    >
+      {label}
+    </a>
+  );
+}
+
 interface JiraLinkProps {
   issueKey: string;
   className?: string;

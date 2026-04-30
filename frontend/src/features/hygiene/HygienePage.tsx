@@ -21,7 +21,7 @@ import type {
   TaskNoEpicRow,
   TicketByDueRow,
 } from "../../api/types";
-import { JiraLink } from "../../lib/jira";
+import { JiraFilterLink, JiraLink } from "../../lib/jira";
 
 export default function HygienePage() {
   const epics = useEpicsNoInitiative();
@@ -47,6 +47,10 @@ export default function HygienePage() {
             (+{epics.data.no_due_date_count} unscheduled — no due date)
           </span>
         )}
+        <JiraFilterLink
+          keys={epics.data?.epics.map((r) => r.issue_key) ?? []}
+          orderBy="duedate ASC"
+        />
       </h2>
       <EpicsNoInitiativeTable rows={epics.data?.epics ?? []} loading={epics.isLoading} />
 
@@ -55,11 +59,21 @@ export default function HygienePage() {
         {tasks.data && (
           <span className="pill warn">{tasks.data.length}</span>
         )}
+        <JiraFilterLink
+          keys={tasks.data?.map((r) => r.issue_key) ?? []}
+          orderBy="updated DESC"
+        />
       </h2>
       <TasksNoEpicTable rows={tasks.data ?? []} loading={tasks.isLoading} />
 
       <h2 style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <span>By due date <span className="muted small">(ascending — urgent first)</span></span>
+        <span>
+          By due date <span className="muted small">(ascending — urgent first)</span>
+          <JiraFilterLink
+            keys={tickets.data?.map((r) => r.issue_key) ?? []}
+            orderBy="duedate ASC"
+          />
+        </span>
         <label
           style={{
             fontSize: "var(--font-size-sm)",
