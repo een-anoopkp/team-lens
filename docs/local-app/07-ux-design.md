@@ -1,10 +1,98 @@
 # 07 — UX Design
 
-> **Status: outline only.** This document gets populated during Phase 2 (the UX design phase). Once Phase 2 is complete, this file is the authoritative source for all visual / interaction decisions, and `frontend/mockup/index.html` is its interactive companion.
+> **Status: complete (Phase 2 done 2026-04-30).** This file documents all
+> visual + interaction decisions; the interactive companion is at
+> `frontend/mockup/index.html` (open it in a browser, no backend needed).
+> Token reference at `frontend/mockup/tokens.html`.
 
-## Sections to fill in during Phase 2
+## What lives where
 
-### Design tokens (resolved 2026-04-30)
+| Artifact | Path |
+|---|---|
+| Production tokens | `frontend/src/styles/tokens.css` |
+| Mockup CSS (production-shape) | `frontend/mockup/mockup.css` |
+| Click-through prototype | `frontend/mockup/index.html` |
+| Token swatches | `frontend/mockup/tokens.html` |
+
+## Phase 2 inputs — resolved
+
+These were deliberately deferred from Phase 1 design discussions; resolved during 2.1-2.5:
+
+- **Dark mode:** designed in tokens + mockup. Toggle wiring is **deferred to Phase 4 polish** so it doesn't bloat Phase 3.
+- **`/leaderboard` and `/insights`:** kept in nav with a `P5` pill + empty-state placeholders that explain "what's coming". User sees the product shape from day one without needing the backend work.
+- **Mockup file location:** `frontend/mockup/` (sibling of `src/`). Keeps mockup out of the React build entirely.
+- **Sprint dropdown when no active sprint:** show the most recent closed sprint, with a banner ("No active sprint right now — viewing closed Search 2026-08").
+- **`/hygiene/by-due-date` scope:** open tickets only by default; toggle in the page header to "include closed-late" for retro analysis.
+- **Leave management page placement:** dedicated `/leaves` route in nav. Settings page also has a read-only summary linking to `/leaves`.
+
+## Component catalog (step 2.2)
+
+Sourced from the legacy `web/sprint-health/`. Each component has a documented stub in `frontend/mockup/index.html#components`:
+
+| Component | Variants | Used by |
+|---|---|---|
+| `KpiCard` | neutral, good, warn, bad | every page |
+| `ProgressBar` (segmented) | 5 segments: done / validation / review / in-progress / todo | Sprint Health per-person |
+| `SparklineTile` | accent / good / warn / bad stroke | Sprint Health accuracy trend |
+| `Pill` / `StatusPill` | good / warn / bad / neutral / accent | scattered |
+| `StalenessBadge` | green ≤24h / yellow 24-72h / red >72h / "Syncing…" / "Sync failed" | top bar (global) |
+| `SprintBanner` | active / closed | Sprint Health header |
+| `Modal` | header + body + footer; backdrop click + Esc to close; focus restoration | whitelist, filter, leaves |
+| `DataTable` | sortable headers, search filter, hover rows, footer count | every list page |
+| `CheckList` | 2-column checkbox grid | inside Modal |
+| `RefreshButton` | idle / syncing / success-flash / error | top bar (global) |
+| `EmptyState` / `LoadingState` / `ErrorState` | three universal panels | every page |
+| Form inputs | text / email / password / date / search / select | setup, settings, leaves |
+
+## Page wireframes (step 2.3)
+
+13 routes wireframed in the mockup with realistic placeholder data:
+
+- `/sprint-health` (active) — SprintBanner + 4 KPIs + Burnup + per-person + 6-sprint trend + carry-over/scope-churn/blockers + PR-review queue
+- `/sprint-health` (closed) — final KPIs; no burnup
+- `/epic-risk` — at-risk/watch/on-track/done KPIs + risk-card grid + throughput chart
+- `/hygiene` — 3 sortable panels (epics-no-init, tasks-no-epic, by-due-date)
+- `/projects` — active list + completed (collapsed) + project-bar
+- `/projects/:name` — drill-in: 4 KPIs + project burn-up + epics + future sprints
+- `/projects/monitoring` — comparison table with vs-median pills
+- `/leaves` — add form + upcoming list + overlap alerts
+- `/leaderboard` + `/insights` — empty-state with v3/v3 placeholders
+- `/settings` — Jira creds (masked) + sync schedule + team filter + holidays
+- `/setup` — first-run centered card form
+- `/debug` — points at the live Phase-1.10 page
+
+## Interaction patterns (step 2.4)
+
+Six interactions with live demos in `frontend/mockup/index.html#interactions`:
+
+1. **Refresh flow** — top-bar button cycles idle → syncing → success-flash → idle. Production: `POST /api/v1/sync/run` + 2s polling on `/sync/status` until done, then `queryClient.invalidateQueries()`.
+2. **Modal open/close** — backdrop click + Esc; focus trap on open; focus restoration on close.
+3. **Sortable + filterable DataTable** — click header to toggle asc/desc; search filter with row count; Esc clears.
+4. **Deep-linking** — URL hash (mockup) / search params (production). Bookmarkable + back button.
+5. **Keyboard navigation** — Tab/Shift+Tab universal; Enter/Space activate; j/k row movement (Phase 4); / focus filter (Phase 4); Esc close/clear; r refresh (Phase 4).
+6. **Copy URL with caveat** — clipboard write + honest "only works on this machine" feedback.
+
+## States gallery (step 2.5)
+
+Five states designed for every page. Decisions baked in:
+
+- **Empty** always offers the action that creates data ("Run first sync" button).
+- **Loading** keeps stale data visible; skeleton shimmer animation on placeholders.
+- **Error** is specific — quotes the failed endpoint + suggests a fix.
+- **Partial data** renders what succeeded; failed bits get inline error chips.
+- **Sync-failed-but-stale-data** shows last-good data normally; staleness badge flips red + banner with fix-link.
+- Three consecutive sync failures → staleness badge flips to "Sync broken" with a "view error" link.
+
+## Accessibility decisions baked in
+
+- All `*:focus-visible` gets a 2px `--color-accent` outline. Keyboard users see focus rings; mouse users don't.
+- All status conveyance uses BOTH color AND text (the staleness pill says "Synced 4m ago", not just a coloured dot). No color-only signals.
+- Body text on bg: `#1a1a1a` on `#f7f8fa` = 13.2:1 (AAA). Accent on white: 4.55:1 (AA).
+- Modals are `role="dialog"` `aria-modal="true"` with `aria-labelledby` pointing at the title.
+
+---
+
+## Reference: design tokens (step 2.1)
 
 **Source of truth:** `frontend/src/styles/tokens.css`. Visual reference (open in any browser, no backend needed): `frontend/mockup/tokens.html`.
 

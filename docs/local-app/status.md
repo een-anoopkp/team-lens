@@ -1,8 +1,8 @@
 # Local App — Build Status
 
 **Last updated:** 2026-04-30
-**Current phase:** Phase 2 — UX Design (active)
-**Current step:** 2.1 (design tokens proposal) — Phase 1 acceptance complete (20/20 endpoint tests + browser walkthrough); see [09-verification.md §Phase 1](./09-verification.md#phase-1-data-foundation--accepted-2026-04-30) for results, bugs fixed, and deferred manual checks (F1-F5).
+**Current phase:** Phase 3 — Sprint Health (ready to begin)
+**Current step:** 3.1 (metrics endpoints) — Phase 2 UX design complete; mockup at `frontend/mockup/index.html` covers tokens, component catalog, all 13 page wireframes, 6 interaction patterns, and 5 states.
 
 This file tracks live progress. Update as steps complete; commit alongside the work. Other files in this folder are specs that change rarely.
 
@@ -29,13 +29,13 @@ This file tracks live progress. Update as steps complete; commit alongside the w
 
 **Phase 1 acceptance:** see [09-verification.md §Phase 1](./09-verification.md#phase-1-data-foundation). Acceptance walk-through pending (requires `make setup && make dev` + first-time Jira sync against the live tenant).
 
-## Phase 2 — UX Design
+## Phase 2 — UX Design — done 2026-04-30
 
-- [ ] 2.1 Design tokens
-- [ ] 2.2 Component catalog
-- [ ] 2.3 Page wireframes (every route)
-- [ ] 2.4 Interaction patterns
-- [ ] 2.5 States gallery
+- [x] 2.1 Design tokens — commit `7648860` (`tokens.css` + `tokens.html`)
+- [x] 2.2 Component catalog — commit `a3350a3` (mockup index + CSS + glue JS)
+- [x] 2.3 Page wireframes — commit `676fe21` (13 routes filled)
+- [x] 2.4 Interaction patterns — commit `3710a26` (6 live demos)
+- [x] 2.5 States gallery + UX-design doc finalised — this commit
 
 ## Phase 3 — Sprint Health
 
@@ -82,3 +82,5 @@ This file tracks live progress. Update as steps complete; commit alongside the w
 - 2026-04-30: Custom-field IDs locked from MCP spike — Story Points = `customfield_10901`, Sprint = `customfield_10007` (modern object format only), Team = `customfield_10500`. Epic Link / Initiative Link not used (everything via standard `parent`).
 - 2026-04-30: Ground-truth baseline captured for sprint 18279. Strict-completed = 157 SP across 47 people-tickets; 2 tickets resolved before sprint start correctly excluded.
 - 2026-04-30: Phase 1 fully committed across 10 sub-steps (commits `2f776bf` → `a063319`). Code is syntactically validated (Python ast.parse + JSON/YAML/TOML loads all clean). End-to-end run still pending — first acceptance walk-through requires `make setup` (uv sync, npm install, alembic upgrade, docker compose) followed by `make dev` and the in-app `/setup` flow.
+- 2026-04-30: Phase 1 acceptance pass: 14 bugs found and fixed during live e2e (see commits `9ea4e4f` through `bcc1dc3`). 20/20 endpoint tests passing; full backfill of 4817 issues; subsequent incremental sync 7 issues in 3s. Browser walkthrough confirmed UI rendering. Deferred manual checks (F1-F5) noted in `09-verification.md` for later. Phase 1 closed.
+- 2026-04-30: Phase 2 (UX Design) complete in 5 sub-steps: tokens locked (anchored on legacy palette + dark mode designed), component catalog as static HTML, 13 page wireframes with realistic placeholder data, 6 live interaction demos (refresh, modal, sort/filter, deep-link, keyboard, copy-URL), 5-state gallery (empty/loading/error/partial/sync-failed-stale). All deliverables in `frontend/mockup/` — open `frontend/mockup/index.html` to walk through.

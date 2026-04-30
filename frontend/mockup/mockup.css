@@ -503,3 +503,45 @@ kbd {
   color: var(--color-bad-fg);
 }
 .state-icon { font-size: 32px; margin-bottom: var(--space-2); }
+
+/* Skeleton (loading) state — pulses */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  opacity: 0.7;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 100%
+  );
+  animation: skeleton-shimmer 1.5s infinite;
+}
+[data-theme="dark"] .skeleton::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 50%,
+    transparent 100%
+  );
+}
+@keyframes skeleton-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Banner (used for sync-failed-but-stale-data degraded mode) */
+.state-banner {
+  background: var(--color-bad-bg);
+  color: var(--color-bad-fg);
+  border-left: 4px solid var(--color-bad);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-4);
+}
+.state-banner code { background: rgba(0, 0, 0, 0.08); }

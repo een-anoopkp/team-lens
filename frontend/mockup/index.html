@@ -882,7 +882,100 @@
 
         <section data-route="states" class="route hidden">
           <h1>States gallery</h1>
-          <p class="muted">Filled in step 2.5.</p>
+          <p class="subtitle">
+            Every page can be in one of five states. Designing them up
+            front surfaces graceful-degradation decisions before
+            implementation: what happens when /sync fails? What if one
+            tab's query 503s but the rest succeed?
+          </p>
+
+          <h2>1. Empty <span class="muted small">(first run, before any sync)</span></h2>
+          <p class="muted">No data exists yet. Show a friendly call-to-action pointing at the trigger.</p>
+          <div class="state-panel">
+            <div class="state-icon">📭</div>
+            <h4>No tickets yet</h4>
+            <p class="muted small">Click <strong>↻ Refresh</strong> in the top bar to run your first sync. First sync takes 5-15 minutes — go grab coffee.</p>
+            <button class="btn btn-primary" style="margin-top: var(--space-3);">↻ Run first sync</button>
+          </div>
+
+          <h2>2. Loading <span class="muted small">(fetching from backend)</span></h2>
+          <p class="muted">Show a skeleton or spinner. Keep stale data visible if we have it (see #5).</p>
+          <div class="kpi-row">
+            <div class="kpi neutral skeleton">
+              <div class="kpi-label">Committed</div>
+              <div class="kpi-value">···</div>
+              <div class="kpi-sub">loading</div>
+            </div>
+            <div class="kpi neutral skeleton">
+              <div class="kpi-label">Done</div>
+              <div class="kpi-value">···</div>
+              <div class="kpi-sub">loading</div>
+            </div>
+          </div>
+          <div class="state-panel">
+            <div class="state-icon">⏳</div>
+            <h4>Loading…</h4>
+            <p class="muted small">Fetching from <code>/api/v1/sprints</code>.</p>
+          </div>
+
+          <h2>3. Error <span class="muted small">(network / backend 5xx)</span></h2>
+          <p class="muted">Be specific about WHAT failed and WHAT to try. No generic "something went wrong".</p>
+          <div class="state-panel state-panel-error">
+            <div class="state-icon">⚠</div>
+            <h4>Couldn't reach backend</h4>
+            <p class="small">
+              <code>GET /api/v1/sprints</code> failed with <code>503</code>.
+              Is <code>make backend</code> running on port 8000? Check terminal logs.
+            </p>
+            <button class="btn" style="margin-top: var(--space-3);">↻ Retry</button>
+          </div>
+          <p class="muted small" style="margin-top: var(--space-3);">For sync-specific errors, surface the recorded <code>error_message</code> from the latest <code>sync_runs</code> row:</p>
+          <div class="state-panel state-panel-error">
+            <div class="state-icon">⚠</div>
+            <h4>Last sync failed</h4>
+            <p class="small">
+              <strong>2026-04-30 11:09</strong> · scan_type=incremental ·
+              <code>Jira returned 401 — email or token rejected</code>
+            </p>
+            <button class="btn" style="margin-top: var(--space-3);">Open /settings to update token</button>
+          </div>
+
+          <h2>4. Partial data <span class="muted small">(some queries OK, others fail)</span></h2>
+          <p class="muted">Render what we have; mark the broken bits with an inline error chip so the user sees they're not getting full info.</p>
+          <div class="kpi-row">
+            <div class="kpi good"><div class="kpi-label">Done</div><div class="kpi-value">28 SP</div><div class="kpi-sub">67%</div></div>
+            <div class="kpi neutral"><div class="kpi-label">Velocity</div><div class="kpi-value">3.1 SP/day</div></div>
+            <div class="kpi bad" style="text-align: left;">
+              <div class="kpi-label">Carry-over</div>
+              <div class="kpi-value" style="font-size: var(--font-size-md); color: var(--color-bad-fg);">⚠ failed to load</div>
+              <div class="kpi-sub"><code>/metrics/carry-over</code> 500</div>
+            </div>
+          </div>
+
+          <h2>5. Sync-failed-but-stale-data <span class="muted small">(degraded mode)</span></h2>
+          <p class="muted">The most subtle state: the <em>last sync</em> failed, but we still have valid <em>last-good</em> data in Postgres. Show the data normally; flip the staleness badge to red and add a banner explaining the divergence.</p>
+          <div class="state-banner">
+            ⚠ <strong>Last sync failed</strong> at 11:09 IST today —
+            <code>Jira returned 401</code>.
+            Showing data from yesterday's 07:00 sync (24h old).
+            <a href="#page-settings">Update token →</a>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi neutral"><div class="kpi-label">Committed</div><div class="kpi-value">42 SP</div><div class="kpi-sub">as of 1d ago</div></div>
+            <div class="kpi good"><div class="kpi-label">Done</div><div class="kpi-value">28 SP</div><div class="kpi-sub">as of 1d ago</div></div>
+            <div class="kpi neutral"><div class="kpi-label">Velocity</div><div class="kpi-value">3.1</div><div class="kpi-sub">as of 1d ago</div></div>
+          </div>
+          <p class="muted small">Top-bar staleness pill simultaneously shows ⚠ Sync failed (red).</p>
+
+          <h2>Decisions captured here</h2>
+          <ul style="line-height: 1.8;">
+            <li><strong>Empty state always offers an action.</strong> "No data yet" + a Refresh button is more useful than a sad placeholder.</li>
+            <li><strong>Loading keeps stale data + skeleton.</strong> If we have last-success rows, show them with reduced opacity rather than blanking the page.</li>
+            <li><strong>Errors are specific, with the failed endpoint quoted.</strong> No generic "something went wrong" — engineers debugging this need the URL.</li>
+            <li><strong>Partial data renders with inline error chips.</strong> Don't fail a whole page because one query 500s.</li>
+            <li><strong>Sync-failed degrades gracefully.</strong> Yesterday's data is shown with a banner linking to the fix.</li>
+            <li><strong>Three consecutive sync failures flip the staleness badge to "Sync broken"</strong> with a "view error" link to the latest <code>error_message</code>.</li>
+          </ul>
         </section>
         <section data-route="interactions" class="route hidden">
           <h1>Interaction patterns</h1>
