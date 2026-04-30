@@ -6,6 +6,7 @@ import logging
 from contextlib import asynccontextmanager
 
 import structlog
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 
 from app.api import (
@@ -28,11 +29,35 @@ from app.sync.scheduler import build_scheduler
 
 logger = structlog.get_logger(__name__)
 
-# Global runtime state (set up in lifespan; accessed by routes via get_runner()).
+# Global runtime state. Lazy-initialised — the runner doesn't exist until
+# either the lifespan or get_runner() finds is_configured == True.
 _runner: SyncRunner | None = None
+_scheduler: AsyncIOScheduler | None = None
 
 
 def get_runner() -> SyncRunner | None:
+    """Return the runner; lazy-init it (and the scheduler) if creds are present.
+
+    This keeps the no-restart-after-setup UX working: when /setup/jira writes
+    the .env and reload_settings() flips is_configured to True, the very next
+    /sync/run lazily spins up the runner + scheduler.
+    """
+    global _runner, _scheduler
+    if _runner is None:
+        settings = get_settings()
+        if settings.is_configured:
+            _runner = SyncRunner(
+                settings=settings,
+                session_factory=get_session_factory(),
+                fields=FieldRegistry(),
+            )
+            try:
+                _scheduler = build_scheduler(settings, _runner)
+                _scheduler.start()
+                logger.info("runner_lazy_initialised_with_scheduler")
+            except Exception:
+                logger.exception("scheduler_lazy_start_failed")
+                # Runner is still useful for manual /sync/run even without scheduler.
     return _runner
 
 
@@ -53,26 +78,27 @@ def configure_logging(level: str) -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global _runner
+    global _runner, _scheduler
     settings = get_settings()
     configure_logging(settings.log_level)
     logger.info("startup", configured=settings.is_configured)
 
-    scheduler = None
     if settings.is_configured:
+        # Eager init when creds are already present at startup.
         _runner = SyncRunner(
             settings=settings,
             session_factory=get_session_factory(),
             fields=FieldRegistry(),
         )
-        scheduler = build_scheduler(settings, _runner)
-        scheduler.start()
+        _scheduler = build_scheduler(settings, _runner)
+        _scheduler.start()
 
     try:
         yield
     finally:
-        if scheduler is not None:
-            scheduler.shutdown(wait=False)
+        if _scheduler is not None:
+            _scheduler.shutdown(wait=False)
+            _scheduler = None
         await dispose_engine()
         _runner = None
         logger.info("shutdown")
