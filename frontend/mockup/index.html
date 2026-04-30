@@ -318,58 +318,566 @@
           </div>
         </section>
 
-        <!-- Pages (filled in 2.3) ================================== -->
+        <!-- Pages ================================================== -->
+
+        <!-- Sprint Health (active) -->
         <section data-route="page-sprint-health" class="route hidden">
           <h1>Sprint Health</h1>
-          <p class="muted">Filled in step 2.3.</p>
+          <div class="sprint-banner sprint-banner-active">
+            <strong>Search 2026-08</strong> · Active · ends Fri 9 May ·
+            <span class="muted">4 days left</span>
+            <span style="float:right;" class="muted small">
+              Hygiene: 2 unassigned · 1 missing SP · 0 missing epic
+              <a href="#page-hygiene" style="margin-left:8px;">details ▾</a>
+            </span>
+          </div>
+
+          <h2>Team KPIs</h2>
+          <div class="kpi-row">
+            <div class="kpi neutral"><div class="kpi-label">Committed</div><div class="kpi-value">42 SP</div><div class="kpi-sub">10 people</div></div>
+            <div class="kpi good"><div class="kpi-label">Done</div><div class="kpi-value">28 SP</div><div class="kpi-sub">67%</div></div>
+            <div class="kpi neutral"><div class="kpi-label">Velocity</div><div class="kpi-value">3.1 <span class="kpi-sub">SP/day</span></div><div class="kpi-sub">▲ vs avg 2.7</div></div>
+            <div class="kpi good"><div class="kpi-label">Projected</div><div class="kpi-value">38 SP</div><div class="kpi-sub">on track</div></div>
+          </div>
+
+          <h2>Burnup</h2>
+          <div class="chart-panel">
+            <svg viewBox="0 0 600 160" preserveAspectRatio="none" class="chart">
+              <line x1="0" y1="20" x2="600" y2="20" class="chart-target" stroke-dasharray="4 4" />
+              <text x="6" y="14" class="chart-label">target 42 SP</text>
+              <polyline class="chart-ideal" points="0,140 600,20" stroke-dasharray="2 4" />
+              <text x="430" y="50" class="chart-label">ideal</text>
+              <polyline class="chart-line" points="0,140 60,130 120,118 180,100 240,90 300,82 360,72 420,60 480,55 540,52 600,52" />
+              <g class="chart-axis">
+                <text x="0" y="158">Mon</text><text x="60" y="158">Tue</text><text x="120" y="158">Wed</text><text x="180" y="158">Thu</text><text x="240" y="158">Fri</text>
+                <text x="300" y="158">Mon</text><text x="360" y="158">Tue</text><text x="420" y="158">Wed</text><text x="480" y="158">Thu</text><text x="540" y="158">Fri</text>
+              </g>
+            </svg>
+          </div>
+
+          <h2>Per-person <span class="muted small">(sort: velocity ▾)</span></h2>
+          <div class="panel">
+            <div class="proto-row">
+              <div class="proto-label">Anoop K Prabhu</div>
+              <div class="progress-track"><span class="seg seg-done" style="width:75%"></span><span class="seg seg-prog" style="width:12%"></span><span class="seg seg-todo" style="width:13%"></span></div>
+              <div class="proto-num">6 / 8 · 92% acc</div>
+            </div>
+            <div class="proto-row">
+              <div class="proto-label">Priya Sridhar</div>
+              <div class="progress-track"><span class="seg seg-done" style="width:57%"></span><span class="seg seg-review" style="width:14%"></span><span class="seg seg-prog" style="width:14%"></span><span class="seg seg-todo" style="width:15%"></span></div>
+              <div class="proto-num">4 / 7 · 78% <span class="pill warn">⚠</span></div>
+            </div>
+            <div class="proto-row">
+              <div class="proto-label">Karthik Iyer</div>
+              <div class="progress-track"><span class="seg seg-done" style="width:100%"></span></div>
+              <div class="proto-num">5 / 5 · 100%</div>
+            </div>
+            <div class="proto-row">
+              <div class="proto-label">Meera Nair</div>
+              <div class="progress-track"><span class="seg seg-done" style="width:75%"></span><span class="seg seg-valid" style="width:10%"></span><span class="seg seg-todo" style="width:15%"></span></div>
+              <div class="proto-num">3 / 4 · 88%</div>
+            </div>
+            <div class="proto-row">
+              <div class="proto-label">Sahithy Tumma</div>
+              <div class="progress-track"><span class="seg seg-done" style="width:50%"></span><span class="seg seg-prog" style="width:25%"></span><span class="seg seg-todo" style="width:25%"></span></div>
+              <div class="proto-num">2 / 4 · 75% <span class="pill warn">⚠</span></div>
+            </div>
+            <div class="legend">
+              <span class="legend-item"><span class="seg seg-done"></span> Done</span>
+              <span class="legend-item"><span class="seg seg-valid"></span> Validation</span>
+              <span class="legend-item"><span class="seg seg-review"></span> Review</span>
+              <span class="legend-item"><span class="seg seg-prog"></span> In progress</span>
+              <span class="legend-item"><span class="seg seg-todo"></span> To do</span>
+            </div>
+          </div>
+
+          <h2>6-sprint velocity trend</h2>
+          <div class="chart-panel">
+            <svg viewBox="0 0 600 120" preserveAspectRatio="none" class="chart">
+              <polyline class="chart-line" points="0,80 100,72 200,64 300,68 400,55 500,48" />
+              <polyline class="chart-line muted-line" points="0,90 100,85 200,75 300,80 400,68 500,60" />
+              <polyline class="chart-line muted-line" points="0,95 100,82 200,90 300,75 400,70 500,72" />
+              <g class="chart-axis"><text x="0" y="115">S-5</text><text x="100" y="115">S-4</text><text x="200" y="115">S-3</text><text x="300" y="115">S-2</text><text x="400" y="115">S-1</text><text x="500" y="115">S0</text></g>
+            </svg>
+          </div>
+
+          <h2>Scope churn · carry-over · blockers</h2>
+          <div class="three-panel">
+            <div class="panel">
+              <h3>Carry-over</h3>
+              <p class="muted small">3 tickets · 8 SP carried from S-1</p>
+              <table class="datatable"><tbody>
+                <tr><td><code>EEPD-1234</code></td><td>Anoop</td><td><span class="pill warn">d2</span></td></tr>
+                <tr><td><code>EEPD-1241</code></td><td>Priya</td><td><span class="pill warn">d3</span></td></tr>
+                <tr><td><code>EEPD-1255</code></td><td>Meera</td><td><span class="pill warn">d2</span></td></tr>
+              </tbody></table>
+            </div>
+            <div class="panel">
+              <h3>Scope churn</h3>
+              <p class="muted small">+2 SP added · −1 removed · 1 mid-sprint</p>
+              <table class="datatable"><tbody>
+                <tr><td><code>EEPD-1198</code></td><td>3 → 5</td><td><span class="pill bad">+2</span></td></tr>
+                <tr><td><code>EEPD-1212</code></td><td>2 → 1</td><td><span class="pill good">−1</span></td></tr>
+                <tr><td><code>EEPD-1290</code></td><td>0 → 5</td><td><span class="pill bad">+5 new</span></td></tr>
+              </tbody></table>
+            </div>
+            <div class="panel">
+              <h3>Blockers (open sub-tasks)</h3>
+              <table class="datatable"><tbody>
+                <tr><td><code>EEPD-1301</code></td><td>"Waiting on Infra"</td><td><span class="pill bad">9d</span></td></tr>
+                <tr><td><code>EEPD-1289</code></td><td>"QA env down"</td><td><span class="pill warn">4d</span></td></tr>
+              </tbody></table>
+            </div>
+          </div>
+
+          <h2>PR reviews queued for me <span class="pill accent">2</span></h2>
+          <div class="panel">
+            <table class="datatable">
+              <thead><tr><th>Sub-task</th><th>Parent</th><th>GitHub</th><th>Age</th><th></th></tr></thead>
+              <tbody>
+                <tr><td><code>EEPD-1287</code></td><td><code>EEPD-1280</code> · In Review</td><td><a href="#">een/searchworkers#4521</a></td><td>2h</td><td><button class="btn" disabled>Run Claude →</button></td></tr>
+                <tr><td><code>EEPD-1291</code></td><td><code>EEPD-1284</code> · In Review</td><td><a href="#">een/searchworkers#4528</a></td><td>5h</td><td><button class="btn" disabled>Run Claude →</button></td></tr>
+              </tbody>
+            </table>
+            <div class="muted small" style="margin-top: var(--space-2);">"Run Claude" lights up in v3.</div>
+          </div>
         </section>
+
+        <!-- Sprint Health (closed) -->
         <section data-route="page-sprint-health-closed" class="route hidden">
-          <h1>Sprint Health (closed)</h1>
-          <p class="muted">Filled in step 2.3.</p>
+          <h1>Sprint Health <span class="pill neutral">closed</span></h1>
+          <div class="sprint-banner sprint-banner-closed">
+            <strong>Search 2026-07</strong> · Closed 15 Apr 2026 · 13 days
+          </div>
+          <h2>Final KPIs</h2>
+          <div class="kpi-row">
+            <div class="kpi neutral"><div class="kpi-label">Committed</div><div class="kpi-value">38 SP</div></div>
+            <div class="kpi good"><div class="kpi-label">Completed</div><div class="kpi-value">34 SP</div><div class="kpi-sub">89%</div></div>
+            <div class="kpi neutral"><div class="kpi-label">Velocity</div><div class="kpi-value">2.6 SP/day</div></div>
+            <div class="kpi warn"><div class="kpi-label">Carry-over</div><div class="kpi-value">4 SP</div><div class="kpi-sub">2 tickets</div></div>
+          </div>
+          <h2>Per-person final</h2>
+          <div class="panel">
+            <div class="proto-row"><div class="proto-label">Anoop K Prabhu</div><div class="progress-track"><span class="seg seg-done" style="width:100%"></span></div><div class="proto-num">7 / 7 · 100%</div></div>
+            <div class="proto-row"><div class="proto-label">Priya Sridhar</div><div class="progress-track"><span class="seg seg-done" style="width:80%"></span><span class="seg seg-todo" style="width:20%"></span></div><div class="proto-num">4 / 5 · 80%</div></div>
+            <div class="proto-row"><div class="proto-label">Karthik Iyer</div><div class="progress-track"><span class="seg seg-done" style="width:100%"></span></div><div class="proto-num">8 / 8 · 100%</div></div>
+            <div class="proto-row"><div class="proto-label">Meera Nair</div><div class="progress-track"><span class="seg seg-done" style="width:60%"></span><span class="seg seg-todo" style="width:40%"></span></div><div class="proto-num">3 / 5 · 60% <span class="pill bad">⚠</span></div></div>
+          </div>
         </section>
+
+        <!-- Epic Risk -->
         <section data-route="page-epic-risk" class="route hidden">
           <h1>Epic Risk</h1>
-          <p class="muted">Filled in step 2.3.</p>
+          <p class="muted">Quarterly view of all team epics. Shows the ones to worry about, sorted by risk.</p>
+          <div class="kpi-row">
+            <div class="kpi bad"><div class="kpi-label">At risk</div><div class="kpi-value">3</div><div class="kpi-sub">past due / no progress / no owner</div></div>
+            <div class="kpi warn"><div class="kpi-label">Watch</div><div class="kpi-value">7</div><div class="kpi-sub">slowing velocity</div></div>
+            <div class="kpi good"><div class="kpi-label">On track</div><div class="kpi-value">21</div></div>
+            <div class="kpi neutral"><div class="kpi-label">Done this Q</div><div class="kpi-value">12</div></div>
+          </div>
+          <h2>At-risk epics</h2>
+          <div class="three-panel">
+            <div class="project-card" style="border-left: 4px solid var(--color-bad);">
+              <div class="project-card-header">
+                <span class="project-card-title">SEARCH-942 · Re-rank rollout</span>
+                <span class="pill bad">past due</span>
+              </div>
+              <div class="project-card-stats">
+                <div class="project-card-stat"><strong>14 SP</strong> open / 28 total</div>
+                <div class="project-card-stat">Due <strong>Apr 26</strong> (−4d)</div>
+              </div>
+              <div class="project-bar bad"><div style="width:50%"></div></div>
+            </div>
+            <div class="project-card" style="border-left: 4px solid var(--color-bad);">
+              <div class="project-card-header">
+                <span class="project-card-title">SEARCH-1010 · Ingest pipeline cleanup</span>
+                <span class="pill bad">no owner</span>
+              </div>
+              <div class="project-card-stats">
+                <div class="project-card-stat"><strong>21 SP</strong> open / 24 total</div>
+                <div class="project-card-stat">No assignee</div>
+              </div>
+              <div class="project-bar bad"><div style="width:12%"></div></div>
+            </div>
+            <div class="project-card" style="border-left: 4px solid var(--color-warn);">
+              <div class="project-card-header">
+                <span class="project-card-title">SEARCH-1077 · Multilingual support</span>
+                <span class="pill warn">slowing</span>
+              </div>
+              <div class="project-card-stats">
+                <div class="project-card-stat"><strong>8 SP</strong> open / 32 total</div>
+                <div class="project-card-stat">Due <strong>Jun 15</strong></div>
+              </div>
+              <div class="project-bar warn"><div style="width:75%"></div></div>
+            </div>
+          </div>
+          <h2>Throughput (epics closed per sprint)</h2>
+          <div class="chart-panel">
+            <svg viewBox="0 0 600 120" preserveAspectRatio="none" class="chart">
+              <g fill="var(--color-accent)">
+                <rect x="20" y="80" width="60" height="40" />
+                <rect x="100" y="60" width="60" height="60" />
+                <rect x="180" y="50" width="60" height="70" />
+                <rect x="260" y="70" width="60" height="50" />
+                <rect x="340" y="40" width="60" height="80" />
+                <rect x="420" y="55" width="60" height="65" />
+              </g>
+              <g class="chart-axis">
+                <text x="40" y="115">S-5</text><text x="120" y="115">S-4</text><text x="200" y="115">S-3</text><text x="280" y="115">S-2</text><text x="360" y="115">S-1</text><text x="440" y="115">S0</text>
+              </g>
+            </svg>
+          </div>
         </section>
+
+        <!-- Hygiene -->
         <section data-route="page-hygiene" class="route hidden">
-          <h1>Hygiene</h1>
-          <p class="muted">Filled in step 2.3.</p>
+          <h1>Hygiene <span style="font-size: var(--font-size-sm); font-weight: var(--font-weight-regular); color: var(--color-text-muted);">[team only ✓]</span></h1>
+          <h2>Epics without initiative <span class="pill bad">3</span></h2>
+          <div class="datatable-demo">
+            <table class="datatable">
+              <thead><tr><th>Epic</th><th>Summary</th><th>Due</th><th>SP open</th><th>Last activity</th></tr></thead>
+              <tbody>
+                <tr><td><code>SEARCH-942</code></td><td>Re-rank rollout</td><td>May 30</td><td>14</td><td>2d ago</td></tr>
+                <tr><td><code>SEARCH-1010</code></td><td>Ingest pipeline cleanup</td><td>—</td><td>21</td><td>1d ago</td></tr>
+                <tr><td><code>SEARCH-1077</code></td><td>Multilingual support</td><td>Jun 15</td><td>8</td><td>4h ago</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <h2>Tasks without epic <span class="pill warn">5</span></h2>
+          <div class="datatable-demo">
+            <table class="datatable">
+              <thead><tr><th>Ticket</th><th>Type</th><th>Assignee</th><th>Status</th><th>Created</th><th>Updated</th></tr></thead>
+              <tbody>
+                <tr><td><code>SEARCH-1290</code></td><td>Bug</td><td>Anoop</td><td>In Progress</td><td>2d</td><td>1h</td></tr>
+                <tr><td><code>SEARCH-1295</code></td><td>Task</td><td>Priya</td><td>To Do</td><td>1d</td><td>1d</td></tr>
+                <tr><td colspan="6" class="muted small">… 3 more</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <h2>By due date <span class="muted small">(ascending — urgent first)</span></h2>
+          <div class="datatable-demo">
+            <table class="datatable">
+              <thead><tr><th>Ticket</th><th>Summary</th><th>Assignee</th><th>Due</th><th>Days</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><code>SEARCH-1180</code></td><td>Index migration v3</td><td>Anoop</td><td>Apr 26</td><td><span class="pill bad">−4</span></td><td>In Progress</td></tr>
+                <tr><td><code>SEARCH-1198</code></td><td>Sharding plan</td><td>Priya</td><td>May 2</td><td><span class="pill warn">+2</span></td><td>Review</td></tr>
+                <tr><td><code>SEARCH-1234</code></td><td>Re-rank A/B</td><td>Karthik</td><td>May 9</td><td><span class="pill good">+9</span></td><td>To Do</td></tr>
+                <tr><td><code>SEARCH-1255</code></td><td>Query intent v2</td><td>Meera</td><td>May 16</td><td><span class="pill good">+16</span></td><td>To Do</td></tr>
+              </tbody>
+            </table>
+          </div>
         </section>
+
+        <!-- Projects (list) -->
         <section data-route="page-projects" class="route hidden">
           <h1>Projects</h1>
-          <p class="muted">Filled in step 2.3.</p>
+          <p class="muted">
+            Derived from epic labels prefixed <code>proj_</code>. Drill in for ETD.
+            Tag epics in Jira to make them appear here.
+          </p>
+
+          <h2>Active</h2>
+          <a href="#page-project-drill" style="text-decoration: none;">
+            <div class="project-card">
+              <div class="project-card-header">
+                <span class="project-card-title">rerank-rollout</span>
+                <span class="pill good">on track</span>
+              </div>
+              <div class="project-card-stats">
+                <div class="project-card-stat"><strong>4 epics</strong></div>
+                <div class="project-card-stat"><strong>47 / 82 SP</strong> done (57%)</div>
+                <div class="project-card-stat">Velocity <strong>8.2 SP/sprint</strong></div>
+                <div class="project-card-stat">ETD <strong>~14 May</strong> ±1 sprint</div>
+              </div>
+              <div class="project-bar"><div style="width:57%"></div></div>
+            </div>
+          </a>
+          <div class="project-card">
+            <div class="project-card-header">
+              <span class="project-card-title">multilingual</span>
+              <span class="pill warn">at risk</span>
+            </div>
+            <div class="project-card-stats">
+              <div class="project-card-stat"><strong>3 epics</strong></div>
+              <div class="project-card-stat"><strong>12 / 64 SP</strong> done (19%)</div>
+              <div class="project-card-stat">Velocity <strong>4.1 SP/sprint</strong></div>
+              <div class="project-card-stat">ETD <strong>~early Jul</strong> · 4 wks slip</div>
+            </div>
+            <div class="project-bar warn"><div style="width:19%"></div></div>
+          </div>
+          <div class="project-card">
+            <div class="project-card-header">
+              <span class="project-card-title">ingest-cleanup</span>
+              <span class="pill bad">stalled</span>
+            </div>
+            <div class="project-card-stats">
+              <div class="project-card-stat"><strong>2 epics</strong></div>
+              <div class="project-card-stat"><strong>3 / 28 SP</strong> done (11%)</div>
+              <div class="project-card-stat">Velocity <strong>0.5 SP/sprint</strong></div>
+              <div class="project-card-stat">Last activity <strong>8d ago</strong></div>
+            </div>
+            <div class="project-bar bad"><div style="width:11%"></div></div>
+          </div>
+
+          <h2 style="margin-top: var(--space-6);">Completed <span class="muted small">(2)</span></h2>
+          <details>
+            <summary class="muted">Show completed projects</summary>
+            <div class="project-card" style="opacity: .8;">
+              <div class="project-card-header">
+                <span class="project-card-title">online-eval-pipeline</span>
+                <span class="pill neutral">completed 12 Apr 2026</span>
+              </div>
+              <div class="project-card-stats">
+                <div class="project-card-stat"><strong>2 epics · 28 SP</strong></div>
+                <div class="project-card-stat">Velocity 7.0 SP/sprint</div>
+                <div class="project-card-stat">5 sprints active</div>
+              </div>
+            </div>
+            <div class="project-card" style="opacity: .8;">
+              <div class="project-card-header">
+                <span class="project-card-title">eeva-3.2</span>
+                <span class="pill neutral">completed 28 Mar 2026</span>
+              </div>
+              <div class="project-card-stats">
+                <div class="project-card-stat"><strong>3 epics · 45 SP</strong></div>
+                <div class="project-card-stat">Velocity 9.0 SP/sprint</div>
+                <div class="project-card-stat">5 sprints active</div>
+              </div>
+            </div>
+          </details>
         </section>
+
+        <!-- Project drill-in -->
         <section data-route="page-project-drill" class="route hidden">
-          <h1>Project drill-in</h1>
-          <p class="muted">Filled in step 2.3.</p>
+          <p class="muted small"><a href="#page-projects">← Projects</a> · <strong>rerank-rollout</strong>
+            <button class="btn" style="float:right;" title="Only works on this machine for now">Copy URL ⓘ</button>
+          </p>
+          <h1>rerank-rollout</h1>
+          <div class="kpi-row">
+            <div class="kpi neutral"><div class="kpi-label">Total SP</div><div class="kpi-value">82</div></div>
+            <div class="kpi good"><div class="kpi-label">Done</div><div class="kpi-value">47</div><div class="kpi-sub">57%</div></div>
+            <div class="kpi neutral"><div class="kpi-label">Velocity</div><div class="kpi-value">8.2</div><div class="kpi-sub">SP/sprint (last 6)</div></div>
+            <div class="kpi good"><div class="kpi-label">ETD</div><div class="kpi-value">14 May</div><div class="kpi-sub">±1 sprint</div></div>
+          </div>
+
+          <h2>Project burn-up across sprints</h2>
+          <div class="chart-panel">
+            <svg viewBox="0 0 600 160" preserveAspectRatio="none" class="chart">
+              <line x1="0" y1="20" x2="600" y2="20" class="chart-target" stroke-dasharray="4 4" />
+              <text x="6" y="14" class="chart-label">target 82 SP</text>
+              <polyline class="chart-line" points="0,140 100,120 200,100 300,80 400,68" />
+              <polyline class="chart-line muted-line" points="400,68 500,40 600,20" stroke-dasharray="2 4" />
+              <text x="500" y="36" class="chart-label">projection</text>
+              <g class="chart-axis">
+                <text x="0" y="158">S-3</text><text x="100" y="158">S-2</text><text x="200" y="158">S-1</text><text x="300" y="158">S0</text>
+                <text x="400" y="158">S+1</text><text x="500" y="158">S+2</text><text x="600" y="158">S+3</text>
+              </g>
+            </svg>
+          </div>
+
+          <h2>Epics</h2>
+          <div class="datatable-demo">
+            <table class="datatable">
+              <thead><tr><th>Epic</th><th>Summary</th><th>Status</th><th>SP</th><th>Done</th><th>Owner</th></tr></thead>
+              <tbody>
+                <tr><td><code>SEARCH-942</code></td><td>Re-rank model v2</td><td>In Progress</td><td>28</td><td>18</td><td>Anoop</td></tr>
+                <tr><td><code>SEARCH-967</code></td><td>Online eval pipeline</td><td><span class="pill good">Done</span></td><td>14</td><td>14</td><td>Priya</td></tr>
+                <tr><td><code>SEARCH-1010</code></td><td>A/B framework</td><td>In Progress</td><td>24</td><td>12</td><td>Karthik</td></tr>
+                <tr><td><code>SEARCH-1077</code></td><td>Production rollout</td><td>To Do</td><td>16</td><td>3</td><td>Anoop</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>Future sprint assignments</h2>
+          <div class="panel">
+            <div><strong>Q2-S4</strong> (May 12 – May 23): 18 SP queued · rolls remaining → May 23</div>
+            <div><strong>Q2-S5</strong> (May 26 – Jun 6): 12 SP queued</div>
+          </div>
         </section>
+
+        <!-- Projects · Monitoring -->
         <section data-route="page-monitoring" class="route hidden">
           <h1>Projects · Monitoring</h1>
-          <p class="muted">Filled in step 2.3.</p>
+          <p class="muted">Active projects benchmarked against historical (closed) projects.</p>
+          <div class="datatable-demo">
+            <table class="datatable">
+              <thead><tr><th>Project</th><th>Velocity</th><th>vs median</th><th>Churn</th><th>vs median</th><th>Sprints</th></tr></thead>
+              <tbody>
+                <tr><td><strong>rerank-rollout</strong></td><td>8.2 SP/sprint</td><td><span class="pill good">+34%</span></td><td>9%</td><td><span class="pill good">−1pp</span></td><td>5 active</td></tr>
+                <tr><td><strong>multilingual</strong></td><td>4.1 SP/sprint</td><td><span class="pill bad">−33%</span></td><td>15%</td><td><span class="pill warn">+5pp</span></td><td>4 active</td></tr>
+                <tr><td><strong>ingest-cleanup</strong></td><td>0.5 SP/sprint</td><td><span class="pill bad">−92%</span></td><td>22%</td><td><span class="pill bad">+12pp</span></td><td>3 active</td></tr>
+              </tbody>
+              <tfoot>
+                <tr><td colspan="6" style="background: var(--color-surface-2); padding: var(--space-2); font-size: var(--font-size-xs); color: var(--color-text-muted);">
+                  Baseline = median across 2 closed projects (online-eval-pipeline, eeva-3.2).
+                  ⚠ Need ≥5 closed snapshots for stable comparison — currently using rough median.
+                </td></tr>
+              </tfoot>
+            </table>
+          </div>
         </section>
+
+        <!-- Leaves -->
         <section data-route="page-leaves" class="route hidden">
           <h1>Leaves</h1>
-          <p class="muted">Filled in step 2.3.</p>
+          <p class="muted">Add upcoming leaves so velocity adjusts. Overlap alerts surface when 2+ people are away the same week.</p>
+
+          <div class="panel">
+            <h3>Add leave</h3>
+            <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr 2fr auto; gap: var(--space-2); align-items: end;">
+              <label class="field"><span class="field-label">Person</span><select class="input"><option>— select —</option><option>Anoop K Prabhu</option><option>Priya Sridhar</option></select></label>
+              <label class="field"><span class="field-label">Start</span><input class="input" type="date" /></label>
+              <label class="field"><span class="field-label">End</span><input class="input" type="date" /></label>
+              <label class="field"><span class="field-label">Reason</span><input class="input" type="text" placeholder="vacation / sick / …" /></label>
+              <button class="btn btn-primary">Add</button>
+            </div>
+          </div>
+
+          <h2>Upcoming (next 6 weeks)</h2>
+          <div class="datatable-demo">
+            <table class="datatable">
+              <thead><tr><th>Person</th><th>Start</th><th>End</th><th>Reason</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>Priya Sridhar</td><td>2026-05-12</td><td>2026-05-19</td><td>vacation</td><td><button class="btn-icon" title="Delete">×</button></td></tr>
+                <tr><td>Karthik Iyer</td><td>2026-05-13</td><td>2026-05-15</td><td>conference</td><td><button class="btn-icon" title="Delete">×</button></td></tr>
+                <tr><td>Meera Nair</td><td>2026-05-26</td><td>2026-05-28</td><td>—</td><td><button class="btn-icon" title="Delete">×</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>Overlap alerts</h2>
+          <div class="three-panel">
+            <div class="panel" style="border-left: 4px solid var(--color-warn);">
+              <strong>Week of May 12</strong>
+              <div class="muted small">2 people away</div>
+              <div class="proto-flex" style="margin-top: var(--space-2);">
+                <span class="pill warn">Priya</span><span class="pill warn">Karthik</span>
+              </div>
+            </div>
+          </div>
         </section>
+
+        <!-- Leaderboard (placeholder) -->
         <section data-route="page-leaderboard" class="route hidden">
-          <h1>Leaderboard</h1>
-          <p class="muted">Filled in step 2.3.</p>
+          <div class="state-panel" style="max-width: 600px; margin: var(--space-6) auto;">
+            <div class="state-icon">📊</div>
+            <h2 style="margin-top: 0;">Leaderboard</h2>
+            <p class="muted">Coming in v3. Will combine:</p>
+            <ul style="text-align: left; max-width: 320px; margin: 0 auto; color: var(--color-text-muted);">
+              <li>Jira: tickets closed, SP delivered ✓</li>
+              <li>GitHub: PRs reviewed, PRs opened — needs PAT</li>
+              <li>Custom: peer kudos</li>
+            </ul>
+            <button class="btn btn-secondary" disabled style="margin-top: var(--space-3);">Set up GitHub integration</button>
+          </div>
         </section>
+
+        <!-- Insights (placeholder) -->
         <section data-route="page-insights" class="route hidden">
-          <h1>Insights</h1>
-          <p class="muted">Filled in step 2.3.</p>
+          <div class="state-panel" style="max-width: 600px; margin: var(--space-6) auto;">
+            <div class="state-icon">✨</div>
+            <h2 style="margin-top: 0;">AI Insights</h2>
+            <p class="muted">Post-v1.</p>
+            <p class="small" style="max-width: 360px; margin: var(--space-2) auto;">
+              Planned: weekly summary of velocity drift, scope-churn outliers, and
+              carry-over patterns — generated by Claude from your local DB.
+              Nothing leaves this machine without your click.
+            </p>
+            <button class="btn btn-secondary" disabled style="margin-top: var(--space-3);">Configure in v2</button>
+          </div>
         </section>
+
+        <!-- Settings -->
         <section data-route="page-settings" class="route hidden">
           <h1>Settings</h1>
-          <p class="muted">Filled in step 2.3.</p>
+
+          <h2>Jira credentials</h2>
+          <div class="panel">
+            <div class="proto-row" style="grid-template-columns: 200px 1fr auto;">
+              <span>Email</span>
+              <code>anoop.kp@een.com</code>
+              <span></span>
+            </div>
+            <div class="proto-row" style="grid-template-columns: 200px 1fr auto;">
+              <span>Token</span>
+              <code>•••••••••••••••••B0Y</code>
+              <button class="btn">Update token</button>
+            </div>
+            <div class="proto-row" style="grid-template-columns: 200px 1fr auto;">
+              <span>Last verified</span>
+              <span class="muted">2026-04-30 11:08 IST · via /myself</span>
+              <button class="btn">Re-test connection</button>
+            </div>
+          </div>
+
+          <h2>Sync schedule</h2>
+          <div class="panel">
+            <label class="field"><span class="field-label">Incremental cron (SYNC_CRON)</span><input class="input" value="0 7 * * *" /></label>
+            <label class="field" style="margin-top: var(--space-2);"><span class="field-label">Full re-scan cron (FULL_SCAN_CRON)</span><input class="input" value="0 3 * * 0" /></label>
+            <p class="muted small">Cron evaluates in <code>Asia/Kolkata</code>. Restart not required — APScheduler reschedules in-process.</p>
+          </div>
+
+          <h2>Team filter</h2>
+          <div class="panel">
+            <label class="field"><span class="field-label">cf[10500] team UUID</span><input class="input" value="02623aed-f05b-4acd-8187-7932552722de-28" /></label>
+            <label class="field" style="margin-top: var(--space-2);"><span class="field-label">Sprint name prefix</span><input class="input" value="Search 20" /></label>
+            <label class="field" style="margin-top: var(--space-2);"><span class="field-label">Board ID (override auto-discovery)</span><input class="input" value="135" /></label>
+          </div>
+
+          <h2>Holidays <span class="muted small">(IN region)</span></h2>
+          <div class="panel">
+            <p class="muted small">Edit <code>infra/holidays/IN.yaml</code> and run <code>make seed-holidays</code> to bulk-load. Or add one-offs here:</p>
+            <div style="display: grid; grid-template-columns: 1fr 2fr auto; gap: var(--space-2); align-items: end; margin-bottom: var(--space-3);">
+              <label class="field"><span class="field-label">Date</span><input class="input" type="date" /></label>
+              <label class="field"><span class="field-label">Name</span><input class="input" type="text" placeholder="Republic Day" /></label>
+              <button class="btn btn-primary">Add</button>
+            </div>
+            <table class="datatable">
+              <thead><tr><th>Date</th><th>Name</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>2026-01-26</td><td>Republic Day</td><td><button class="btn-icon">×</button></td></tr>
+                <tr><td>2026-03-04</td><td>Holi</td><td><button class="btn-icon">×</button></td></tr>
+                <tr><td colspan="3" class="muted small">… 18 more</td></tr>
+              </tbody>
+            </table>
+          </div>
         </section>
+
+        <!-- Setup (first-run) -->
         <section data-route="page-setup" class="route hidden">
-          <h1>Setup (first-run)</h1>
-          <p class="muted">Filled in step 2.3.</p>
+          <div class="setup-card">
+            <h1>Set up team-lens</h1>
+            <p class="muted">
+              Connect your Jira account. Credentials are stored in
+              <code>backend/.env</code> and never leave this machine.
+            </p>
+            <label class="field" style="margin-top: var(--space-4);">
+              <span class="field-label">Jira email</span>
+              <input class="input" type="email" placeholder="you@eagleeyenetworks.com" />
+            </label>
+            <label class="field" style="margin-top: var(--space-3);">
+              <span class="field-label">API token</span>
+              <input class="input" type="password" placeholder="Paste from id.atlassian.com/.../api-tokens" />
+            </label>
+            <p class="muted small" style="margin-top: var(--space-2);">
+              Use a <strong>Classic</strong> token (full scope). Scoped tokens with <code>read:jira-user</code> alone won't be able to read issues.
+            </p>
+            <div style="display: flex; gap: var(--space-2); margin-top: var(--space-4);">
+              <button class="btn">Test connection</button>
+              <button class="btn btn-primary">Save</button>
+            </div>
+          </div>
         </section>
+
+        <!-- Debug (live) -->
         <section data-route="page-debug" class="route hidden">
-          <h1>Debug</h1>
-          <p class="muted">Already shipped in Phase 1.10. See running app.</p>
+          <h1>/debug</h1>
+          <p class="muted">Already shipped in Phase 1.10 — see the running app at <code>http://localhost:8081/debug</code>.</p>
+          <div class="state-panel">
+            <div class="state-icon">🛠</div>
+            <h4>10 tabs of raw data</h4>
+            <p class="muted small">Issues · Sprints · Epics · Initiatives · People · Scope changes · Projects · Leaves · Holidays · Sync runs</p>
+          </div>
         </section>
 
         <section data-route="states" class="route hidden">
