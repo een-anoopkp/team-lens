@@ -47,7 +47,7 @@ async def test_jira_connection(payload: JiraSetupPayload) -> TestConnectionRespo
         ok=True,
         account_id=myself.get("accountId"),
         display_name=myself.get("displayName"),
-        message="Jira credentials valid.",
+        message=f"Jira credentials valid (verified via {myself.get('verified_via')}).",
     )
 
 
@@ -87,6 +87,7 @@ async def configure_jira(payload: JiraSetupPayload) -> TestConnectionResponse:
     logger.info(
         "jira_setup_success",
         account_id=myself.get("accountId"),
+        verified_via=myself.get("verified_via"),
         configured=new_settings.is_configured,
     )
 
@@ -94,5 +95,5 @@ async def configure_jira(payload: JiraSetupPayload) -> TestConnectionResponse:
         ok=True,
         account_id=myself.get("accountId"),
         display_name=myself.get("displayName"),
-        message="Configuration saved.",
+        message=f"Configuration saved (verified via {myself.get('verified_via')}).",
     )

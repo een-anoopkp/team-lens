@@ -86,14 +86,38 @@ async def test_setup_test_endpoint_success(app_client) -> None:
 
 @pytest.mark.asyncio
 async def test_setup_test_endpoint_unauthorized(app_client) -> None:
+    """Both /myself and the /field fallback reject — surface as 401 to the caller."""
     with respx.mock(base_url="https://eagleeyenetworks.atlassian.net") as mock:
         mock.get("/rest/api/3/myself").respond(401, json={"error": "Unauthorized"})
+        mock.get("/rest/api/3/field").respond(401, json={"error": "Unauthorized"})
         response = await app_client.post(
             "/api/v1/setup/test",
             json={"email": "test@example.com", "api_token": "bad-token"},
         )
     assert response.status_code == 400
     assert response.json()["detail"]["error"] == "jira_unauthorized"
+
+
+@pytest.mark.asyncio
+async def test_setup_test_falls_back_to_field_when_myself_is_oauth_only(
+    app_client,
+) -> None:
+    """Some tenants (eagleeyenetworks, observed 2026-04-30) restrict /myself
+    to OAuth while leaving /field accessible via Basic auth. Verify the probe
+    succeeds via the fallback path."""
+    with respx.mock(base_url="https://eagleeyenetworks.atlassian.net") as mock:
+        mock.get("/rest/api/3/myself").respond(401, json={"error": "Unauthorized"})
+        mock.get("/rest/api/3/field").respond(
+            200, json=[{"id": "customfield_10901", "name": "Story Points"}]
+        )
+        response = await app_client.post(
+            "/api/v1/setup/test",
+            json={"email": "test@example.com", "api_token": "valid-token"},
+        )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is True
+    assert "/rest/api/3/field" in body["message"]
 
 
 @pytest.mark.asyncio
