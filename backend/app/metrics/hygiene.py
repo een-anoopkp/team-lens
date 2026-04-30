@@ -18,6 +18,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import Epic, Issue, Person
 
 
+def _parse_iso(s: str | None) -> datetime | None:
+    """Jira's `created` is e.g. '2025-08-21T11:23:00.000+0530'."""
+    if not s:
+        return None
+    try:
+        # Python <3.11 doesn't accept '+0530' (no colon); normalise.
+        if len(s) > 5 and (s[-5] in "+-") and s[-3] != ":":
+            s = s[:-2] + ":" + s[-2:]
+        return datetime.fromisoformat(s)
+    except ValueError:
+        return None
+
+
 @dataclass(slots=True)
 class EpicNoInitiative:
     issue_key: str
@@ -183,7 +196,9 @@ async def tasks_without_epic(
             issue_type=i.issue_type,
             status=i.status,
             assignee_display_name=name,
-            created_at=None,  # not stored at top level today; would need raw_payload
+            created_at=_parse_iso(
+                ((i.raw_payload or {}).get("fields") or {}).get("created")
+            ),
             updated_at=i.updated_at,
         )
         for i, name in rows

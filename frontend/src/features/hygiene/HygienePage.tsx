@@ -152,27 +152,43 @@ function TasksNoEpicTable({
           <th>Summary</th>
           <th>Assignee</th>
           <th>Status</th>
+          <th>Created</th>
           <th>Updated</th>
         </tr></thead>
         <tbody>
-          {rows.slice(0, 50).map((r) => (
-            <tr key={r.issue_key}>
-              <td><JiraLink issueKey={r.issue_key} /></td>
-              <td>{r.issue_type}</td>
-              <td>{r.summary.length > 50 ? r.summary.slice(0, 50) + "…" : r.summary}</td>
-              <td>{r.assignee_display_name ?? <span className="muted">unassigned</span>}</td>
-              <td>{r.status}</td>
-              <td className="muted small">
-                {new Date(r.updated_at).toLocaleDateString(undefined, {
-                  month: "short",
-                  day: "numeric",
-                })}
-              </td>
-            </tr>
-          ))}
+          {rows.slice(0, 50).map((r) => {
+            const ageDays = r.created_at
+              ? Math.floor(
+                  (Date.now() - new Date(r.created_at).getTime()) / 86_400_000,
+                )
+              : null;
+            const stale = ageDays != null && ageDays >= 30;
+            return (
+              <tr key={r.issue_key}>
+                <td><JiraLink issueKey={r.issue_key} /></td>
+                <td>{r.issue_type}</td>
+                <td>{r.summary.length > 50 ? r.summary.slice(0, 50) + "…" : r.summary}</td>
+                <td>{r.assignee_display_name ?? <span className="muted">unassigned</span>}</td>
+                <td>{r.status}</td>
+                <td className={stale ? "small" : "muted small"} style={stale ? { color: "var(--color-warn-fg)" } : undefined}>
+                  {ageDays == null
+                    ? "—"
+                    : ageDays < 1
+                      ? "today"
+                      : `${ageDays}d ago`}
+                </td>
+                <td className="muted small">
+                  {new Date(r.updated_at).toLocaleDateString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </td>
+              </tr>
+            );
+          })}
           {rows.length > 50 && (
             <tr>
-              <td colSpan={6} className="muted small">… {rows.length - 50} more</td>
+              <td colSpan={7} className="muted small">… {rows.length - 50} more</td>
             </tr>
           )}
         </tbody>

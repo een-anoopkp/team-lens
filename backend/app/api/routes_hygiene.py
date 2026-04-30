@@ -71,6 +71,7 @@ class TaskNoEpicRow(BaseModel):
     issue_type: str
     status: str
     assignee_display_name: str | None
+    created_at: datetime | None
     updated_at: datetime
 
 
@@ -87,6 +88,7 @@ async def tasks_no_epic_endpoint(
             issue_type=r.issue_type,
             status=r.status,
             assignee_display_name=r.assignee_display_name,
+            created_at=r.created_at,
             updated_at=r.updated_at,
         )
         for r in rows

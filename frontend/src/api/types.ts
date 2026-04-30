@@ -293,6 +293,7 @@ export interface TaskNoEpicRow {
   issue_type: string;
   status: string;
   assignee_display_name: string | null;
+  created_at: string | null;
   updated_at: string;
 }
 
