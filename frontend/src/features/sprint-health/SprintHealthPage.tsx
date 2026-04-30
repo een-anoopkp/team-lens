@@ -260,11 +260,15 @@ function BurnupChart({ data }: { data: BurnupResponse }) {
   const target = num(data.target_sp);
   const maxY = Math.max(target, ...points.map((p) => num(p.cumulative_done_sp)), 1);
   const w = 600;
-  const h = 160;
-  const margin = { left: 10, right: 10, top: 20, bottom: 20 };
+  const h = 180;
+  // Wider left margin so Y-axis labels have room.
+  const margin = { left: 36, right: 10, top: 20, bottom: 26 };
   const innerW = w - margin.left - margin.right;
   const innerH = h - margin.top - margin.bottom;
   const xStep = points.length > 1 ? innerW / (points.length - 1) : innerW;
+
+  // Y-axis: 4 ticks (0, 25%, 50%, 75%, 100% of maxY) — gridlines + labels.
+  const yTicks = [0, maxY * 0.25, maxY * 0.5, maxY * 0.75, maxY];
 
   const polyline = points
     .map((p, i) => {
@@ -276,13 +280,56 @@ function BurnupChart({ data }: { data: BurnupResponse }) {
 
   const targetY = margin.top + innerH * (1 - target / maxY);
 
+  // Single-day sprints: render the lone point at start of axis with a label.
+  const singleDay = points.length === 1;
+
   return (
     <div className="chart-panel">
       <svg viewBox={`0 0 ${w} ${h}`} className="chart">
-        <line x1="0" y1={targetY} x2={w} y2={targetY} className="chart-target" strokeDasharray="4 4" />
-        <text x="6" y={targetY - 4} className="chart-label">target {fmtSp(target)} SP</text>
+        {/* Y-axis gridlines + tick labels */}
+        <g className="chart-axis">
+          {yTicks.map((tick) => {
+            const y = margin.top + innerH * (1 - tick / maxY);
+            return (
+              <g key={tick}>
+                <line
+                  x1={margin.left}
+                  y1={y}
+                  x2={w - margin.right}
+                  y2={y}
+                  stroke="var(--color-border)"
+                  strokeWidth={tick === 0 ? 1 : 0.5}
+                  strokeDasharray={tick === 0 ? undefined : "2 4"}
+                />
+                <text
+                  x={margin.left - 6}
+                  y={y + 3}
+                  textAnchor="end"
+                >
+                  {Math.round(tick)}
+                </text>
+              </g>
+            );
+          })}
+        </g>
+        {/* Target line */}
+        <line
+          x1={margin.left}
+          y1={targetY}
+          x2={w - margin.right}
+          y2={targetY}
+          className="chart-target"
+          strokeDasharray="4 4"
+        />
+        <text
+          x={margin.left + 4}
+          y={targetY - 4}
+          className="chart-label"
+        >
+          target {fmtSp(target)} SP
+        </text>
+        {/* Burn-up line + dots */}
         <polyline className="chart-line" points={polyline} />
-        {/* Per-day hover hit-zones with native title tooltips. */}
         {points.map((p, i) => {
           const x = margin.left + i * xStep;
           const y = margin.top + innerH * (1 - num(p.cumulative_done_sp) / maxY);
@@ -297,13 +344,31 @@ function BurnupChart({ data }: { data: BurnupResponse }) {
             </g>
           );
         })}
+        {/* X-axis labels — first day, mid (when ≥3), last */}
         <g className="chart-axis">
-          {points.length > 0 && (
+          {singleDay ? (
+            <text x={margin.left} y={h - 6}>
+              {points[0].day.slice(5)} (day 1)
+            </text>
+          ) : (
             <>
-              <text x={margin.left} y={h - 4}>
+              <text x={margin.left} y={h - 6}>
                 {points[0].day.slice(5)}
               </text>
-              <text x={w - margin.right - 30} y={h - 4}>
+              {points.length >= 3 && (
+                <text
+                  x={margin.left + innerW / 2}
+                  y={h - 6}
+                  textAnchor="middle"
+                >
+                  {points[Math.floor(points.length / 2)].day.slice(5)}
+                </text>
+              )}
+              <text
+                x={w - margin.right}
+                y={h - 6}
+                textAnchor="end"
+              >
                 {points[points.length - 1].day.slice(5)}
               </text>
             </>
@@ -402,8 +467,8 @@ function VelocityTrend({ rows }: { rows: VelocityRow[] }) {
 
   if (bySprintAvg.length === 0) return null;
   const w = 600;
-  const h = 120;
-  const margin = { left: 10, right: 10, top: 10, bottom: 20 };
+  const h = 140;
+  const margin = { left: 36, right: 10, top: 10, bottom: 24 };
   const innerW = w - margin.left - margin.right;
   const innerH = h - margin.top - margin.bottom;
   const maxY = Math.max(...bySprintAvg.map((s) => s.avg), 1);
@@ -416,13 +481,36 @@ function VelocityTrend({ rows }: { rows: VelocityRow[] }) {
     })
     .join(" ");
 
+  // Y-axis: 0, midpoint, max — keeps the chart legible without too many lines.
+  const yTicks = [0, maxY / 2, maxY];
+
   return (
     <div className="chart-panel">
       <svg viewBox={`0 0 ${w} ${h}`} className="chart">
+        {/* Y-axis gridlines + tick labels */}
+        <g className="chart-axis">
+          {yTicks.map((tick) => {
+            const y = margin.top + innerH * (1 - tick / maxY);
+            return (
+              <g key={tick}>
+                <line
+                  x1={margin.left}
+                  y1={y}
+                  x2={w - margin.right}
+                  y2={y}
+                  stroke="var(--color-border)"
+                  strokeWidth={tick === 0 ? 1 : 0.5}
+                  strokeDasharray={tick === 0 ? undefined : "2 4"}
+                />
+                <text x={margin.left - 6} y={y + 3} textAnchor="end">
+                  {tick.toFixed(1)}
+                </text>
+              </g>
+            );
+          })}
+        </g>
         <polyline className="chart-line" points={polyline} />
-        {/* Hover hit-zones with native title tooltips. The radius is large
-         *  enough to be easy to hover, the fill is transparent so it's
-         *  invisible. Centered dots are drawn separately for the visual. */}
+        {/* Hover hit-zones with native title tooltips. */}
         {bySprintAvg.map((s, i) => {
           const x = margin.left + i * xStep;
           const y = margin.top + innerH * (1 - s.avg / maxY);
@@ -442,7 +530,7 @@ function VelocityTrend({ rows }: { rows: VelocityRow[] }) {
             <text
               key={s.name}
               x={margin.left + i * xStep}
-              y={h - 4}
+              y={h - 6}
               textAnchor="middle"
             >
               {s.name.replace("Search ", "")}
