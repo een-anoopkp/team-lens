@@ -15,6 +15,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { to: "/sprint-health", label: "Sprint Health" },
+  { to: "/standup", label: "Standup Board" },
   { to: "/epic-risk", label: "Epic Risk" },
   { to: "/hygiene", label: "Hygiene" },
   { to: "/leaves", label: "Leaves" },
