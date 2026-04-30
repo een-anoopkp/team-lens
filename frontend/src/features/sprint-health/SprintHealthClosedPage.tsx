@@ -14,6 +14,7 @@ import { useMemo } from "react";
 
 import { useSprintRollup, useSprints } from "../../api";
 import type { Sprint, SprintRollup } from "../../api/types";
+import InfoIcon from "../../components/InfoIcon";
 
 function num(v: string | number | null | undefined): number {
   if (v == null) return 0;
@@ -206,16 +207,23 @@ function SprintBody({ data }: { data: SprintRollup }) {
           <div className="kpi-sub">{completedPct.toFixed(0)}%</div>
         </div>
         <div className="kpi neutral">
-          <div className="kpi-label">Velocity</div>
+          <div className="kpi-label">
+            Velocity{" "}
+            <InfoIcon
+              text={
+                "Completed SP ÷ Person-days. Both numerator and denominator " +
+                "use the elapsed window for active sprints, so the value " +
+                "isn't biased by remaining capacity. Cross-sprint " +
+                "comparisons hold even when headcount or leaves shift."
+              }
+            />
+          </div>
           <div className="kpi-value">
             {num(data.velocity_sp_per_person_day).toFixed(2)}{" "}
             <span className="kpi-sub">SP/day/person</span>
           </div>
         </div>
-        <div className="kpi neutral">
-          <div className="kpi-label">Working days</div>
-          <div className="kpi-value">{data.days_total}</div>
-        </div>
+        <PersonDaysTileClosed data={data} />
       </div>
       <h3>Per-person final</h3>
       <div className="panel">
@@ -259,5 +267,34 @@ function SprintBody({ data }: { data: SprintRollup }) {
         )}
       </div>
     </>
+  );
+}
+
+function PersonDaysTileClosed({ data }: { data: SprintRollup }) {
+  const personDaysTotal = data.per_person.reduce(
+    (n, p) => n + (p.available_days ?? 0),
+    0,
+  );
+  const headcount = data.per_person.length;
+  const naiveCapacity = headcount * data.days_total;
+  const leaveDaysLost = Math.max(0, naiveCapacity - personDaysTotal);
+  return (
+    <div className="kpi neutral">
+      <div className="kpi-label">
+        Person-days{" "}
+        <InfoIcon
+          text={
+            "Cumulative working days available to the team across the sprint. " +
+            "Computed as Σ over each team member of (sprint weekdays − team " +
+            "holidays − that person's leaves). Drives Velocity's denominator."
+          }
+        />
+      </div>
+      <div className="kpi-value">{personDaysTotal}</div>
+      <div className="kpi-sub">
+        {headcount} ppl × {data.days_total} d
+        {leaveDaysLost > 0 ? ` − ${leaveDaysLost} leave d` : null}
+      </div>
+    </div>
   );
 }
