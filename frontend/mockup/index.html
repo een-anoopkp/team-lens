@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>team-lens · UI mockup</title>
+    <link rel="stylesheet" href="../src/styles/tokens.css" />
+    <link rel="stylesheet" href="./mockup.css" />
+  </head>
+  <body>
+    <!-- ====================== App shell ============================ -->
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="topbar-left">
+          <span class="logo">⬢</span>
+          <strong>team-lens</strong>
+          <span class="muted small">· UI mockup</span>
+        </div>
+        <div class="topbar-right">
+          <span class="staleness staleness-good" id="staleness-pill">
+            ● Synced 4m ago
+          </span>
+          <button class="btn btn-secondary" id="refresh-btn">↻ Refresh</button>
+          <button class="btn btn-secondary" id="theme-toggle" title="Toggle theme">
+            🌙
+          </button>
+        </div>
+      </header>
+
+      <nav class="sidebar" id="sidebar">
+        <div class="nav-group">
+          <div class="nav-group-label">Pages</div>
+          <a class="nav-item" data-route="page-sprint-health">Sprint Health</a>
+          <a class="nav-item" data-route="page-sprint-health-closed">Sprint Health (closed)</a>
+          <a class="nav-item" data-route="page-epic-risk">Epic Risk</a>
+          <a class="nav-item" data-route="page-hygiene">Hygiene</a>
+          <a class="nav-item" data-route="page-projects">Projects</a>
+          <a class="nav-item" data-route="page-project-drill">Project drill-in</a>
+          <a class="nav-item" data-route="page-monitoring">Projects · Monitoring</a>
+          <a class="nav-item" data-route="page-leaves">Leaves</a>
+          <a class="nav-item" data-route="page-leaderboard">Leaderboard <span class="phase-pill">P5</span></a>
+          <a class="nav-item" data-route="page-insights">Insights <span class="phase-pill">P5</span></a>
+          <a class="nav-item" data-route="page-settings">Settings</a>
+          <a class="nav-item" data-route="page-setup">Setup (first-run)</a>
+          <a class="nav-item" data-route="page-debug">Debug</a>
+        </div>
+        <div class="nav-group">
+          <div class="nav-group-label">Components</div>
+          <a class="nav-item" data-route="components">Catalog</a>
+        </div>
+        <div class="nav-group">
+          <div class="nav-group-label">Reference</div>
+          <a class="nav-item" data-route="states">States gallery</a>
+          <a class="nav-item" data-route="interactions">Interaction patterns</a>
+          <a class="nav-item" href="./tokens.html" target="_blank">Design tokens ↗</a>
+        </div>
+      </nav>
+
+      <main class="main">
+        <!-- Components catalog ===================================== -->
+        <section data-route="components" class="route">
+          <h1>Component catalog</h1>
+          <p class="subtitle">
+            Every reusable component used across the app. Each section
+            documents intended usage and shows variants with realistic
+            placeholder data. CSS lives in <code>frontend/mockup/mockup.css</code>;
+            React equivalents will be ported in Phase 3+.
+          </p>
+
+          <!-- KpiCard -->
+          <h2>KpiCard</h2>
+          <p class="muted">4 tones (neutral / good / warn / bad). Used for top-of-page summary numbers.</p>
+          <div class="kpi-row">
+            <div class="kpi neutral">
+              <div class="kpi-label">Committed</div>
+              <div class="kpi-value">42 SP</div>
+              <div class="kpi-sub">10 people</div>
+            </div>
+            <div class="kpi good">
+              <div class="kpi-label">Done</div>
+              <div class="kpi-value">28 SP</div>
+              <div class="kpi-sub">67% of committed</div>
+            </div>
+            <div class="kpi warn">
+              <div class="kpi-label">At risk</div>
+              <div class="kpi-value">7 SP</div>
+              <div class="kpi-sub">3 tickets blocked</div>
+            </div>
+            <div class="kpi bad">
+              <div class="kpi-label">Carry-over</div>
+              <div class="kpi-value">14 SP</div>
+              <div class="kpi-sub">5 tickets &ge; 2 sprints</div>
+            </div>
+          </div>
+
+          <!-- ProgressBar segmented -->
+          <h2>ProgressBar (segmented)</h2>
+          <p class="muted">5-segment per-person bar: done / validation / review / in-progress / todo. Total width = committed SP.</p>
+          <div class="proto-row">
+            <div class="proto-label">Anoop K Prabhu</div>
+            <div class="progress-track">
+              <span class="seg seg-done"   style="width: 50%"></span>
+              <span class="seg seg-valid"  style="width: 12%"></span>
+              <span class="seg seg-review" style="width: 8%"></span>
+              <span class="seg seg-prog"   style="width: 18%"></span>
+              <span class="seg seg-todo"   style="width: 12%"></span>
+            </div>
+            <div class="proto-num">8 / 16 SP</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-label">Priya Sridhar</div>
+            <div class="progress-track">
+              <span class="seg seg-done"  style="width: 100%"></span>
+            </div>
+            <div class="proto-num">12 / 12 SP</div>
+          </div>
+          <div class="proto-row">
+            <div class="proto-label">Karthik Iyer</div>
+            <div class="progress-track">
+              <span class="seg seg-done"   style="width: 25%"></span>
+              <span class="seg seg-prog"   style="width: 30%"></span>
+              <span class="seg seg-todo"   style="width: 45%"></span>
+            </div>
+            <div class="proto-num">2 / 8 SP</div>
+          </div>
+          <div class="legend">
+            <span class="legend-item"><span class="seg seg-done"   style="width: 12px"></span> Done</span>
+            <span class="legend-item"><span class="seg seg-valid"  style="width: 12px"></span> Validation</span>
+            <span class="legend-item"><span class="seg seg-review" style="width: 12px"></span> Review</span>
+            <span class="legend-item"><span class="seg seg-prog"   style="width: 12px"></span> In progress</span>
+            <span class="legend-item"><span class="seg seg-todo"   style="width: 12px"></span> To do</span>
+          </div>
+
+          <!-- SparklineTile -->
+          <h2>SparklineTile</h2>
+          <p class="muted">Per-person 6-sprint accuracy trend. Latest + average shown beneath.</p>
+          <div class="kpi-row">
+            <div class="sparkline-tile">
+              <div class="sparkline-name">Anoop</div>
+              <svg class="sparkline" viewBox="0 0 100 30" preserveAspectRatio="none">
+                <polyline points="0,18 20,14 40,12 60,8 80,10 100,5" />
+              </svg>
+              <div class="sparkline-meta">latest 92% · avg 85%</div>
+            </div>
+            <div class="sparkline-tile">
+              <div class="sparkline-name">Priya</div>
+              <svg class="sparkline" viewBox="0 0 100 30" preserveAspectRatio="none">
+                <polyline points="0,12 20,15 40,18 60,16 80,14 100,12" />
+              </svg>
+              <div class="sparkline-meta">latest 88% · avg 88%</div>
+            </div>
+            <div class="sparkline-tile">
+              <div class="sparkline-name">Karthik</div>
+              <svg class="sparkline warn" viewBox="0 0 100 30" preserveAspectRatio="none">
+                <polyline points="0,8 20,11 40,14 60,17 80,20 100,24" />
+              </svg>
+              <div class="sparkline-meta warn">latest 60% · avg 75%</div>
+            </div>
+            <div class="sparkline-tile">
+              <div class="sparkline-name">Meera</div>
+              <svg class="sparkline good" viewBox="0 0 100 30" preserveAspectRatio="none">
+                <polyline points="0,22 20,18 40,14 60,10 80,8 100,6" />
+              </svg>
+              <div class="sparkline-meta good">latest 96% · avg 82%</div>
+            </div>
+          </div>
+
+          <!-- Status pills -->
+          <h2>Pill / StatusPill</h2>
+          <p class="muted">Compact status indicators. Not interactive on their own; pair with a label.</p>
+          <div class="proto-flex">
+            <span class="pill good">Done</span>
+            <span class="pill warn">At risk</span>
+            <span class="pill bad">Stalled</span>
+            <span class="pill neutral">Syncing…</span>
+            <span class="pill accent">Active sprint</span>
+            <span class="pill bad">Past due 4d</span>
+            <span class="pill warn">Due in 5d</span>
+            <span class="pill good">Due in 12d</span>
+          </div>
+
+          <!-- StalenessBadge -->
+          <h2>StalenessBadge</h2>
+          <p class="muted">Top-bar global indicator. Bands: ≤24h green / 24-72h yellow / &gt;72h red. "Syncing…" while a run is in flight.</p>
+          <div class="proto-flex">
+            <span class="staleness staleness-good">● Synced just now</span>
+            <span class="staleness staleness-good">● Synced 4m ago</span>
+            <span class="staleness staleness-good">● Synced 6h ago</span>
+            <span class="staleness staleness-warn">● Last sync 2 days ago</span>
+            <span class="staleness staleness-bad">● Stale: 5 days</span>
+            <span class="staleness staleness-neutral">↻ Syncing…</span>
+            <span class="staleness staleness-bad">⚠ Sync failed</span>
+          </div>
+
+          <!-- SprintBanner -->
+          <h2>SprintBanner</h2>
+          <p class="muted">Page-header indicator showing which sprint the page is scoped to. Active vs closed variant.</p>
+          <div class="sprint-banner sprint-banner-active">
+            <strong>Search 2026-08</strong> · Active · ends Fri 9 May ·
+            <span class="muted">4 days left</span>
+          </div>
+          <div class="sprint-banner sprint-banner-closed">
+            <strong>Search 2026-07</strong> · Closed 15 Apr 2026
+          </div>
+
+          <!-- Modal -->
+          <h2>Modal</h2>
+          <p class="muted">Used for whitelist editor, filter panel, leaves CRUD, etc. Centered overlay; click backdrop or Esc to close.</p>
+          <div class="modal-demo">
+            <div class="modal">
+              <div class="modal-header">
+                <h3>Whitelist (who counts as "team")</h3>
+                <button class="btn-icon" aria-label="Close">×</button>
+              </div>
+              <div class="modal-body">
+                <div class="check-grid">
+                  <label><input type="checkbox" checked /> Anoop K Prabhu</label>
+                  <label><input type="checkbox" checked /> Priya Sridhar</label>
+                  <label><input type="checkbox" checked /> Karthik Iyer</label>
+                  <label><input type="checkbox" /> Sahithy Tumma</label>
+                  <label><input type="checkbox" /> Mathew Sebastian</label>
+                  <label><input type="checkbox" /> deep.o</label>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-secondary">Cancel</button>
+                <button class="btn btn-primary">Save</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- DataTable -->
+          <h2>DataTable</h2>
+          <p class="muted">Sortable headers, pagination, search filter. Row count + filter feedback below.</p>
+          <div class="datatable-demo">
+            <input type="search" class="input" placeholder="Filter…" style="margin-bottom: var(--space-2); max-width: 240px;" />
+            <table class="datatable">
+              <thead>
+                <tr>
+                  <th class="sortable">Ticket</th>
+                  <th class="sortable">Summary</th>
+                  <th class="sortable">Assignee</th>
+                  <th class="sortable">Due ▲</th>
+                  <th class="sortable">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>EEPD-1180</code></td><td>Index migration v3</td><td>Anoop K Prabhu</td><td>Apr 26 <span class="pill bad">−4d</span></td><td>In Progress</td></tr>
+                <tr><td><code>EEPD-1198</code></td><td>Sharding plan</td><td>Priya Sridhar</td><td>May 2 <span class="pill warn">+2d</span></td><td>Review</td></tr>
+                <tr><td><code>EEPD-1234</code></td><td>Re-rank A/B</td><td>Karthik Iyer</td><td>May 9 <span class="pill good">+9d</span></td><td>To Do</td></tr>
+                <tr><td><code>EEPD-1255</code></td><td>Query intent v2</td><td>Meera Nair</td><td>May 16 <span class="pill good">+16d</span></td><td>To Do</td></tr>
+              </tbody>
+            </table>
+            <div class="datatable-footer">4 rows</div>
+          </div>
+
+          <!-- CheckList -->
+          <h2>CheckList</h2>
+          <p class="muted">2-column checkbox grid (used inside modals).</p>
+          <div class="check-grid">
+            <label><input type="checkbox" checked /> Search 2026-08</label>
+            <label><input type="checkbox" checked /> Search 2026-07</label>
+            <label><input type="checkbox" /> Search 2026-06</label>
+            <label><input type="checkbox" /> Search 2026-05</label>
+          </div>
+
+          <!-- RefreshButton states -->
+          <h2>RefreshButton (states)</h2>
+          <p class="muted">Idle → syncing → success-flash → error.</p>
+          <div class="proto-flex">
+            <button class="btn btn-secondary">↻ Refresh</button>
+            <button class="btn btn-secondary" disabled>↻ Syncing…</button>
+            <button class="btn btn-secondary" style="color: var(--color-good);">✓ Synced</button>
+            <button class="btn btn-secondary" style="color: var(--color-bad);">⚠ Failed</button>
+          </div>
+
+          <!-- Empty / Loading / Error states -->
+          <h2>EmptyState / LoadingState / ErrorState</h2>
+          <p class="muted">Three universal panels. The states gallery has more.</p>
+          <div class="proto-grid-3">
+            <div class="state-panel">
+              <div class="state-icon">📭</div>
+              <h4>No data yet</h4>
+              <p class="muted small">Click Refresh in the top bar to run your first sync.</p>
+            </div>
+            <div class="state-panel">
+              <div class="state-icon">⏳</div>
+              <h4>Loading…</h4>
+              <p class="muted small">Fetching from Postgres.</p>
+            </div>
+            <div class="state-panel state-panel-error">
+              <div class="state-icon">⚠</div>
+              <h4>Couldn't load</h4>
+              <p class="small">Backend returned 503 — is <code>make backend</code> running?</p>
+            </div>
+          </div>
+
+          <!-- Form inputs -->
+          <h2>Form inputs</h2>
+          <p class="muted">Consistent style across text / date / multi-select / search.</p>
+          <div class="proto-grid-3">
+            <label class="field">
+              <span class="field-label">Email</span>
+              <input class="input" type="email" placeholder="you@eagleeyenetworks.com" />
+            </label>
+            <label class="field">
+              <span class="field-label">Sprint</span>
+              <select class="input">
+                <option>Search 2026-08 (active)</option>
+                <option>Search 2026-07</option>
+                <option>Search 2026-06</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field-label">Search</span>
+              <input class="input" type="search" placeholder="Filter tickets…" />
+            </label>
+          </div>
+        </section>
+
+        <!-- Pages (filled in 2.3) ================================== -->
+        <section data-route="page-sprint-health" class="route hidden">
+          <h1>Sprint Health</h1>
+          <p class="muted">Filled in step 2.3.</p>
+        </section>
+        <section data-route="page-sprint-health-closed" class="route hidden">
+          <h1>Sprint Health (closed)</h1>
+          <p class="muted">Filled in step 2.3.</p>
+        </section>
+        <section data-route="page-epic-risk" class="route hidden">
+          <h1>Epic Risk</h1>
+          <p class="muted">Filled in step 2.3.</p>
+        </section>
+        <section data-route="page-hygiene" class="route hidden">
+          <h1>Hygiene</h1>
+          <p class="muted">Filled in step 2.3.</p>
+        </section>
+        <section data-route="page-projects" class="route hidden">
+          <h1>Projects</h1>
+          <p class="muted">Filled in step 2.3.</p>
+        </section>
+        <section data-route="page-project-drill" class="route hidden">
+          <h1>Project drill-in</h1>
+          <p class="muted">Filled in step 2.3.</p>
+        </section>
+        <section data-route="page-monitoring" class="route hidden">
+          <h1>Projects · Monitoring</h1>
+          <p class="muted">Filled in step 2.3.</p>
+        </section>
+        <section data-route="page-leaves" class="route hidden">
+          <h1>Leaves</h1>
+          <p class="muted">Filled in step 2.3.</p>
+        </section>
+        <section data-route="page-leaderboard" class="route hidden">
+          <h1>Leaderboard</h1>
+          <p class="muted">Filled in step 2.3.</p>
+        </section>
+        <section data-route="page-insights" class="route hidden">
+          <h1>Insights</h1>
+          <p class="muted">Filled in step 2.3.</p>
+        </section>
+        <section data-route="page-settings" class="route hidden">
+          <h1>Settings</h1>
+          <p class="muted">Filled in step 2.3.</p>
+        </section>
+        <section data-route="page-setup" class="route hidden">
+          <h1>Setup (first-run)</h1>
+          <p class="muted">Filled in step 2.3.</p>
+        </section>
+        <section data-route="page-debug" class="route hidden">
+          <h1>Debug</h1>
+          <p class="muted">Already shipped in Phase 1.10. See running app.</p>
+        </section>
+
+        <section data-route="states" class="route hidden">
+          <h1>States gallery</h1>
+          <p class="muted">Filled in step 2.5.</p>
+        </section>
+        <section data-route="interactions" class="route hidden">
+          <h1>Interaction patterns</h1>
+          <p class="muted">Filled in step 2.4.</p>
+        </section>
+      </main>
+    </div>
+
+    <script src="./mockup.js"></script>
+  </body>
+</html>
