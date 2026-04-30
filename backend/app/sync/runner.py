@@ -215,11 +215,19 @@ class SyncRunner:
         if not team_value:
             raise RuntimeError("JIRA_TEAM_VALUE is empty — refusing to sync without team filter")
 
-        cf_num = team_field.replace("customfield_", "cf[") + "]" if team_field.startswith("customfield_") else team_field
-        base_jql = f'({cf_num} = "{team_value}" OR parent in ({cf_num} = "{team_value}"))'
+        cf_num = (
+            team_field.replace("customfield_", "cf[") + "]"
+            if team_field.startswith("customfield_")
+            else team_field
+        )
+        # Sub-tasks on this tenant inherit cf[10500] from their parent (per
+        # tenant memory note + verified in spike). The legacy Apps Script also
+        # uses just the team-field equality; no `parent in (...)` subquery
+        # because JQL doesn't accept sub-predicates inside `in`.
+        base_jql = f'{cf_num} = "{team_value}"'
 
         if scan_type == "incremental" and last_iso:
-            jql = f"{base_jql} AND updated >= \"{last_iso}\""
+            jql = f'{base_jql} AND updated >= "{last_iso}"'
         else:
             jql = base_jql
 
