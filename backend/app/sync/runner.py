@@ -20,7 +20,6 @@ from __future__ import annotations
 import asyncio
 import contextlib
 from collections.abc import Iterable
-from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
 import structlog
@@ -42,23 +41,12 @@ from app.models import (
     SyncRun,
 )
 from app.sync import transform
+from app.sync.context import SyncContext
+from app.sync.stats import SyncStats
 
 logger = structlog.get_logger(__name__)
 
 _COMMENT_FETCH_CONCURRENCY = 8
-
-
-@dataclass
-class SyncStats:
-    issues_seen: int = 0
-    issues_inserted: int = 0
-    issues_updated: int = 0
-    issues_removed: int = 0
-    sp_changes: int = 0
-    assignee_changes: int = 0
-    status_changes: int = 0
-    error_message: str | None = None
-    touched_issue_keys: set[str] = field(default_factory=set)
 
 
 class SyncRunner:
@@ -70,6 +58,11 @@ class SyncRunner:
         session_factory: async_sessionmaker[AsyncSession],
         fields: FieldRegistry,
     ):
+        self._ctx = SyncContext(
+            settings=settings, session_factory=session_factory, fields=fields
+        )
+        # Per-attribute aliases retained while extraction is in progress;
+        # removed once every worker reads through self._ctx (final cleanup step).
         self._settings = settings
         self._session_factory = session_factory
         self._fields = fields

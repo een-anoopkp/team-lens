@@ -38,7 +38,7 @@ from app.models import (
 )
 
 if TYPE_CHECKING:
-    from app.sync.runner import SyncStats
+    from app.sync.stats import SyncStats
 
 logger = structlog.get_logger(__name__)
 

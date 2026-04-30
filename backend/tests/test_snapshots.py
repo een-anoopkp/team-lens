@@ -24,7 +24,7 @@ from app.models.issues import Issue
 from app.models.scope_change_events import ScopeChangeEvent
 from app.models.sprints import Sprint
 from app.models.ticket_state_snapshots import TicketStateSnapshot
-from app.sync.runner import SyncStats
+from app.sync.stats import SyncStats
 from app.sync.snapshots import update_snapshots
 
 
