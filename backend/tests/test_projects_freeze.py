@@ -155,7 +155,9 @@ def _create_subset(sync_conn) -> None:
     Table(
         "scope_change_events",
         md,
-        Column("id", BigInteger, primary_key=True, autoincrement=True),
+        # Integer (not BigInteger) so SQLite treats it as ROWID alias and
+        # autoincrements; production schema is BIGSERIAL via Alembic.
+        Column("id", Integer, primary_key=True, autoincrement=True),
         Column("issue_key", String, nullable=False),
         Column("sprint_name", String, nullable=False),
         Column("change_type", String, nullable=False),
