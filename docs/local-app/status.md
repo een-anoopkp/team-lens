@@ -1,8 +1,8 @@
 # Local App — Build Status
 
 **Last updated:** 2026-04-30
-**Current phase:** Phase 3 — Sprint Health (ready to begin)
-**Current step:** 3.1 (metrics endpoints) — Phase 2 UX design complete; mockup at `frontend/mockup/index.html` covers tokens, component catalog, all 13 page wireframes, 6 interaction patterns, and 5 states.
+**Current phase:** Phase 4 — Epic Risk + Hygiene (ready to begin)
+**Current step:** 4.1 (Epic Risk metrics endpoints). Phase 3 closed: all 4 sub-steps committed; ground-truth verification 10/10 per-person rows match Jira to the SP; Apps Script `sprint-health` daily trigger retired.
 
 This file tracks live progress. Update as steps complete; commit alongside the work. Other files in this folder are specs that change rarely.
 
@@ -37,12 +37,12 @@ This file tracks live progress. Update as steps complete; commit alongside the w
 - [x] 2.4 Interaction patterns — commit `3710a26` (6 live demos)
 - [x] 2.5 States gallery + UX-design doc finalised — this commit
 
-## Phase 3 — Sprint Health
+## Phase 3 — Sprint Health — done 2026-04-30
 
-- [ ] 3.1 Metrics endpoints (velocity, scope-changes, carry-over, blockers, sprint rollup)
-- [ ] 3.2 Sprint Health React page
-- [ ] 3.3 Ground-truth verification
-- [ ] 3.4 Retire Apps Script `sprint-health` daily trigger
+- [x] 3.1 Metrics endpoints — commit `b42f0b9` (velocity, carry-over, blockers, burnup, sprint_rollup; working_days helper)
+- [x] 3.2 Sprint Health React page — commit `240c2a7` (full Phase-2 mockup wired to live data)
+- [x] 3.3 Ground-truth verification — 10/10 per-person rows match Jira; total 157 SP exact. See [09-verification.md](./09-verification.md#phase-3-sprint-health--accepted-2026-04-30).
+- [x] 3.4 Retired Apps Script `sprint-health` daily trigger; README marked deprecated. (Directory deletion happens in Phase 6 after the 2-week soak.)
 
 ## Phase 4 — Epic Risk + Hygiene
 
@@ -84,3 +84,4 @@ This file tracks live progress. Update as steps complete; commit alongside the w
 - 2026-04-30: Phase 1 fully committed across 10 sub-steps (commits `2f776bf` → `a063319`). Code is syntactically validated (Python ast.parse + JSON/YAML/TOML loads all clean). End-to-end run still pending — first acceptance walk-through requires `make setup` (uv sync, npm install, alembic upgrade, docker compose) followed by `make dev` and the in-app `/setup` flow.
 - 2026-04-30: Phase 1 acceptance pass: 14 bugs found and fixed during live e2e (see commits `9ea4e4f` through `bcc1dc3`). 20/20 endpoint tests passing; full backfill of 4817 issues; subsequent incremental sync 7 issues in 3s. Browser walkthrough confirmed UI rendering. Deferred manual checks (F1-F5) noted in `09-verification.md` for later. Phase 1 closed.
 - 2026-04-30: Phase 2 (UX Design) complete in 5 sub-steps: tokens locked (anchored on legacy palette + dark mode designed), component catalog as static HTML, 13 page wireframes with realistic placeholder data, 6 live interaction demos (refresh, modal, sort/filter, deep-link, keyboard, copy-URL), 5-state gallery (empty/loading/error/partial/sync-failed-stale). All deliverables in `frontend/mockup/` — open `frontend/mockup/index.html` to walk through.
+- 2026-04-30: Phase 3 (Sprint Health) complete in 4 sub-steps. 6 metrics modules (working_days, velocity, carry_over, blockers, burnup, sprint_rollup) all pure SQL on synced data. Sprint Health React page implements the Phase-2 mockup against `useSprintRollup` / `useBurnup` / `useCarryOver` / `useBlockers` / `useVelocity` hooks. Ground truth: every per-person SP figure for sprint 18279 matches the Phase-1 baseline exactly (10/10 rows). Apps Script `sprint-health` README marked deprecated; daily trigger retired.

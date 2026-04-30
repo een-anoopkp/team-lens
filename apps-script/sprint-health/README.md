@@ -1,4 +1,12 @@
-# apps-script/sprint-health
+# apps-script/sprint-health · DEPRECATED 2026-04-30
+
+> **🚫 Retired.** Phase 3 of the local-app rewrite ([docs/local-app/](../../docs/local-app/)) replaces this dashboard. The daily trigger has been removed; this folder is preserved for reference only and will be deleted in Phase 6 (after the 2-week soak period).
+>
+> **Successor:** `frontend/src/features/sprint-health/SprintHealthPage.tsx`, served by `make backend && make frontend` at `http://localhost:8081/sprint-health`. The metrics come from `GET /api/v1/sprints/{id}/rollup` and friends — see `docs/local-app/04-api-contract.md`.
+>
+> **Ground-truth verification (2026-04-30):** numbers match Jira to the SP for sprint 18279 (Search 2026-08). See `docs/local-app/09-verification.md` § Phase 3 for the per-person comparison table.
+
+---
 
 Google Apps Script source for the Sprint Health dashboard, managed via `clasp`.
 
