@@ -189,6 +189,81 @@ export interface LeaderboardResponse {
   rows: LeaderRow[];
 }
 
+// ---- Insights (v3) ---------------------------------------------------------
+
+export interface AnomalyCard {
+  rule_id: string;
+  title: string;
+  description: string;
+  enabled: boolean;
+  last_run_at: string | null;
+  last_run_status: string | null;
+  firings: Record<string, unknown>[];
+  firing_rate_recent: string | null;
+}
+
+export type LLMCardState =
+  | "fresh"
+  | "running"
+  | "off"
+  | "failed"
+  | "key-missing"
+  | "no-output";
+
+export interface LLMCard {
+  rule_id: string;
+  title: string;
+  description: string;
+  enabled: boolean;
+  state: LLMCardState;
+  last_run_at: string | null;
+  body_md: string | null;
+  scope_label: string | null;
+  error_message: string | null;
+}
+
+export interface InsightsFeed {
+  anomalies: AnomalyCard[];
+  summaries: LLMCard[];
+  last_anomaly_eval_at: string | null;
+  queued_runs: string[];
+}
+
+export interface InsightRuleRow {
+  id: string;
+  kind: "anomaly" | "llm";
+  title: string;
+  description: string;
+  enabled: boolean;
+  config: Record<string, unknown>;
+  last_run_at: string | null;
+  last_run_status: string | null;
+  last_firings_count: number | null;
+  last_tokens: number | null;
+  prompt_version: number | null;
+}
+
+export interface InsightSpend {
+  days: number;
+  total_runs: number;
+  tokens_in: number;
+  tokens_out: number;
+}
+
+export interface InsightHistoryRow {
+  id: number;
+  rule_id: string;
+  trigger: string;
+  status: string;
+  scope: Record<string, unknown> | null;
+  started_at: string;
+  finished_at: string | null;
+  firings_count: number | null;
+  tokens_in: number | null;
+  tokens_out: number | null;
+  error_message: string | null;
+}
+
 export interface ScopeChange {
   id: number;
   issue_key: string;

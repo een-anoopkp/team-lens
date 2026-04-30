@@ -279,3 +279,23 @@ a.jira-link:hover {
 .project-bar > div { height: 100%; background: var(--color-good); transition: width 200ms ease; }
 .project-bar.warn > div { background: var(--color-warn); }
 .project-bar.bad  > div { background: var(--color-bad); }
+
+/* =================================================================
+ * Markdown — tight rendering for LLM summary cards on /insights
+ * ================================================================= */
+.markdown-tight h1, .markdown-tight h2, .markdown-tight h3, .markdown-tight h4 {
+  font-size: var(--font-size-md);
+  margin: var(--space-2) 0 4px 0;
+}
+.markdown-tight h2 { font-size: 0.95rem; }
+.markdown-tight h3 { font-size: 0.9rem; color: var(--color-text-muted); }
+.markdown-tight p { margin: 4px 0; line-height: 1.5; }
+.markdown-tight ul, .markdown-tight ol { margin: 4px 0; padding-left: var(--space-4); }
+.markdown-tight li { margin: 2px 0; }
+.markdown-tight code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 1px 4px;
+  border-radius: var(--radius-sm);
+  font-size: 0.9em;
+}
+.markdown-tight strong { font-weight: var(--font-weight-semibold); }

@@ -432,6 +432,106 @@ export function useDeleteHoliday() {
   });
 }
 
+// ---- Insights (v3) ----------------------------------------------------------
+
+export function useInsightsFeed() {
+  return useQuery({
+    queryKey: ["insights", "feed"],
+    queryFn: () =>
+      getJSON<import("./types").InsightsFeed>("/api/v1/insights/feed"),
+    refetchInterval: (query) => {
+      const data = query.state.data as import("./types").InsightsFeed | undefined;
+      const anyRunning = data?.summaries.some((s) => s.state === "running");
+      return anyRunning ? 5_000 : 30_000;
+    },
+  });
+}
+
+export function useInsightRules() {
+  return useQuery({
+    queryKey: ["insights", "rules"],
+    queryFn: () =>
+      getJSON<{ rules: import("./types").InsightRuleRow[] }>(
+        "/api/v1/insights/rules"
+      ),
+  });
+}
+
+export function useToggleInsightRule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, enabled }: { id: string; enabled: boolean }) =>
+      fetch(`/api/v1/insights/rules/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled }),
+      }).then((r) => {
+        if (!r.ok) throw new Error(`toggle ${id} → ${r.status}`);
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["insights"] });
+    },
+  });
+}
+
+export function useRunInsightRule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      postJSON<{ queued: string }>(
+        `/api/v1/insights/rules/${encodeURIComponent(id)}/run`
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["insights"] });
+    },
+  });
+}
+
+export function useRunInsightRuleFor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, scope }: { id: string; scope: Record<string, unknown> }) =>
+      postJSON<{ queued: string }>(
+        `/api/v1/insights/rules/${encodeURIComponent(id)}/run-for`,
+        { scope }
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["insights"] });
+    },
+  });
+}
+
+export function useRunAllEnabled() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      postJSON<{ queued: string[] }>("/api/v1/insights/run-all-enabled"),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["insights"] });
+    },
+  });
+}
+
+export function useInsightSpend(days = 30) {
+  return useQuery({
+    queryKey: ["insights", "spend", days],
+    queryFn: () =>
+      getJSON<import("./types").InsightSpend>(
+        `/api/v1/insights/spend?days=${days}`
+      ),
+  });
+}
+
+export function useInsightHistory(limit = 20) {
+  return useQuery({
+    queryKey: ["insights", "history", limit],
+    queryFn: () =>
+      getJSON<import("./types").InsightHistoryRow[]>(
+        `/api/v1/insights/history?limit=${limit}`
+      ),
+  });
+}
+
 // ---- Leaderboard ------------------------------------------------------------
 
 export function useLeaderboardQuarters() {
