@@ -207,6 +207,36 @@ export default function Settings() {
       </h2>
       <TeamMembersSection />
 
+      <h2>
+        Insights — Anthropic API key{" "}
+        <InfoIcon text="Required only for the LLM rules on /insights. Stored in backend/.env as ANTHROPIC_API_KEY. Never returned by any endpoint — only the last 4 chars are shown." />
+      </h2>
+      <div className="panel">
+        <Row label="Status">
+          {s.anthropic_configured ? (
+            <span className="pill good">configured</span>
+          ) : (
+            <span className="pill warn">not set — LLM rules will fail</span>
+          )}
+        </Row>
+        <Row label="Key">
+          <code>
+            {s.anthropic_key_last4
+              ? `••••••••••${s.anthropic_key_last4}`
+              : "not set"}
+          </code>
+        </Row>
+        <Row label="Model">
+          <code>{s.anthropic_model}</code>
+        </Row>
+        <Row label="">
+          <span className="muted small">
+            To change either, edit <code>backend/.env</code> and restart
+            the backend.
+          </span>
+        </Row>
+      </div>
+
       <h2>Holidays + leaves</h2>
       <p className="muted small">
         Managed via <code>/api/v1/leaves</code> and{" "}

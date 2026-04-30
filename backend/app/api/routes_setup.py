@@ -43,6 +43,10 @@ class SettingsView(BaseModel):
     full_scan_cron: str
     team_region: str
     api_token_last4: str  # last 4 chars only, "" when unset
+    # v3 — Insights LLM:
+    anthropic_configured: bool
+    anthropic_key_last4: str
+    anthropic_model: str
 
 
 def _last4(s: str) -> str:
@@ -71,6 +75,9 @@ async def view_settings() -> SettingsView:
         full_scan_cron=s.full_scan_cron,
         team_region=s.team_region,
         api_token_last4=_last4(s.jira_api_token),
+        anthropic_configured=bool(s.anthropic_api_key),
+        anthropic_key_last4=_last4(s.anthropic_api_key),
+        anthropic_model=s.anthropic_model,
     )
 
 

@@ -42,6 +42,9 @@ export interface SettingsView {
   full_scan_cron: string;
   team_region: string;
   api_token_last4: string;
+  anthropic_configured: boolean;
+  anthropic_key_last4: string;
+  anthropic_model: string;
 }
 
 export interface TestConnectionResponse {
