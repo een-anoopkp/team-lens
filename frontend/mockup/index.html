@@ -1015,104 +1015,98 @@
           </div>
 
           <!-- LLM summaries -->
-          <h2>Summaries</h2>
-          <p class="muted small" style="margin-top:0;">
-            Each is a one-click Claude run over the local DB. Cached output is shown until you re-run.
+          <!-- Summaries -->
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: var(--space-5);">
+            <h2 style="margin: 0;">Summaries</h2>
+            <span class="muted small">Auto-refreshed when stale · 2 regenerated this visit</span>
+          </div>
+          <p class="muted small" style="margin-top: 4px;">
+            Each rule runs against a smart default — most recently closed
+            sprint, most recently updated project. To run for a different
+            scope or change a rule's defaults, head to
+            <a href="#page-insights-rules">Insights · Rules</a>.
           </p>
 
           <div class="three-panel">
 
-            <!-- Weekly briefing -->
-            <div class="panel">
+            <!-- Weekly briefing — fresh -->
+            <div class="panel" style="cursor: pointer;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-2);">
                 <strong>Weekly briefing</strong>
-                <span class="pill good">3 d ago</span>
+                <span class="pill good">fresh · 3 d ago</span>
               </div>
               <div class="muted small" style="margin-bottom: var(--space-2);">
-                Lead's Monday self-briefing. ~10 bullets across Trending up / down / stuck.
+                Lead's Monday self-briefing.
               </div>
-              <div style="background: var(--color-surface-2); padding: var(--space-2); border-radius: var(--radius-sm); font-size: var(--font-size-sm); margin-bottom: var(--space-2); line-height: 1.5;">
+              <div style="font-size: var(--font-size-sm); line-height: 1.6;">
                 <strong>Trending down</strong><br>
                 · Rohan's velocity dipped 35% — consider a 1:1<br>
                 · Project <code>poi1</code> ETD slipped 8 days<br>
                 <strong style="display: inline-block; margin-top: 4px;">Stuck</strong><br>
                 · <a class="jira-link" href="#">EEPD-104865</a> carrying over 5 sprints<br>
-                <span class="muted small">… 7 more</span>
               </div>
-              <div style="display: flex; gap: 6px;">
-                <button class="btn btn-primary" type="button" style="flex: 1;">Open</button>
-                <button class="btn btn-secondary" type="button">Run now</button>
+              <div class="muted small" style="margin-top: var(--space-2);">
+                <a href="#" style="color: inherit;">view full →</a>
               </div>
             </div>
 
-            <!-- Retro agenda -->
-            <div class="panel">
+            <!-- Retro agenda — for most-recent-closed sprint -->
+            <div class="panel" style="cursor: pointer;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-2);">
                 <strong>Retro agenda</strong>
-                <span class="pill neutral">2 sprints ago</span>
+                <span class="pill warn">running…</span>
               </div>
               <div class="muted small" style="margin-bottom: var(--space-2);">
-                Sprint-scoped. Wins / Misses / Churn / Blockers / Talking points.
+                For <strong>Search 2026-08</strong> (most recently closed).
               </div>
-              <label style="display: block; margin-bottom: var(--space-2);">
-                <span class="muted small">Sprint</span><br>
-                <select class="input" style="width: 100%;">
-                  <option>Search 2026-09 (active)</option>
-                  <option selected>Search 2026-08 (closed)</option>
-                  <option>Search 2026-07 (closed)</option>
-                </select>
-              </label>
-              <div style="display: flex; gap: 6px;">
-                <button class="btn btn-primary" type="button" style="flex: 1;">Open</button>
-                <button class="btn btn-secondary" type="button">Run now</button>
+              <div style="background: var(--color-surface-2); padding: var(--space-2); border-radius: var(--radius-sm); font-size: var(--font-size-sm); color: var(--color-text-muted); font-style: italic;">
+                Regenerating — sprint just closed. ~5 s.
               </div>
             </div>
 
-            <!-- Stakeholder update -->
-            <div class="panel">
+            <!-- Stakeholder update — disabled / off -->
+            <div class="panel" style="opacity: 0.6; background: var(--color-surface-2);">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-2);">
                 <strong>Stakeholder update</strong>
-                <span class="pill neutral">never run</span>
+                <span class="pill neutral">off</span>
               </div>
               <div class="muted small" style="margin-bottom: var(--space-2);">
-                3-paragraph status for your manager. ~150 words. Plain Markdown, copyable.
+                3-paragraph status for your manager.
               </div>
-              <div style="background: var(--color-surface-2); padding: var(--space-2); border-radius: var(--radius-sm); font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: var(--space-2); font-style: italic;">
-                Click "Run now" to generate the first one — uses ~150 tokens.
+              <div style="font-size: var(--font-size-sm); color: var(--color-text-muted); font-style: italic; margin-bottom: var(--space-2);">
+                Disabled. Last run was 5 weeks ago.
               </div>
-              <div style="display: flex; gap: 6px;">
-                <button class="btn btn-primary" type="button" style="flex: 1;" disabled>Open</button>
-                <button class="btn btn-secondary" type="button">Run now</button>
+              <div class="muted small">
+                <a href="#page-insights-rules">Enable in Rules →</a>
               </div>
             </div>
 
-            <!-- Project summary -->
-            <div class="panel">
+            <!-- Project summary — fresh, for most-recently-updated project -->
+            <div class="panel" style="cursor: pointer;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-2);">
                 <strong>Project summary</strong>
-                <span class="pill good">poi1 · today</span>
+                <span class="pill good">fresh · today</span>
               </div>
               <div class="muted small" style="margin-bottom: var(--space-2);">
-                Per-project narrative. Pick one, get a status story.
+                For <strong>poi1</strong> (most recently updated).
               </div>
-              <label style="display: block; margin-bottom: var(--space-2);">
-                <span class="muted small">Project</span><br>
-                <select class="input" style="width: 100%;">
-                  <option selected>poi1 (active)</option>
-                  <option>evs1 (active)</option>
-                </select>
-              </label>
-              <div style="display: flex; gap: 6px;">
-                <button class="btn btn-primary" type="button" style="flex: 1;">Open</button>
-                <button class="btn btn-secondary" type="button">Run now</button>
+              <div style="font-size: var(--font-size-sm); line-height: 1.6;">
+                <strong>Where it stands.</strong> 64% delivered (68/105 SP).
+                ETD by velocity 4 Jul, by sprint-asg 10 Jun. <br>
+                <strong>Risks.</strong> One epic has slipped to at-risk band.<br>
+                <span class="muted small">…</span>
+              </div>
+              <div class="muted small" style="margin-top: var(--space-2);">
+                <a href="#" style="color: inherit;">view full →</a>
               </div>
             </div>
           </div>
 
           <p class="muted small" style="margin-top: var(--space-4);">
-            Anomaly history is retained for 90 days under
-            <code>insight_runs</code>. Trends like "fired 3 of last 4 syncs"
-            are computed from that.
+            Stale thresholds are baked in per rule (weekly: 7 d; retro: when
+            sprint closes; stakeholder: when sprint ends; project: 7 d).
+            Anomaly + LLM history is retained for 90 days under
+            <code>insight_runs</code>.
           </p>
         </section>
 
@@ -1185,14 +1179,23 @@
             </table>
           </div>
 
-          <h2 style="margin-top: var(--space-5);">LLM rules <span class="muted small">(Claude · on-demand)</span></h2>
+          <h2 style="margin-top: var(--space-5);">LLM rules <span class="muted small">(Claude · auto-refresh stale)</span></h2>
+          <p class="muted small" style="margin-top:0;">
+            Each rule auto-runs when its output is stale (per-rule threshold).
+            <code>/insights</code> always shows the most-recent default-scope
+            output. To run for a non-default scope (e.g. a different sprint or
+            project), use "Run for…" here — that result lands on
+            <code>/insights</code>, replacing the default until the default
+            re-runs.
+          </p>
           <div class="datatable-demo">
             <table class="datatable">
               <thead>
                 <tr>
                   <th>Rule</th>
                   <th>Job</th>
-                  <th>Token budget</th>
+                  <th>Default scope</th>
+                  <th>Stale after</th>
                   <th>Last run</th>
                   <th>Status</th>
                   <th></th>
@@ -1200,44 +1203,40 @@
               </thead>
               <tbody>
                 <tr>
-                  <td><strong>weekly-briefing</strong><br><span class="muted small">v1 · Monday self-briefing</span></td>
+                  <td><strong>weekly-briefing</strong><br><span class="muted small">v1 · Monday self-briefing · 1.5K out / 3K in</span></td>
                   <td>A — lead</td>
-                  <td>1.5K out / 3K in</td>
+                  <td>—</td>
+                  <td>7 d</td>
                   <td>3 d ago</td>
                   <td><span class="pill good">on</span></td>
-                  <td>
-                    <button class="btn btn-secondary btn-small" type="button">Run</button>
-                  </td>
+                  <td><button class="btn btn-secondary btn-small" type="button">Run</button></td>
                 </tr>
                 <tr>
-                  <td><strong>retro-agenda</strong><br><span class="muted small">v1 · sprint-scoped</span></td>
+                  <td><strong>retro-agenda</strong><br><span class="muted small">v1 · sprint-scoped · 2K out / 4K in</span></td>
                   <td>B — retro</td>
-                  <td>2K out / 4K in</td>
+                  <td>most-recent closed sprint</td>
+                  <td>when sprint closes</td>
                   <td>2 sprints ago</td>
                   <td><span class="pill good">on</span></td>
-                  <td>
-                    <button class="btn btn-secondary btn-small" type="button">Run</button>
-                  </td>
+                  <td><button class="btn btn-secondary btn-small" type="button">Run for…</button></td>
                 </tr>
                 <tr>
-                  <td><strong>stakeholder-update</strong><br><span class="muted small">v1 · 3-paragraph manager view</span></td>
+                  <td><strong>stakeholder-update</strong><br><span class="muted small">v1 · 3-paragraph manager view · 0.6K out / 2.5K in</span></td>
                   <td>C — exec</td>
-                  <td>0.6K out / 2.5K in</td>
+                  <td>—</td>
+                  <td>when sprint ends</td>
                   <td>never</td>
-                  <td><span class="pill good">on</span></td>
-                  <td>
-                    <button class="btn btn-secondary btn-small" type="button">Run</button>
-                  </td>
+                  <td><span class="pill neutral">off</span></td>
+                  <td><button class="btn btn-secondary btn-small" type="button">Enable</button></td>
                 </tr>
                 <tr>
-                  <td><strong>project-summary</strong><br><span class="muted small">v1 · per-project narrative</span></td>
+                  <td><strong>project-summary</strong><br><span class="muted small">v1 · per-project narrative · 1.2K out / 3.5K in</span></td>
                   <td>—</td>
-                  <td>1.2K out / 3.5K in</td>
+                  <td>most recently updated project</td>
+                  <td>7 d</td>
                   <td>today</td>
                   <td><span class="pill good">on</span></td>
-                  <td>
-                    <button class="btn btn-secondary btn-small" type="button">Run</button>
-                  </td>
+                  <td><button class="btn btn-secondary btn-small" type="button">Run for…</button></td>
                 </tr>
               </tbody>
             </table>
