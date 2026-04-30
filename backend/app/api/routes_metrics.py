@@ -14,6 +14,7 @@ from app.db import get_session
 from app.metrics.blockers import blockers_for_sprint
 from app.metrics.burnup import burnup_for_sprint
 from app.metrics.carry_over import carry_over_for_sprint
+from app.metrics.epic_risk import classify_epic_risks, epic_throughput
 from app.metrics.velocity import velocity_for_sprint_window
 
 router = APIRouter(prefix="/api/v1/metrics", tags=["metrics"])
@@ -169,6 +170,101 @@ class ScopeChangeRow(BaseModel):
     sp_delta: Decimal | None
     detected_at: datetime
 
+
+# ---- Epic Risk ---------------------------------------------------------------
+
+class EpicRiskRow(BaseModel):
+    issue_key: str
+    summary: str
+    status: str
+    status_category: str
+    initiative_key: str | None
+    owner_account_id: str | None
+    owner_display_name: str | None
+    due_date: date | None
+    days_overdue: int | None
+    issue_count: int
+    sp_total: Decimal
+    sp_done: Decimal
+    days_since_activity: int | None
+    risk_band: str
+    risk_reasons: list[str]
+
+
+class EpicRiskSummary(BaseModel):
+    at_risk: int
+    watch: int
+    on_track: int
+    done: int
+
+
+class EpicRiskResponse(BaseModel):
+    summary: EpicRiskSummary
+    epics: list[EpicRiskRow]
+
+
+@router.get("/epic-risk", response_model=EpicRiskResponse)
+async def epic_risk(
+    session: AsyncSession = Depends(get_session),
+) -> EpicRiskResponse:
+    rows = await classify_epic_risks(session)
+    summary = EpicRiskSummary(at_risk=0, watch=0, on_track=0, done=0)
+    payload: list[EpicRiskRow] = []
+    for r in rows:
+        # Tally
+        if r.risk_band == "at_risk":
+            summary.at_risk += 1
+        elif r.risk_band == "watch":
+            summary.watch += 1
+        elif r.risk_band == "on_track":
+            summary.on_track += 1
+        else:
+            summary.done += 1
+        payload.append(
+            EpicRiskRow(
+                issue_key=r.issue_key,
+                summary=r.summary,
+                status=r.status,
+                status_category=r.status_category,
+                initiative_key=r.initiative_key,
+                owner_account_id=r.owner_account_id,
+                owner_display_name=r.owner_display_name,
+                due_date=r.due_date,
+                days_overdue=r.days_overdue,
+                issue_count=r.issue_count,
+                sp_total=r.sp_total,
+                sp_done=r.sp_done,
+                days_since_activity=r.days_since_activity,
+                risk_band=r.risk_band,
+                risk_reasons=r.risk_reasons,
+            )
+        )
+    return EpicRiskResponse(summary=summary, epics=payload)
+
+
+class ThroughputRow(BaseModel):
+    sprint_id: int
+    sprint_name: str
+    closed_epics: int
+
+
+@router.get("/epic-throughput", response_model=list[ThroughputRow])
+async def epic_throughput_endpoint(
+    sprint_window: int = Query(6, ge=1, le=24),
+    session: AsyncSession = Depends(get_session),
+) -> list[ThroughputRow]:
+    rows = await epic_throughput(session, sprint_window=sprint_window)
+    return [
+        ThroughputRow(
+            sprint_id=r.sprint_id,
+            sprint_name=r.sprint_name,
+            closed_epics=r.closed_epics,
+        )
+        for r in rows
+    ]
+
+
+# ---- Scope changes ------------------------------------------------------------
 
 @router.get("/scope-changes", response_model=list[ScopeChangeRow])
 async def scope_changes(
