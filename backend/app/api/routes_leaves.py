@@ -15,7 +15,9 @@ from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import and_, delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import get_settings
 from app.db import get_session
+from app.metrics.working_days import working_days
 from app.models import Leave, Person
 
 router = APIRouter(prefix="/api/v1/leaves", tags=["leaves"])
@@ -37,6 +39,7 @@ class LeaveBase(BaseModel):
 class LeaveOut(LeaveBase):
     id: int
     person_display_name: str | None = None
+    working_days: int | None = None  # weekdays in [start, end] minus holidays
     created_at: datetime
 
 
@@ -65,6 +68,12 @@ class UpcomingResponse(BaseModel):
 async def _enrich_with_display_name(
     session: AsyncSession, leaves: list[Leave]
 ) -> list[LeaveOut]:
+    """Attach display name + working-days count (weekdays minus holidays).
+
+    Uses the team's configured region from settings (defaults to IN).
+    Person leaves are NOT excluded — we're counting how many working days
+    THIS leave covers, not the person's available days.
+    """
     if not leaves:
         return []
     ids = {l.person_account_id for l in leaves}
@@ -72,8 +81,18 @@ async def _enrich_with_display_name(
         await session.execute(select(Person).where(Person.account_id.in_(ids)))
     ).scalars().all()
     by_id = {r.account_id: r.display_name for r in rows}
+
+    region = get_settings().team_region
+
     out: list[LeaveOut] = []
     for l in leaves:
+        wd = await working_days(
+            session,
+            start=l.start_date,
+            end=l.end_date,
+            region=region,
+            floor_at=0,
+        )
         out.append(
             LeaveOut(
                 id=l.id,
@@ -82,6 +101,7 @@ async def _enrich_with_display_name(
                 start_date=l.start_date,
                 end_date=l.end_date,
                 reason=l.reason,
+                working_days=wd,
                 created_at=l.created_at,
             )
         )
@@ -130,15 +150,23 @@ async def upcoming_leaves(
     for l in enriched:
         by_person[l.person_account_id].append(l)
 
+    region = get_settings().team_region
+
     people: list[UpcomingPersonWindow] = []
     for account_id, leaves in by_person.items():
-        total_days = sum(
-            max(
-                0,
-                (min(l.end_date, end) - max(l.start_date, today)).days + 1,
+        total_days = 0
+        for l in leaves:
+            clipped_start = max(l.start_date, today)
+            clipped_end = min(l.end_date, end)
+            if clipped_end < clipped_start:
+                continue
+            total_days += await working_days(
+                session,
+                start=clipped_start,
+                end=clipped_end,
+                region=region,
+                floor_at=0,
             )
-            for l in leaves
-        )
         people.append(
             UpcomingPersonWindow(
                 person_account_id=account_id,

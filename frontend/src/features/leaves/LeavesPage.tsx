@@ -239,25 +239,22 @@ function UpcomingTable() {
                 <th>Person</th>
                 <th>Start</th>
                 <th>End</th>
-                <th>Days</th>
+                <th>
+                  Working days{" "}
+                  <InfoIcon text="Weekdays in [start, end] minus holidays for the team's region. Sat/Sun are always excluded; entries in the holidays list (e.g. May 1 Labour Day) are also skipped." />
+                </th>
                 <th>Reason</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {all.map((l) => {
-                const days =
-                  Math.floor(
-                    (new Date(l.end_date).getTime() -
-                      new Date(l.start_date).getTime()) /
-                      86_400_000
-                  ) + 1;
                 return (
                   <tr key={l.id}>
                     <td>{l.person_display_name ?? l.person_account_id}</td>
                     <td>{fmtDate(l.start_date)}</td>
                     <td>{fmtDate(l.end_date)}</td>
-                    <td>{days}</td>
+                    <td>{l.working_days ?? "—"}</td>
                     <td>
                       {l.reason || <span className="muted">—</span>}
                     </td>

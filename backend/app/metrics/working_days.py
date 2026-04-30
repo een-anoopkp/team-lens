@@ -24,16 +24,24 @@ async def working_days(
     end: date,
     region: str = "IN",
     person_account_id: str | None = None,
+    floor_at: int = 1,
 ) -> int:
     """Count working weekdays in [start, end] minus holidays (and optionally a
-    specific person's leaves)."""
+    specific person's leaves).
+
+    `floor_at` is the minimum value returned. The default of 1 protects
+    velocity's div-by-zero denominator. For display use cases (e.g. the
+    leaves page showing "this leave covered 3 working days"), pass 0 so a
+    weekend-only or fully-on-holiday leave shows 0 instead of being lifted
+    to 1.
+    """
     if start > end:
-        return 1
+        return max(floor_at, 0)
 
     # NB: SQLAlchemy's named-param parser treats `:foo::date` ambiguously.
     # CAST(... AS date) sidesteps that.
     sql = """
-    SELECT GREATEST(1, COUNT(*)::int) AS days
+    SELECT GREATEST(:floor, COUNT(*)::int) AS days
     FROM generate_series(CAST(:start AS date), CAST(:end AS date), interval '1 day') AS d
     WHERE EXTRACT(ISODOW FROM d) BETWEEN 1 AND 5
       AND CAST(d AS date) NOT IN (
@@ -49,7 +57,12 @@ async def working_days(
           )
         """
 
-    params: dict = {"start": start, "end": end, "region": region}
+    params: dict = {
+        "start": start,
+        "end": end,
+        "region": region,
+        "floor": floor_at,
+    }
     if person_account_id is not None:
         params["person"] = person_account_id
 

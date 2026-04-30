@@ -129,6 +129,7 @@ export interface Leave {
   start_date: string;
   end_date: string;
   reason: string | null;
+  working_days: number | null;  // weekdays in [start, end] minus holidays
   created_at: string;
 }
 
