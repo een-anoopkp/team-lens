@@ -354,29 +354,6 @@ export function useHolidays(region = "IN") {
   });
 }
 
-export function useUpsertHoliday() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (body: {
-      holiday_date: string;
-      region: string;
-      name: string;
-    }) => postJSON<Holiday>("/api/v1/holidays", body),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["holidays"] }),
-  });
-}
-
-export function useDeleteHoliday() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ region, date }: { region: string; date: string }) =>
-      deleteVoid(
-        `/api/v1/holidays/${encodeURIComponent(region)}/${encodeURIComponent(date)}`
-      ),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["holidays"] }),
-  });
-}
-
 // ---- Settings ---------------------------------------------------------------
 
 export function useSettings() {
