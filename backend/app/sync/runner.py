@@ -339,11 +339,12 @@ class SyncRunner:
             await session.commit()
 
     async def _upsert_initiatives(self, issues: Iterable[dict]) -> None:
-        rows = [
-            transform.initiative_from_jira(i)
-            for i in issues
-            if ((i.get("fields") or {}).get("issuetype") or {}).get("name") == "Initiative"
-        ]
+        seen: dict[str, dict] = {}
+        for i in issues:
+            if ((i.get("fields") or {}).get("issuetype") or {}).get("name") == "Initiative":
+                row = transform.initiative_from_jira(i)
+                seen[row["issue_key"]] = row  # dedupe by PK
+        rows = list(seen.values())
         if not rows:
             return
         async with self._session_factory() as session:
@@ -363,11 +364,12 @@ class SyncRunner:
             await session.commit()
 
     async def _upsert_epics(self, issues: Iterable[dict]) -> None:
-        rows = [
-            transform.epic_from_jira(i)
-            for i in issues
-            if ((i.get("fields") or {}).get("issuetype") or {}).get("name") == "Epic"
-        ]
+        seen: dict[str, dict] = {}
+        for i in issues:
+            if ((i.get("fields") or {}).get("issuetype") or {}).get("name") == "Epic":
+                row = transform.epic_from_jira(i)
+                seen[row["issue_key"]] = row  # dedupe by PK
+        rows = list(seen.values())
         if not rows:
             return
         async with self._session_factory() as session:
@@ -389,7 +391,13 @@ class SyncRunner:
             await session.commit()
 
     async def _upsert_issues(self, batch: list[dict], stats: SyncStats) -> None:
-        rows = [transform.issue_from_jira(i, self._fields) for i in batch]
+        # Dedupe by issue_key — same issue can theoretically appear twice
+        # if the input batch has dupes (e.g. parents fetched a second time).
+        seen: dict[str, dict] = {}
+        for i in batch:
+            row = transform.issue_from_jira(i, self._fields)
+            seen[row["issue_key"]] = row
+        rows = list(seen.values())
         if not rows:
             return
         now = datetime.now(tz=UTC)
@@ -447,14 +455,16 @@ class SyncRunner:
 
     async def _replace_issue_sprints(self, batch: list[dict]) -> None:
         prefix = self._settings.jira_sprint_name_prefix
-        all_pairs: list[dict] = []
+        # Dedupe (issue_key, sprint_id) pairs — same pair from a duplicated issue
+        # in the batch would otherwise violate the PK on insert.
+        unique_pairs: set[tuple[str, int]] = set()
         keys_touched: set[str] = set()
         for issue in batch:
             keys_touched.add(issue["key"])
             for ik, sid in transform.issue_sprint_pairs(
                 issue, self._fields, sprint_name_prefix=prefix
             ):
-                all_pairs.append({"issue_key": ik, "sprint_id": sid})
+                unique_pairs.add((ik, sid))
 
         if not keys_touched:
             return
@@ -462,8 +472,12 @@ class SyncRunner:
             await session.execute(
                 delete(IssueSprint).where(IssueSprint.issue_key.in_(keys_touched))
             )
-            if all_pairs:
-                await session.execute(pg_insert(IssueSprint).values(all_pairs))
+            if unique_pairs:
+                await session.execute(
+                    pg_insert(IssueSprint).values(
+                        [{"issue_key": ik, "sprint_id": sid} for ik, sid in unique_pairs]
+                    )
+                )
             await session.commit()
 
     # ---- comments -----------------------------------------------------------
@@ -483,15 +497,17 @@ class SyncRunner:
 
         results = await asyncio.gather(*(fetch_one(k) for k in issue_keys))
 
-        rows: list[dict] = []
+        seen_comments: dict[str, dict] = {}
         seen_authors: dict[str, dict] = {}
         for key, items in results:
             for c in items:
-                rows.append(transform.comment_from_jira(c, key))
+                row = transform.comment_from_jira(c, key)
+                seen_comments[row["comment_id"]] = row  # dedupe by PK
                 author = (c.get("author") or {})
                 p = transform.person_from_user(author)
                 if p:
                     seen_authors[p["account_id"]] = p
+        rows = list(seen_comments.values())
 
         if seen_authors:
             await self._upsert_people_for([{"fields": {"creator": p}} for p in seen_authors.values()])

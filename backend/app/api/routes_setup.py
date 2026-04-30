@@ -84,6 +84,14 @@ async def configure_jira(payload: JiraSetupPayload) -> TestConnectionResponse:
         ) from e
 
     new_settings = reload_settings()
+
+    # Reset the cached runner so the next /sync/run picks up the new credentials.
+    # The existing runner captured settings at construction time and would
+    # otherwise keep using the previous (possibly invalid) token.
+    from app.main import reset_runner
+
+    reset_runner()
+
     logger.info(
         "jira_setup_success",
         account_id=myself.get("accountId"),

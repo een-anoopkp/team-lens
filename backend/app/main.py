@@ -61,6 +61,24 @@ def get_runner() -> SyncRunner | None:
     return _runner
 
 
+def reset_runner() -> None:
+    """Tear down the cached runner + scheduler so the next get_runner() rebuilds.
+
+    Called by /setup/jira after writing new credentials — the existing runner
+    captured settings at construction time and won't pick up the new token
+    otherwise.
+    """
+    global _runner, _scheduler
+    if _scheduler is not None:
+        try:
+            _scheduler.shutdown(wait=False)
+        except Exception:
+            logger.exception("scheduler_shutdown_failed_during_reset")
+        _scheduler = None
+    _runner = None
+    logger.info("runner_reset")
+
+
 def configure_logging(level: str) -> None:
     logging.basicConfig(level=level.upper())
     structlog.configure(
