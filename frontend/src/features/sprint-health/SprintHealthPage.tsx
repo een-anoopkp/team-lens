@@ -500,7 +500,10 @@ function ScopeChurnPanel({ sprintId }: { sprintId: number | undefined }) {
   // Expected to land via /metrics/scope-changes filtered by sprint_id
   return (
     <div className="panel">
-      <h3>Scope churn</h3>
+      <h3>
+        Scope churn{" "}
+        <InfoIcon text="Only counts events that change the size of the sprint: SP edits and mid-sprint additions. Status / assignee changes are operational and don't show up here." />
+      </h3>
       {sprintId == null ? (
         <p className="muted small">No sprint selected.</p>
       ) : (
@@ -525,11 +528,26 @@ function ScopeChurnLoader({ sprintId }: { sprintId: number }) {
   );
 
   if (!rows) return <p className="muted small">Loading…</p>;
-  if (rows.length === 0) return <p className="muted small">No scope changes detected.</p>;
 
-  const added = rows.filter((r) => r.change_type === "sp" && num(r.sp_delta) > 0);
-  const removed = rows.filter((r) => r.change_type === "sp" && num(r.sp_delta) < 0);
-  const midSprint = rows.filter((r) => r.change_type === "added_mid_sprint");
+  // Scope churn = events that change sprint size. Status / assignee
+  // changes are tracked elsewhere; they don't belong here.
+  const scopeRows = rows.filter(
+    (r) => r.change_type === "sp" || r.change_type === "added_mid_sprint"
+  );
+
+  if (scopeRows.length === 0) {
+    return <p className="muted small">No scope changes detected.</p>;
+  }
+
+  const added = scopeRows.filter(
+    (r) => r.change_type === "sp" && num(r.sp_delta) > 0
+  );
+  const removed = scopeRows.filter(
+    (r) => r.change_type === "sp" && num(r.sp_delta) < 0
+  );
+  const midSprint = scopeRows.filter(
+    (r) => r.change_type === "added_mid_sprint"
+  );
 
   return (
     <>
@@ -540,7 +558,7 @@ function ScopeChurnLoader({ sprintId }: { sprintId: number }) {
       </p>
       <table className="datatable">
         <tbody>
-          {rows.slice(0, 8).map((r, i) => (
+          {scopeRows.slice(0, 8).map((r, i) => (
             <tr key={`${r.issue_key}-${i}`}>
               <td><JiraLink issueKey={r.issue_key} /></td>
               <td>{r.change_type === "added_mid_sprint" ? "added mid-sprint" : `${r.old_value ?? "·"} → ${r.new_value ?? "·"}`}</td>
